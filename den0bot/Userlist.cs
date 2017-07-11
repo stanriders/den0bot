@@ -62,7 +62,7 @@ namespace den0bot
         Kkk = 18,
         
         [User("Дельта", 8971641)]
-        Kkk = 19,
+        deltaflux = 19,
 
         UserCount = 20
     }
