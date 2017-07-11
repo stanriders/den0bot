@@ -61,9 +61,12 @@ namespace den0bot
         [User("ккк", 4735736)]
         Kkk = 18,
         
-        [User("Кирюша", 2746956)]
-        Railgun = 19,
+        [User("Дельта", 8971641)]
+        deltaflux = 19,
 
-        UserCount = 20
+        [User("Кирюша", 2746956)]
+        Railgun = 20,
+
+        UserCount = 21
     }
 }
