@@ -60,7 +60,10 @@ namespace den0bot
 
         [User("ккк", 4735736)]
         Kkk = 18,
+        
+        [User("Кирюша", 2746956)]
+        Railgun = 19,
 
-        UserCount = 19
+        UserCount = 20
     }
 }
