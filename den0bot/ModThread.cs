@@ -8,7 +8,7 @@ namespace den0bot
 {
     class ModThread : IModule
     {
-        private readonly int default_post_amount = 5;
+        private readonly int default_post_amount = 0;
 
         public ModThread()
         {

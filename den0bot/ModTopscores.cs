@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Net;
-using System.Text;
 using Newtonsoft.Json.Linq;
 
 namespace den0bot
@@ -37,7 +35,7 @@ namespace den0bot
                 int id = Extensions.GetUserID((Users)i);
                 if (id != 0)
                 {
-                    JArray topscores = GetLastTopscore(id);
+                    JArray topscores = OsuAPI.GetLastTopscores(id);
 
                     List<string> scores = new List<string>();
                     for (int j = 0; j < scores_num; j++)
@@ -80,7 +78,7 @@ namespace den0bot
                     return;
                 }
 
-                JArray topscores = GetLastTopscore(userID);
+                JArray topscores = OsuAPI.GetLastTopscores(userID);
                 List<string> scores = latestTopscores[currentUser];
 
                 for (int scoreNum = 0; scoreNum < scores_num; scoreNum++)
@@ -89,9 +87,9 @@ namespace den0bot
 
                     if (topscoreString != scores[scoreNum])
                     {
-                        string mapInfo = Extensions.FilterToHTML(GetBeatmapInfo((uint)topscores[scoreNum]["beatmap_id"]));
+                        JToken map = OsuAPI.GetBeatmapInfo((uint)topscores[scoreNum]["beatmap_id"]);
+                        string mapInfo = Extensions.FilterToHTML(map["artist"].ToString() + " - " + map["title"].ToString() + " [" + map["version"].ToString() + "]");
                         API.SendMessageToAllChats("Там <b>" + Extensions.GetUsername((Users)currentUser) + "</b> фарманул новый скор: \n<i>" + mapInfo + "</i> | <b>" + topscoreString + " пп</b>! Поздравим сраного фармера!", null, Telegram.Bot.Types.Enums.ParseMode.Html);
-
                         for (int i = scoreNum; i < scores_num; i++ )
                             scores[i] = topscores[i]["pp"].ToString();
 
@@ -103,41 +101,6 @@ namespace den0bot
                     latestTopscores[currentUser] = scores;
             }
             catch (Exception ex) { Log.Error(this, "Update - " + ex.Message); }
-        }
-        private JArray GetLastTopscore(int user)
-        {
-            JArray obj = new JArray();
-            try
-            {
-                using (WebClient web = new WebClient())
-                {
-                    string request = "https://osu.ppy.sh/api/get_user_best?k=" + api_id + "&limit=5&u=" + user;
-
-                    var data = web.DownloadData(request);
-
-                    obj = JArray.Parse(Encoding.UTF8.GetString(data));
-                }
-            }
-            catch (Exception ex) { Log.Error(this, "GetLastTopscore - " + ex.Message); }
-            return obj;
-        }
-
-        private string GetBeatmapInfo(uint beatmapId)
-        {
-            JArray obj = new JArray();
-            try
-            {
-                using (WebClient web = new WebClient())
-                {
-                    string request = "https://osu.ppy.sh/api/get_beatmaps?k=" + api_id + "&limit=1&b=" + beatmapId;
-
-                    var data = web.DownloadData(request);
-
-                    obj = JArray.Parse(Encoding.UTF8.GetString(data));
-                }
-            }
-            catch (Exception ex) { Log.Error(this, "GetBeatmapInfo - " + ex.Message); }
-            return obj[0]["artist"].ToString() + " - " + obj[0]["title"].ToString() + " [" + obj[0]["version"].ToString() + "]";
         }
     }
 }

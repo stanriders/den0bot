@@ -25,6 +25,7 @@ namespace den0bot
             modules.Add(new ModYoutube());
             modules.Add(new ModRandom());
             modules.Add(new ModTopscores());
+            modules.Add(new ModProfile());
 
             if (API.Connect(this))
             {
