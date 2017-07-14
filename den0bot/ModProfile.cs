@@ -15,19 +15,19 @@ namespace den0bot
         {
             if (msg.Contains("osu.ppy.sh/u/") || msg.Contains("osu.ppy.sh/users/"))
             {
-                uint playerID = 0;
+                string playerID = string.Empty;
 
                 int index = msg.LastIndexOf("osu.ppy.sh/u/");
                 if (index > 0)
                 {
-                    playerID = uint.Parse(msg.Substring(index + 13));
+                    playerID = msg.Substring(index + 13);
                 }
                 else
                 {
                     index = msg.LastIndexOf("osu.ppy.sh/users/");
                     if (index > 0)
                     {
-                        playerID = uint.Parse(msg.Substring(index + 17));
+                        playerID = msg.Substring(index + 17);
                     }
                 }
                 return FormatPlayerInfo(playerID);
@@ -35,10 +35,10 @@ namespace den0bot
             return string.Empty;
         }
 
-        private string FormatPlayerInfo(uint playerID)
+        private string FormatPlayerInfo(string playerID)
         {
             JToken info = OsuAPI.GetPlayerInfo(playerID);
-            JArray topscores = OsuAPI.GetLastTopscores((int)playerID, 3);
+            JArray topscores = OsuAPI.GetLastTopscores(int.Parse(info["user_id"].ToString()), 3);
 
             string username, rank, pp, playcount;
                 username = info["username"].ToString();

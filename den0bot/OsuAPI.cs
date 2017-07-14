@@ -62,11 +62,11 @@ namespace den0bot
         /// <summary>
         /// Returns JToken with player's info from API
         /// </summary>
-        public static JToken GetPlayerInfo(uint profileID)
+        public static JToken GetPlayerInfo(string profileID)
         {
             JToken result = null;
 
-            if (profileID <= 0)
+            if (profileID == string.Empty)
                 return result;
 
             try
