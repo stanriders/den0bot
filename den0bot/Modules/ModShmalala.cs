@@ -1,6 +1,6 @@
 ﻿//using Neural.NET;
 
-namespace den0bot
+namespace den0bot.Modules
 {
     class ModShmalala : IModule
     {

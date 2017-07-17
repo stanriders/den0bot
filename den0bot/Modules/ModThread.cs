@@ -4,7 +4,7 @@ using System.Net;
 using System.Text;
 using Newtonsoft.Json.Linq;
 
-namespace den0bot
+namespace den0bot.Modules
 {
     class ModThread : IModule
     {

@@ -1,8 +1,9 @@
 ﻿
+using System;
 using Newtonsoft.Json.Linq;
 using Telegram.Bot.Types;
 
-namespace den0bot
+namespace den0bot.Modules
 {
     class ModProfile : IModule
     {
@@ -48,10 +49,18 @@ namespace den0bot
 
             string formatedTopscores = string.Empty;
 
-            for (int i = 0; i < 3; i++)
+            for (int i = 0; i < topscores.Count; i++)
             {
+                JToken score = topscores[i];
                 JToken map = OsuAPI.GetBeatmapInfo((uint)topscores[i]["beatmap_id"]);
-                formatedTopscores += (i+1) + ". " + map["artist"].ToString() + " - " + map["title"].ToString() + " [" + map["version"].ToString() + "] - " + topscores[i]["pp"] + "pp\n";
+
+                string mods = string.Empty;
+                OsuAPI.Mods enabledMods = (OsuAPI.Mods)Enum.Parse(typeof(OsuAPI.Mods), score["enabled_mods"].ToString());
+                if (enabledMods > 0)
+                    mods = " +" + enabledMods.ToString().Replace(", ", "");
+
+                // 1. Artist - Title [Diffname] +Mods - 123pp
+                formatedTopscores += (i+1) + ". " + map["artist"].ToString() + " - " + map["title"].ToString() + " [" + map["version"].ToString() + "]" + mods + " - " + score["pp"] + "pp\n";
             }
 
             return username + " - #" + rank + " (" + pp + "pp)" + "\nPlaycount: " + playcount + "\n______\n" + formatedTopscores;

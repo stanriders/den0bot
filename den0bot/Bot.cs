@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
+using den0bot.Modules;
 
 namespace den0bot
 {
@@ -90,8 +91,10 @@ namespace den0bot
 
             if (msg.StartsWith("/"))
             {
+#if diggerTupoi
                 if (message.From.Username == "firedigger" || message.From.Username == "@firedigger")
                     return Events.Annoy();
+#endif
 
                 string e = Events.Event();
                 if (e != string.Empty)

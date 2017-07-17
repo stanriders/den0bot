@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using Newtonsoft.Json.Linq;
 
-namespace den0bot
+namespace den0bot.Modules
 {
     class ModTopscores : IModule
     {

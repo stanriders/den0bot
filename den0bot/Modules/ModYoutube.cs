@@ -4,7 +4,7 @@ using System.Text;
 
 using Newtonsoft.Json.Linq;
 
-namespace den0bot
+namespace den0bot.Modules
 {
     // check CirclePeople's youtube channel and post new highscores to all chats
     class ModYoutube : IModule

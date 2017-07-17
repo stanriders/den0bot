@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace den0bot
+namespace den0bot.Modules
 {
     class ModRandom : IModule
     {
