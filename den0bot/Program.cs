@@ -6,8 +6,9 @@ namespace den0bot
     {
         static void Main(string[] args)
         {
+            Log.Info("", Environment.NewLine + "Starting at " + DateTime.Now);
             new Bot().Start();
-            Console.WriteLine("Exiting...");
+            Log.Info("", "Exiting...");
             Console.Read();
         }
     }

@@ -10,8 +10,8 @@ namespace den0bot
             => value.GetType().GetField(value.ToString())
             .GetCustomAttribute<UserAttribute>()?.Name ?? value.ToString();
 
-        public static int GetUserID(this Enum value)
-            => value.GetType().GetField(value.ToString()).GetCustomAttribute<UserAttribute>()?.ID ?? int.Parse(value.ToString());
+        public static uint GetUserID(this Enum value)
+            => value.GetType().GetField(value.ToString()).GetCustomAttribute<UserAttribute>()?.ID ?? uint.Parse(value.ToString());
 
         public static string FilterHTML(string value)
         {

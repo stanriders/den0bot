@@ -1,7 +1,7 @@
 ﻿
-using System;
-using Newtonsoft.Json.Linq;
+using System.Collections.Generic;
 using Telegram.Bot.Types;
+using den0bot.Osu;
 
 namespace den0bot.Modules
 {
@@ -11,6 +11,7 @@ namespace den0bot.Modules
 
         public override bool NeedsAllMessages() => true;
         public override void Think() { }
+        public ModProfile() { Log.Info(this, "Enabled"); }
 
         public override string ProcessCommand(string msg, Chat sender)
         {
@@ -38,32 +39,29 @@ namespace den0bot.Modules
 
         private string FormatPlayerInfo(string playerID)
         {
-            JToken info = OsuAPI.GetPlayerInfo(playerID);
-            JArray topscores = OsuAPI.GetLastTopscores(int.Parse(info["user_id"].ToString()), 3);
+            Player info = OsuAPI.GetPlayer(playerID);
+            List<Score> topscores = OsuAPI.GetTopscores(info.ID, 3);
 
-            string username, rank, pp, playcount;
-                username = info["username"].ToString();
-                rank = info["pp_rank"].ToString();
-                pp = info["pp_raw"].ToString();
-                playcount = info["playcount"].ToString();
+            if (info == null || topscores.Count <= 0)
+                return string.Empty;
 
             string formatedTopscores = string.Empty;
 
             for (int i = 0; i < topscores.Count; i++)
             {
-                JToken score = topscores[i];
-                JToken map = OsuAPI.GetBeatmapInfo((uint)topscores[i]["beatmap_id"]);
+                Score score = topscores[i];
+                Map map = OsuAPI.GetBeatmap(score.BeatmapID);
 
                 string mods = string.Empty;
-                OsuAPI.Mods enabledMods = (OsuAPI.Mods)Enum.Parse(typeof(OsuAPI.Mods), score["enabled_mods"].ToString());
+                Mods enabledMods = score.EnabledMods;
                 if (enabledMods > 0)
                     mods = " +" + enabledMods.ToString().Replace(", ", "");
 
                 // 1. Artist - Title [Diffname] +Mods - 123pp
-                formatedTopscores += (i+1) + ". " + map["artist"].ToString() + " - " + map["title"].ToString() + " [" + map["version"].ToString() + "]" + mods + " - " + score["pp"] + "pp\n";
+                formatedTopscores += (i+1) + ". " + map.Artist + " - " + map.Title + " [" + map.Difficulty + "]" + mods + " - " + score.Pp + "pp\n";
             }
 
-            return username + " - #" + rank + " (" + pp + "pp)" + "\nPlaycount: " + playcount + "\n______\n" + formatedTopscores;
+            return info.Username + " - #" + info.Rank + " (" + info.Pp + "pp)" + "\nPlaycount: " + info.Playcount + "\n______\n" + formatedTopscores;
         }
     }
 }

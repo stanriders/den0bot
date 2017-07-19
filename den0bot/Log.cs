@@ -17,7 +17,7 @@ namespace den0bot
 
             Console.Write(result);
 
-            WriteStringToFile(text, Environment.CurrentDirectory + "/log.txt");
+            File.AppendAllText(Environment.CurrentDirectory + "/log.txt", result);
         }
 
         public static void Info(object source, string text)
@@ -31,18 +31,7 @@ namespace den0bot
 
             Console.Write(result);
 
-            WriteStringToFile(text, Environment.CurrentDirectory + "/log.txt");
-        }
-
-        public static void WriteStringToFile(string text, string path, bool encoding = false)
-        {
-            try
-            {
-                StreamWriter fs = new StreamWriter(path, true, (!encoding) ? System.Text.Encoding.GetEncoding(1251) : System.Text.Encoding.GetEncoding(65001));
-                fs.Write(text + "\n");
-                fs.Close();
-            }
-            catch (Exception e) { Console.WriteLine("WriteStringToFile: " + e.Message);  }
+            File.AppendAllText(Environment.CurrentDirectory + "/log.txt", result);
         }
     }
 }

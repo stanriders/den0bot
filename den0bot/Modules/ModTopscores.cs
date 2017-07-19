@@ -1,13 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
-using Newtonsoft.Json.Linq;
+using den0bot.Osu;
 
 namespace den0bot.Modules
 {
     class ModTopscores : IModule
     {
         private DateTime nextCheck;
-        private Dictionary<int, List<string>> latestTopscores;
+        private Dictionary<int, List<Score>> latestTopscores;
 
         private int currentUser = 0;
         private Random rng = new Random();
@@ -19,9 +19,11 @@ namespace den0bot.Modules
         public ModTopscores()
         {
             nextCheck = DateTime.Now;
-            latestTopscores = new Dictionary<int, List<string>>();
+            latestTopscores = new Dictionary<int, List<Score>>();
 
+#if !DEBUG
             Start();
+#endif
 
             Log.Info(this, "Enabled");
         }
@@ -32,18 +34,14 @@ namespace den0bot.Modules
 
             for (int i = 0; i < (int)Users.UserCount; i++)
             {
-                int id = Extensions.GetUserID((Users)i);
+                uint id = Extensions.GetUserID((Users)i);
                 if (id != 0)
                 {
-                    JArray topscores = OsuAPI.GetLastTopscores(id);
+                    List<Score> topscores = OsuAPI.GetTopscores(id, scores_num);
+                    if (topscores.Count <= 0)
+                        continue;
 
-                    List<string> scores = new List<string>();
-                    for (int j = 0; j < scores_num; j++)
-                    {
-                        scores.Add(topscores[j]["pp"].ToString());
-                    }
-                    latestTopscores.Add(i, scores);
-
+                    latestTopscores.Add(i, topscores);
                 }
             }
         }
@@ -55,11 +53,13 @@ namespace den0bot.Modules
 
         public override void Think()
         {
+#if !DEBUG
             if (nextCheck < DateTime.Now)
             {
                 Update();
                 nextCheck = DateTime.Now.AddMinutes(check_interval);
             }
+#endif
         }
 
         private void Update()
@@ -71,34 +71,31 @@ namespace den0bot.Modules
                 if (currentUser == (int)Users.UserCount)
                     currentUser = 0;
 
-                int userID = Extensions.GetUserID((Users)currentUser);
+                uint userID = Extensions.GetUserID((Users)currentUser);
                 if (userID == 0)
                 {
                     Update(); // we just do next user
                     return;
                 }
 
-                JArray topscores = OsuAPI.GetLastTopscores(userID);
-                List<string> scores = latestTopscores[currentUser];
+                List<Score> oldTopscores = latestTopscores[currentUser];
+                List<Score> currentTopscores = OsuAPI.GetTopscores(userID, scores_num);
+                if (currentTopscores.Count <= 0)
+                    return;
 
-                for (int scoreNum = 0; scoreNum < scores_num; scoreNum++)
+                for (int scoreNum = 0; scoreNum < currentTopscores.Count; scoreNum++)
                 {
-                    string topscoreString = topscores[scoreNum]["pp"].ToString();
-
-                    if (topscoreString != scores[scoreNum])
+                    if (currentTopscores[scoreNum].Pp != oldTopscores[scoreNum].Pp)
                     {
-                        JToken map = OsuAPI.GetBeatmapInfo((uint)topscores[scoreNum]["beatmap_id"]);
-                        string mapInfo = Extensions.FilterToHTML(map["artist"].ToString() + " - " + map["title"].ToString() + " [" + map["version"].ToString() + "]");
-                        API.SendMessageToAllChats("Там <b>" + Extensions.GetUsername((Users)currentUser) + "</b> фарманул новый скор: \n<i>" + mapInfo + "</i> | <b>" + topscoreString + " пп</b>! Поздравим сраного фармера!", null, Telegram.Bot.Types.Enums.ParseMode.Html);
-                        for (int i = scoreNum; i < scores_num; i++ )
-                            scores[i] = topscores[i]["pp"].ToString();
+                        Map map = OsuAPI.GetBeatmap(currentTopscores[scoreNum].BeatmapID);
+                        string mapInfo = Extensions.FilterToHTML(map.Artist + " - " + map.Title + " [" + map.Difficulty + "]");
 
+                        API.SendMessageToAllChats("Там <b>" + Extensions.GetUsername((Users)currentUser) + "</b> фарманул новый скор: \n<i>" + mapInfo + "</i> | <b>" + currentTopscores[scoreNum].Pp + " пп</b>! Поздравим сраного фармера!", null, Telegram.Bot.Types.Enums.ParseMode.Html);
                         break;
                     }
                 }
 
-                if (latestTopscores[currentUser] != scores)
-                    latestTopscores[currentUser] = scores;
+                latestTopscores[currentUser] = currentTopscores;
             }
             catch (Exception ex) { Log.Error(this, "Update - " + ex.Message); }
         }

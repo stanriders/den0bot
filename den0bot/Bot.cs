@@ -56,20 +56,16 @@ namespace den0bot
             {
                 if (ChatList.Count > 0)
                 {
-                    foreach (Chat x in ChatList)
+                    if (ChatList.FindIndex(chat => chat.Id == senderChat.Id) == -1)
                     {
-                        if (x.Id.ToString() == senderChat.Id.ToString()) // THIS IS FUCKING RETARDED BUT THATS THE ONLY WAY
-                            break;
-
                         ChatList.Add(senderChat);
-                        Log.Info(this, "Added chat '" + msg.Chat.Title + "' to the chat list" + x.Title);
-                        break;
+                        Log.Info(this, "Added chat '" + msg.Chat.Title + "' to the chat list");
                     }
                 }
                 else
                 {
                     ChatList.Add(senderChat);
-                    Log.Info(this, "Added chat '" + msg.Chat.Title.Normalize() + "' to the chat list");
+                    Log.Info(this, "Added chat '" + msg.Chat.Title + "' to the chat list");
                 }
             }
 
