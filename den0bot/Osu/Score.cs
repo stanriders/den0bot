@@ -24,5 +24,29 @@ namespace den0bot.Osu
         public Mods EnabledMods;
         public string Rank;
         public double Pp;
+
+        public override bool Equals(object obj)
+        {
+            Score b = obj as Score;
+            if (ReferenceEquals(this, b))
+                return true;
+
+            if (b == null)
+                return false;
+
+            return ScoreID == b.ScoreID && Date == b.Date;
+        }
+        public override int GetHashCode()
+        {
+            return ScoreID.GetHashCode() ^ Date.GetHashCode();
+        }
+        public static bool operator ==(Score a, Score b)
+        {
+            return Equals(a, b);
+        }
+        public static bool operator !=(Score a, Score b)
+        {
+            return !Equals(a, b);
+        }
     }
 }

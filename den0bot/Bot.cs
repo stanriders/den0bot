@@ -11,9 +11,6 @@ namespace den0bot
     {
         private List<IModule> modules;
         public static List<Chat> ChatList = new List<Chat>();
-        public static DateTime CurrentTime;
-
-        public readonly DateTime StartupTime = DateTime.Now;
 
         public Bot()
         {
@@ -27,6 +24,7 @@ namespace den0bot
             modules.Add(new ModRandom());
             modules.Add(new ModTopscores());
             modules.Add(new ModProfile());
+            modules.Add(new ModBeatmap());
 
             if (API.Connect(this))
             {

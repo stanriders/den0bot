@@ -8,7 +8,7 @@ namespace den0bot.Modules
         private Random rng;
 
         private List<int> usedMemes;
-        private readonly string[] memeBase = Config.memes;
+        private readonly List<string> memeBase = Config.memes;
 
         public ModRandom()
         {
@@ -77,10 +77,10 @@ namespace den0bot.Modules
 
         private string GetRandomMeme(Telegram.Bot.Types.Chat sender)
         {
-            if (usedMemes.Count == memeBase.Length - 1)
+            if (usedMemes.Count == memeBase.Count)
                 usedMemes.Clear();
 
-            int num = rng.Next(0, memeBase.Length);
+            int num = rng.Next(0, memeBase.Count+1);
             if (usedMemes.Find(x => x == num) != 0)
                 return GetRandomMeme(sender);
 

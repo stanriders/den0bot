@@ -38,8 +38,11 @@ namespace den0bot.Modules
                 if (id != 0)
                 {
                     List<Score> topscores = OsuAPI.GetTopscores(id, scores_num);
-                    if (topscores.Count <= 0)
+                    if (topscores == null || topscores.Count <= 0)
+                    {
+                        latestTopscores.Add(i, new List<Score>() { new Score() { Pp = 0 } });
                         continue;
+                    }
 
                     latestTopscores.Add(i, topscores);
                 }
@@ -80,17 +83,20 @@ namespace den0bot.Modules
 
                 List<Score> oldTopscores = latestTopscores[currentUser];
                 List<Score> currentTopscores = OsuAPI.GetTopscores(userID, scores_num);
-                if (currentTopscores.Count <= 0)
+                if (currentTopscores == null || currentTopscores.Count <= 0)
                     return;
 
                 for (int scoreNum = 0; scoreNum < currentTopscores.Count; scoreNum++)
                 {
-                    if (currentTopscores[scoreNum].Pp != oldTopscores[scoreNum].Pp)
+                    if (currentTopscores[scoreNum] != oldTopscores[scoreNum])
                     {
-                        Map map = OsuAPI.GetBeatmap(currentTopscores[scoreNum].BeatmapID);
-                        string mapInfo = Extensions.FilterToHTML(map.Artist + " - " + map.Title + " [" + map.Difficulty + "]");
+                        if (oldTopscores[scoreNum].Pp != 0)
+                        {
+                            Map map = OsuAPI.GetBeatmap(currentTopscores[scoreNum].BeatmapID);
+                            string mapInfo = Extensions.FilterToHTML(map.Artist + " - " + map.Title + " [" + map.Difficulty + "]");
 
-                        API.SendMessageToAllChats("Там <b>" + Extensions.GetUsername((Users)currentUser) + "</b> фарманул новый скор: \n<i>" + mapInfo + "</i> | <b>" + currentTopscores[scoreNum].Pp + " пп</b>! Поздравим сраного фармера!", null, Telegram.Bot.Types.Enums.ParseMode.Html);
+                            API.SendMessageToAllChats("Там <b>" + Extensions.GetUsername((Users)currentUser) + "</b> фарманул новый скор: \n<i>" + mapInfo + "</i> | <b>" + currentTopscores[scoreNum].Pp + " пп</b>! Поздравим сраного фармера!", null, Telegram.Bot.Types.Enums.ParseMode.Html);
+                        }
                         break;
                     }
                 }

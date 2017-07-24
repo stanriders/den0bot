@@ -88,12 +88,15 @@
     <Compile Include="IModule.cs" />
     <Compile Include="Log.cs" />
     <Compile Include="Events.cs" />
+    <Compile Include="Modules\ModBeatmap.cs" />
     <Compile Include="Modules\ModProfile.cs" />
     <Compile Include="Modules\ModRandom.cs" />
     <Compile Include="Modules\ModShmalala.cs" />
     <Compile Include="Modules\ModThread.cs" />
     <Compile Include="Modules\ModTopscores.cs" />
     <Compile Include="Modules\ModYoutube.cs" />
+    <Compile Include="Osu\Oppai.cs" />
+    <Compile Include="Osu\OppaiInfo.cs" />
     <Compile Include="Osu\Map.cs" />
     <Compile Include="Osu\Mods.cs" />
     <Compile Include="Osu\OsuAPI.cs" />

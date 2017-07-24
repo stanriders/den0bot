@@ -1,4 +1,5 @@
-﻿
+﻿using System.Collections.Generic;
+
 namespace den0bot
 {
     public static class Config
@@ -7,7 +8,7 @@ namespace den0bot
         public static readonly string osu_token = REPLACE_ME;
         public static readonly string youtube_token = REPLACE_ME;
 
-        public static readonly string[] memes =
+        public static readonly List<string> memes = new List<string>()
         {
             "http://i.imgur.com/qfXXsZD.jpg",
             "http://i.imgur.com/MJHZuPW.jpg",
@@ -76,7 +77,8 @@ namespace den0bot
             "http://i.imgur.com/VE4y3rM.jpg",
             "http://i.imgur.com/Qot2k5t.png",
             "http://i.imgur.com/jDgMb2K.png",
-            "http://i.imgur.com/r9ZSIF4.png"
+            "http://i.imgur.com/r9ZSIF4.png",
+            "http://i.imgur.com/QpMg8SF.png"
         };
     }
 }

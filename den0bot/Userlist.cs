@@ -55,18 +55,15 @@ namespace den0bot
         [User("Ельцин", 5217336)]
         Qwerty = 16,
 
-        [User("Жека", 4880222)]
-        Emabb = 17,
-
         [User("ккк", 4735736)]
-        Kkk = 18,
+        Kkk = 17,
         
         [User("Дельта", 8971641)]
-        deltaflux = 19,
+        deltaflux = 18,
 
         [User("Кирюша", 2746956)]
-        Railgun = 20,
+        Railgun = 19,
 
-        UserCount = 21
+        UserCount = 20
     }
 }

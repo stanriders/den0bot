@@ -40,9 +40,11 @@ namespace den0bot.Modules
         private string FormatPlayerInfo(string playerID)
         {
             Player info = OsuAPI.GetPlayer(playerID);
-            List<Score> topscores = OsuAPI.GetTopscores(info.ID, 3);
+            if (info == null)
+                return string.Empty;
 
-            if (info == null || topscores.Count <= 0)
+            List<Score> topscores = OsuAPI.GetTopscores(info.ID, 3);
+            if (topscores == null || topscores.Count <= 0)
                 return string.Empty;
 
             string formatedTopscores = string.Empty;
@@ -58,10 +60,10 @@ namespace den0bot.Modules
                     mods = " +" + enabledMods.ToString().Replace(", ", "");
 
                 // 1. Artist - Title [Diffname] +Mods - 123pp
-                formatedTopscores += (i+1) + ". " + map.Artist + " - " + map.Title + " [" + map.Difficulty + "]" + mods + " - " + score.Pp + "pp\n";
+                formatedTopscores += string.Format("{0}. {1} - {2} [{3}]{4} - {5}pp\n", (i+1), map.Artist, map.Title, map.Difficulty, mods, score.Pp);
             }
 
-            return info.Username + " - #" + info.Rank + " (" + info.Pp + "pp)" + "\nPlaycount: " + info.Playcount + "\n______\n" + formatedTopscores;
+            return string.Format("{0} - #{1} ({2}pp)\nPlaycount: {3}\n______\n{4}", info.Username, info.Rank, info.Pp, info.Playcount, formatedTopscores);
         }
     }
 }

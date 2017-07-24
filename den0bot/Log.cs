@@ -13,9 +13,11 @@ namespace den0bot
             if (sourceName == "String")
                 sourceName = (string)source;
 
-            string result = "(" + DateTime.Now + ") " + sourceName + ": " + text + Environment.NewLine;
+            string result = string.Format("({0}) [ERROR] {1}: {2}" + Environment.NewLine, DateTime.Now, sourceName, text);
 
+            Console.ForegroundColor = ConsoleColor.Red;
             Console.Write(result);
+            Console.ResetColor();
 
             File.AppendAllText(Environment.CurrentDirectory + "/log.txt", result);
         }
@@ -27,7 +29,7 @@ namespace den0bot
             if (sourceName == "String")
                 sourceName = (string)source;
 
-            string result = sourceName + ": " + text + Environment.NewLine;
+            string result = string.Format("({0}) {1}: {2}" + Environment.NewLine, DateTime.Now, sourceName, text);
 
             Console.Write(result);
 

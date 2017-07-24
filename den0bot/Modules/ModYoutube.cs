@@ -12,7 +12,7 @@ namespace den0bot.Modules
         private DateTime nextCheck;
 
         private readonly string api_key = Config.youtube_token;
-        private readonly string channel_id = "UCt1GKXk_zkcBUEwAeXZ43RA";  // CirclePeople
+        private readonly string channel_id = "UC-Slh6DZ_G-_hqmjZFtlusg";  // osu!content
         private readonly double check_interval = 1.0; // minutes
 
         public ModYoutube()

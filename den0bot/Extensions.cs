@@ -7,8 +7,7 @@ namespace den0bot
     public static class Extensions
     {
         public static string GetUsername(this Enum value)
-            => value.GetType().GetField(value.ToString())
-            .GetCustomAttribute<UserAttribute>()?.Name ?? value.ToString();
+            => value.GetType().GetField(value.ToString()).GetCustomAttribute<UserAttribute>()?.Name ?? value.ToString();
 
         public static uint GetUserID(this Enum value)
             => value.GetType().GetField(value.ToString()).GetCustomAttribute<UserAttribute>()?.ID ?? uint.Parse(value.ToString());
