@@ -21,5 +21,6 @@ namespace den0bot.Osu
         public uint DrainLength;
         public uint TotalLength;
 
+        public double BPM;
     }
 }

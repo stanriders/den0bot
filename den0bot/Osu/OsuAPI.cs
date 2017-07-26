@@ -23,6 +23,7 @@ namespace den0bot.Osu
                 {
                     string request = "https://osu.ppy.sh/api/get_user_best?k=" + Config.osu_token + "&limit=" + amount + "&u=" + user;
                     var data = web.DownloadData(request);
+                    web.Dispose();
 
                     JArray arr = JArray.Parse(Encoding.UTF8.GetString(data));
 
@@ -61,12 +62,12 @@ namespace den0bot.Osu
         }
 
         /// <summary>
-        /// Returns Beatmap's ID from BeatmapSet
+        /// Returns List of beatmaps from a beatmapset
         /// </summary>
-        public static uint GetBeatmapIDFromSet(uint beatmapsetID)
+        public static List<Map> GetBeatmapSet(uint beatmapsetID)
         {
             if (beatmapsetID <= 0)
-                return 0;
+                return null;
 
             try
             {
@@ -82,14 +83,21 @@ namespace den0bot.Osu
 
                 if (arr.Count > 0)
                 {
-                    JToken info = arr.Last(x => x["mode"].Value<int>() == 0); // ignore everything that is not std
-                    if (info != null)
-                        return info["beatmap_id"].Value<uint>();
+                    List<Map> beatmapSet = new List<Map>();
+                    foreach (JToken mapToken in arr)
+                    {
+                        if (mapToken["mode"].Value<int>() != 0) // ignore everything that is not std
+                            continue;
+
+                        Map map = ParseBeatmap(mapToken);
+                        beatmapSet.Add(map);
+                    }
+                    return beatmapSet;
                 }
             }
-            catch (Exception ex) { Log.Error("osuAPI", "GetBeatmapIDFromSet - " + ex.Message); }
+            catch (Exception ex) { Log.Error("osuAPI", "GetBeatmapSet - " + ex.Message); }
 
-            return 0;
+            return null;
         }
 
         /// <summary>
@@ -106,35 +114,47 @@ namespace den0bot.Osu
                 {
                     string request = "https://osu.ppy.sh/api/get_beatmaps?k=" + Config.osu_token + "&limit=1&b=" + beatmapID;
                     var data = web.DownloadData(request);
+                    web.Dispose();
 
                     JArray arr = JArray.Parse(Encoding.UTF8.GetString(data));
                     if (arr.Count > 0)
-                    {
-                        JToken info = arr[0];
-
-                        Map result = new Map();
-                        result.BeatmapID = info["beatmap_id"].Value<uint>();
-                        result.BeatmapSetID = info["beatmapset_id"].Value<uint>();
-                        result.Status = info["approved"].Value<int>();
-
-                        result.UpdatedDate = info["last_update"].Value<DateTime>();
-                        result.RankedDate = info["approved_date"].Value<DateTime>();
-
-                        result.Artist = info["artist"].ToString();
-                        result.Title = info["title"].ToString();
-                        result.Difficulty = info["version"].ToString();
-                        result.Creator = info["creator"].ToString();
-
-                        result.MaxCombo = info["max_combo"].Value<uint>();
-                        result.DrainLength = info["hit_length"].Value<uint>();
-                        result.TotalLength = info["total_length"].Value<uint>();
-
-                        return result;
-                    }
+                        return ParseBeatmap(arr[0]);
                 }
             }
             catch (Exception ex) { Log.Error("osuAPI", "GetBeatmap - " + ex.Message); }
 
+            return null;
+        }
+
+        /// <summary>
+        /// Parses JToken into Map
+        /// </summary>
+        public static Map ParseBeatmap(JToken token)
+        {
+            if (token.Count() > 0)
+            {
+                Map result = new Map();
+                result.BeatmapID = token["beatmap_id"].Value<uint>();
+                result.BeatmapSetID = token["beatmapset_id"].Value<uint>();
+                result.Status = token["approved"].Value<int>();
+
+                result.UpdatedDate = token["last_update"].Value<DateTime>();
+                if (result.Status > 0)
+                    result.RankedDate = token["approved_date"].Value<DateTime>();
+
+                result.Artist = token["artist"].ToString();
+                result.Title = token["title"].ToString();
+                result.Difficulty = token["version"].ToString();
+                result.Creator = token["creator"].ToString();
+
+                result.MaxCombo = token["max_combo"].Value<uint>();
+                result.DrainLength = token["hit_length"].Value<uint>();
+                result.TotalLength = token["total_length"].Value<uint>();
+
+                result.BPM = token["bpm"].Value<double>();
+
+                return result;
+            }
             return null;
         }
 
@@ -152,6 +172,7 @@ namespace den0bot.Osu
                 {
                     string request = "https://osu.ppy.sh/api/get_user?k=" + Config.osu_token + "&u=" + profileID;
                     var data = web.DownloadData(request);
+                    web.Dispose();
 
                     JArray arr = JArray.Parse(Encoding.UTF8.GetString(data));
                     if (arr.Count > 0)
