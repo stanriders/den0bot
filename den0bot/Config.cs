@@ -6,7 +6,7 @@ namespace den0bot
     {
         public static readonly string telegam_token = REPLACE_ME;
         public static readonly string osu_token = REPLACE_ME;
-        public static readonly string youtube_token = REPLACE_ME;
+        public static readonly string googleapi_token = REPLACE_ME;
 
         public static readonly List<string> memes = new List<string>()
         {

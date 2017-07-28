@@ -89,6 +89,7 @@
     <Compile Include="Log.cs" />
     <Compile Include="Events.cs" />
     <Compile Include="Modules\ModBeatmap.cs" />
+    <Compile Include="Modules\ModMaplist.cs" />
     <Compile Include="Modules\ModProfile.cs" />
     <Compile Include="Modules\ModRandom.cs" />
     <Compile Include="Modules\ModShmalala.cs" />

@@ -6,12 +6,14 @@ using System.Net;
 using System.Text.RegularExpressions;
 using den0bot.Osu;
 using Telegram.Bot.Types;
+using Telegram.Bot.Types.Enums;
 
 namespace den0bot.Modules
 {
     class ModBeatmap : IModule
     {
         public override bool NeedsAllMessages() => true;
+        public override ParseMode ParseMode => ParseMode.Html;
         public override void Think() { }
         private bool foundOppai = true;
         public ModBeatmap()
@@ -88,15 +90,15 @@ namespace den0bot.Modules
             OppaiInfo info95 = Oppai.GetBeatmapInfo(mapFile, mods, 95);
             if (info100 != null)
             {
-                result += string.Format("[{0}] - {1}* - {2}\nCS: {3} | AR: {4} | OD: {5} | BPM: {6}\n100% - {7}pp",
+                result += string.Format("<b>[{0}]</b> - {1}* - {2}\n<b>CS:</b> {3} | <b>AR:</b> {4} | <b>OD:</b> {5} | <b>BPM:</b> {6}\n<b>100%</b> - {7}pp",
                     info100.version, info100.stars.ToString("N2"), drain.ToString("mm':'ss"),
                     info100.cs, info100.ar, info100.od, bpm.ToString("N2").Replace(" ",""), 
                     info100.pp.ToString("N2"));
             }
             if (info98 != null)
-                result += string.Format(" | 98% - {0}pp", info98.pp.ToString("N2"));
+                result += string.Format(" | <b>98%</b> - {0}pp", info98.pp.ToString("N2"));
             if (info95 != null)
-                result += string.Format(" | 95% - {0}pp", info95.pp.ToString("N2"));
+                result += string.Format(" | <b>95%</b> - {0}pp", info95.pp.ToString("N2"));
 
             return result;
         }

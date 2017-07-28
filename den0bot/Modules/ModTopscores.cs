@@ -93,9 +93,11 @@ namespace den0bot.Modules
                         if (oldTopscores[scoreNum].Pp != 0)
                         {
                             Map map = OsuAPI.GetBeatmap(currentTopscores[scoreNum].BeatmapID);
-                            string mapInfo = Extensions.FilterToHTML(map.Artist + " - " + map.Title + " [" + map.Difficulty + "]");
 
-                            API.SendMessageToAllChats("Там <b>" + Extensions.GetUsername((Users)currentUser) + "</b> фарманул новый скор: \n<i>" + mapInfo + "</i> | <b>" + currentTopscores[scoreNum].Pp + " пп</b>! Поздравим сраного фармера!", null, Telegram.Bot.Types.Enums.ParseMode.Html);
+                            string mapInfo = Extensions.FilterToHTML(string.Format("{0} - {1} [{2}]", map.Artist, map.Title, map.Difficulty));
+                            string formattedMessage = string.Format("Там <b>{0}</b> фарманул новый скор: \n<i>{1}</i> | <b>{2} пп</b>! Поздравим сраного фармера!", Extensions.GetUsername((Users)currentUser), mapInfo, currentTopscores[scoreNum].Pp);
+
+                            API.SendMessageToAllChats(formattedMessage, null, Telegram.Bot.Types.Enums.ParseMode.Html);
                         }
                         break;
                     }

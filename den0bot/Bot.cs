@@ -25,6 +25,7 @@ namespace den0bot
             modules.Add(new ModTopscores());
             modules.Add(new ModProfile());
             modules.Add(new ModBeatmap());
+            modules.Add(new ModMaplist());
 
             if (API.Connect(this))
             {
@@ -76,9 +77,11 @@ namespace den0bot
             if (msg == null || msg.Type != MessageType.TextMessage || msg.ForwardFrom != null || msg.ForwardFromChat != null || msg.Date < DateTime.Now.ToUniversalTime().AddMinutes(-0.5))
                 return;
 
-            API.SendMessage(ProcessCommand(msg, senderChat), senderChat);
+            ParseMode parseMode = ParseMode.Default;
+
+            API.SendMessage(ProcessCommand(msg, senderChat, ref parseMode), senderChat, parseMode);
         }
-        public string ProcessCommand(Message message, Chat sender)
+        public string ProcessCommand(Message message, Chat sender, ref ParseMode parseMode)
         {
             string result = string.Empty;
             string msg = message.Text;
@@ -89,7 +92,6 @@ namespace den0bot
                 if (message.From.Username == "firedigger" || message.From.Username == "@firedigger")
                     return Events.Annoy();
 #endif
-
                 string e = Events.Event();
                 if (e != string.Empty)
                     return e;
@@ -100,10 +102,20 @@ namespace den0bot
                 if (msg.StartsWith("/"))
                 {
                     result += m.ProcessCommand(msg.Remove(0, 1), sender);
+                    if (result != string.Empty)
+                    {
+                        parseMode = m.ParseMode;
+                        return result;
+                    }
                 }
                 else if (m.NeedsAllMessages())
                 {
                     result += m.ProcessCommand(msg, sender);
+                    if (result != string.Empty)
+                    {
+                        parseMode = m.ParseMode;
+                        return result;
+                    }
                 }
             }
 
