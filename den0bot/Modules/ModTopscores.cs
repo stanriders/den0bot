@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using den0bot.DB;
 using den0bot.Osu;
 
 namespace den0bot.Modules
@@ -9,12 +10,14 @@ namespace den0bot.Modules
         private DateTime nextCheck;
         private Dictionary<int, List<Score>> latestTopscores;
 
-        private int currentUser = 0;
+        private int currentUser = 1;
         private Random rng = new Random();
 
-        private readonly int scores_num = 5; 
+        private readonly int scores_num = 5;
         private readonly double check_interval = 0.1; //minutes
         private readonly string api_id = Config.osu_token;
+
+        public override string ProcessCommand(string msg, Telegram.Bot.Types.Chat sender) => string.Empty;
 
         public ModTopscores()
         {
@@ -32,32 +35,43 @@ namespace den0bot.Modules
         {
             Log.Info(this, "Loading...");
 
-            for (int i = 0; i < (int)Users.UserCount; i++)
+            for (int i = 1; i <= Database.GetPlayerCount(); i++)
             {
-                uint id = Extensions.GetUserID((Users)i);
+                uint id = Database.GetPlayerOsuID(i);
                 if (id != 0)
                 {
-                    List<Score> topscores = OsuAPI.GetTopscores(id, scores_num);
-                    if (topscores == null || topscores.Count <= 0)
+                    List<Score> topscores = Database.GetPlayerTopscores(i);
+                    if (topscores != null)
                     {
-                        latestTopscores.Add(i, new List<Score>() { new Score() { Pp = 0 } });
-                        continue;
+                        latestTopscores.Add(i, topscores);
+                        Log.Info(this, $"Restored {i} ({topscores[0].ScoreID.ToString()} {topscores[1].ScoreID.ToString()} {topscores[2].ScoreID.ToString()})");
                     }
+                    else
+                    {
+                        topscores = OsuAPI.GetTopscores(id, scores_num);
+                        if (topscores == null || topscores.Count <= 0)
+                        {
+                            List<Score> dummyscores = new List<Score>();
+                            for (int j = 0; j < scores_num; j++)
+                                dummyscores.Add(new Score() { Pp = 0 });
 
-                    latestTopscores.Add(i, topscores);
+                            latestTopscores.Add(i, dummyscores);
+                            continue;
+                        }
+
+                        Database.SetPlayerTopscores(topscores, i);
+                        latestTopscores.Add(i, topscores);
+                        Log.Info(this, $"Added {i}");
+                    }
                 }
             }
         }
 
-        public override string ProcessCommand(string msg, Telegram.Bot.Types.Chat sender)
-        {
-            return string.Empty;
-        }
 
         public override void Think()
         {
 #if !DEBUG
-            if (nextCheck < DateTime.Now)
+            if (nextCheck < DateTime.Now && latestTopscores.Count > 0)
             {
                 Update();
                 nextCheck = DateTime.Now.AddMinutes(check_interval);
@@ -67,45 +81,46 @@ namespace den0bot.Modules
 
         private void Update()
         {
-            try
+            currentUser++;
+
+            if (currentUser == Database.GetPlayerCount() + 1)
+                currentUser = 1;
+
+            uint userID = Database.GetPlayerOsuID(currentUser);
+            if (userID == 0)
             {
-                currentUser++;
-
-                if (currentUser == (int)Users.UserCount)
-                    currentUser = 0;
-
-                uint userID = Extensions.GetUserID((Users)currentUser);
-                if (userID == 0)
-                {
-                    Update(); // we just do next user
-                    return;
-                }
-
-                List<Score> oldTopscores = latestTopscores[currentUser];
-                List<Score> currentTopscores = OsuAPI.GetTopscores(userID, scores_num);
-                if (currentTopscores == null || currentTopscores.Count <= 0)
-                    return;
-
-                for (int scoreNum = 0; scoreNum < currentTopscores.Count; scoreNum++)
-                {
-                    if (currentTopscores[scoreNum] != oldTopscores[scoreNum])
-                    {
-                        if (oldTopscores[scoreNum].Pp != 0)
-                        {
-                            Map map = OsuAPI.GetBeatmap(currentTopscores[scoreNum].BeatmapID);
-
-                            string mapInfo = Extensions.FilterToHTML(string.Format("{0} - {1} [{2}]", map.Artist, map.Title, map.Difficulty));
-                            string formattedMessage = string.Format("Там <b>{0}</b> фарманул новый скор: \n<i>{1}</i> | <b>{2} пп</b>! Поздравим сраного фармера!", Extensions.GetUsername((Users)currentUser), mapInfo, currentTopscores[scoreNum].Pp);
-
-                            API.SendMessageToAllChats(formattedMessage, null, Telegram.Bot.Types.Enums.ParseMode.Html);
-                        }
-                        break;
-                    }
-                }
-
-                latestTopscores[currentUser] = currentTopscores;
+                Update(); // we just do next user
+                return;
             }
-            catch (Exception ex) { Log.Error(this, "Update - " + ex.Message); }
+
+            List<Score> oldTopscores = latestTopscores[currentUser];
+            List<Score> currentTopscores = OsuAPI.GetTopscores(userID, scores_num);
+            if (currentTopscores == null || currentTopscores.Count <= 0)
+                return;
+
+            for (int scoreNum = 0; scoreNum < currentTopscores.Count; scoreNum++)
+            {
+                if ((currentTopscores[scoreNum] != oldTopscores[scoreNum]) && (oldTopscores[scoreNum].Pp != 0))
+                {
+                    Map map = OsuAPI.GetBeatmap(currentTopscores[scoreNum].BeatmapID);
+                    Mods enabledMods = currentTopscores[scoreNum].EnabledMods;
+
+                    string mods = string.Empty;
+                    if (enabledMods > 0)
+                        mods = " +" + enabledMods.ToString().Replace(", ", "");
+
+                    string mapInfo = Extensions.FilterToHTML(string.Format("{0} - {1} [{2}]", map.Artist, map.Title, map.Difficulty));
+
+                    string formattedMessage = string.Format("Там <b>{0}</b> фарманул новый скор: \n<i>{1}</i>{2} ({3}, {4}%) | <b>{5} пп</b>! Поздравим сраного фармера!",
+                        Database.GetPlayerFriendlyName(currentUser), mapInfo, mods, currentTopscores[scoreNum].Rank, currentTopscores[scoreNum].Accuracy().ToString("N2"), currentTopscores[scoreNum].Pp);
+
+                    API.SendMessage(formattedMessage, Database.GetPlayerChatID(currentUser), Telegram.Bot.Types.Enums.ParseMode.Html);
+                    break;
+                }
+            }
+
+            Database.SetPlayerTopscores(currentTopscores, currentUser);
+            latestTopscores[currentUser] = currentTopscores;
         }
     }
 }

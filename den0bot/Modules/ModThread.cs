@@ -8,7 +8,7 @@ namespace den0bot.Modules
 {
     class ModThread : IModule
     {
-        private readonly int default_post_amount = 0;
+        private readonly int default_post_amount = 1;
 
         public ModThread()
         {
@@ -23,13 +23,13 @@ namespace den0bot.Modules
                 {
                     int amount = int.Parse(msg.Remove(0, 7));
                     if (amount > 20)
-                        return GetLastFivePosts(default_post_amount);
+                        return GetLastPosts(default_post_amount);
                     else
-                        return GetLastFivePosts(amount);
+                        return GetLastPosts(amount);
                 }
                 catch (Exception)
                 {
-                    return GetLastFivePosts(default_post_amount);
+                    return GetLastPosts(default_post_amount);
                 }
             }
             else
@@ -42,22 +42,21 @@ namespace den0bot.Modules
         {
             try
             {
-                using (WebClient web = new WebClient())
+                WebClient web = new WebClient();
+                var data = web.DownloadData("https://2ch.hk/a/catalog_num.json");
+                web.Dispose();
+
+                JObject obj = JObject.Parse(Encoding.UTF8.GetString(data));
+
+                foreach (JObject o in obj["threads"])
                 {
-                    var data = web.DownloadData("https://2ch.hk/a/catalog_num.json");
-
-                    JObject obj = JObject.Parse(Encoding.UTF8.GetString(data));
-
-                    foreach (JObject o in obj["threads"])
+                    string subject = (string)o["subject"];
+                    if (subject.ToLower().StartsWith("osu") || subject.ToLower().StartsWith("осу"))
                     {
-                        string subject = (string)o["subject"];
-                        if (subject.ToLower().StartsWith("osu") || subject.ToLower().StartsWith("осу"))
-                        { 
-                            Log.Info(this, subject + " | " + (string)o["num"]);
-                            return (int)o["num"];
-                        }
-
+                        Log.Info(this, subject + " | " + (string)o["num"]);
+                        return (int)o["num"];
                     }
+
                 }
             }
             catch (Exception ex) { Log.Error(this, ex.Message); }
@@ -65,52 +64,49 @@ namespace den0bot.Modules
             return 0;
         }
 
-        public string GetLastFivePosts(int numofPosts)
+        public string GetLastPosts(int amount)
         {
-            string result = string.Empty;
-
             int threadID = FindThread();
-
             if (threadID == 0)
                 return "А треда-то нет!";
 
             try
             {
-                using (WebClient web = new WebClient())
+                string request = "https://2ch.hk/a/res/" + threadID + ".json";
+
+                WebClient web = new WebClient();
+                var data = web.DownloadData(request);
+                web.Dispose();
+
+                JObject obj = JObject.Parse(Encoding.UTF8.GetString(data));
+
+                string result = "https://2ch.hk/a/res/" + threadID + ".html" + /*" | Постов: " + obj["posts_count"] +*/ Environment.NewLine;
+
+                List<string> posts = new List<string>();
+
+                foreach (JObject o in obj["threads"][0]["posts"])
                 {
-                    string request = "https://2ch.hk/a/res/" + threadID + ".json";
-                    var data = web.DownloadData(request);
+                    string msg = o["comment"].Value<string>();
 
-                    JObject obj = JObject.Parse(Encoding.UTF8.GetString(data));
+                    if (o["files"].HasValues)
+                        msg = "http://2ch.hk" + o["files"][0]["path"].Value<string>() + "\n" + o["comment"].Value<string>();
 
-                    result += "https://2ch.hk/a/res/" + threadID + ".html" + " | Постов: " + obj["posts_count"] + Environment.NewLine;
-
-                    List<string> list = new List<string>();
-                    
-                    foreach (JObject o in obj["threads"][0]["posts"])
-                    {
-                        string msg = (string)o["comment"];
-
-                        if (o["files"].HasValues)
-                            msg = "http://2ch.hk" + (string)o["files"][0]["path"] + "\n" + (string)o["comment"];
-
-                        list.Add(msg);
-                    }
-
-                    if (list.Count > numofPosts)
-                        list.RemoveRange(0, list.Count - numofPosts);
-
-                    for (int i = 0; i < list.Count; i++)
-                    {
-                        result += "___________" + Environment.NewLine;
-
-                        result += Extensions.FilterHTML(list[i]) + Environment.NewLine;
-                    }
+                    posts.Add(msg);
                 }
+
+                if (posts.Count > amount)
+                    posts.RemoveRange(0, posts.Count - amount);
+
+                foreach (string post in posts)
+                {
+                    result += "___________" + Environment.NewLine + Extensions.FilterHTML(post) + Environment.NewLine;
+                }
+
+                return result;
             }
             catch (Exception ex) { Log.Error(this, ex.Message); }
 
-            return result;
+            return string.Empty;
         }
     }
 }

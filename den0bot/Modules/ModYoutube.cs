@@ -6,14 +6,15 @@ using Newtonsoft.Json.Linq;
 
 namespace den0bot.Modules
 {
-    // check CirclePeople's youtube channel and post new highscores to all chats
+    // check osu!content's youtube channel and post new highscores to all chats
     class ModYoutube : IModule
     {
         private DateTime nextCheck;
 
-        private readonly string api_key = Config.youtube_token;
+        private readonly string api_key = Config.googleapi_token;
         private readonly string channel_id = "UC-Slh6DZ_G-_hqmjZFtlusg";  // osu!content
         private readonly double check_interval = 1.0; // minutes
+        private readonly int default_score_amount = 3;
 
         public ModYoutube()
         {
@@ -34,9 +35,21 @@ namespace den0bot.Modules
         public override string ProcessCommand(string msg, Telegram.Bot.Types.Chat sender)
         {
             if (msg.StartsWith("newscores"))
-                return GetLastThreeScores();
-            else
-                return string.Empty;
+            {
+                try
+                {
+                    int amount = int.Parse(msg.Remove(0, 10));
+                    if (amount > 20)
+                        return GetLastScores(default_score_amount);
+                    else
+                        return GetLastScores(amount);
+                }
+                catch (Exception)
+                {
+                    return GetLastScores(default_score_amount);
+                }
+            }
+            return string.Empty;
         }
 
         private async void Update(DateTime lastChecked)
@@ -47,10 +60,13 @@ namespace den0bot.Modules
                 {
                     lastChecked = lastChecked.AddMinutes(-check_interval);
 
-                    string request = "https://www.googleapis.com/youtube/v3/activities?part=snippet,contentDetails&key=" + api_key + "&fields=" +
-                                                                Uri.EscapeDataString("items(contentDetails/upload,snippet/title)") + 
-                                                                "&publishedAfter=" + Uri.EscapeDataString(lastChecked.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss.sZ")) +
-                                                                "&channelId=" + channel_id;
+                    string request = string.Format("https://www.googleapis.com/youtube/v3/activities?part=snippet,contentDetails" +
+                                                    "&key={0}"+ "&fields={1}" + "&publishedAfter={2}" + "&channelId={3}", 
+                                                    api_key, 
+                                                    Uri.EscapeDataString("items(contentDetails/upload,snippet/title)"), 
+                                                    Uri.EscapeDataString(lastChecked.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss.sZ")), 
+                                                    channel_id);
+
 
                     var data = await web.DownloadDataTaskAsync(request);
 
@@ -72,16 +88,19 @@ namespace den0bot.Modules
             catch (Exception ex) { Log.Error(this, ex.Message); }
         }
 
-        private string GetLastThreeScores()
+        private string GetLastScores(int amount)
         {
             string result = string.Empty;
             try
             {
                 using (WebClient web = new WebClient())
                 {
-                    string request = "https://www.googleapis.com/youtube/v3/activities?part=snippet,contentDetails&maxResults=3&key=" + api_key + "&fields=" +
-                                                                Uri.EscapeDataString("items(contentDetails/upload,snippet/title)") +
-                                                                "&channelId=" + channel_id;
+                    string request = string.Format("https://www.googleapis.com/youtube/v3/activities?part=snippet,contentDetails" + 
+                                                    "&maxResults={0}" + "&key={1}" + "&fields={2}" + "&channelId={3}",
+                                                    amount,
+                                                    api_key, 
+                                                    Uri.EscapeDataString("items(contentDetails/upload,snippet/title)"), 
+                                                    channel_id);
 
                     var data = web.DownloadData(request);
 

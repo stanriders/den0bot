@@ -4,10 +4,11 @@ namespace den0bot
 {
     abstract class IModule
     {
-        public virtual bool NeedsAllMessages() => false;
+        public virtual bool NeedsAllMessages => false;
+        public virtual bool NeedsPhotos => false;
         public virtual ParseMode ParseMode => ParseMode.Default;
 
-        abstract public void Think();
-        abstract public string ProcessCommand(string msg, Telegram.Bot.Types.Chat sender);
+        public abstract void Think();
+        public abstract string ProcessCommand(string msg, Telegram.Bot.Types.Chat sender);
     }
 }

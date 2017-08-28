@@ -12,10 +12,12 @@ namespace den0bot.Modules
 {
     class ModBeatmap : IModule
     {
-        public override bool NeedsAllMessages() => true;
+        public override bool NeedsAllMessages => true;
         public override ParseMode ParseMode => ParseMode.Html;
         public override void Think() { }
+
         private bool foundOppai = true;
+
         public ModBeatmap()
         {
             string oppaiPath = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) + @"\oppai.exe";
@@ -32,7 +34,7 @@ namespace den0bot.Modules
 
             if (msg.Contains("osu.ppy.sh/b/") || msg.Contains("osu.ppy.sh/s/"))
             {
-                Match regexMatch = Regex.Match(msg, @"https?:\/\/osu\.ppy\.sh\/([b,s])\/(\d+)$|https?:\/\/osu\.ppy\.sh\/([b,s])\/(\d+)[&,?].=\d\s?(\+.+)?|https?:\/\/osu\.ppy\.sh\/([b,s])\/(\d+)\s?(\+.+)");
+                Match regexMatch = Regex.Match(msg, @"(?>https?:\/\/)?osu\.ppy\.sh\/([b,s])\/(\d+)$|(?>https?:\/\/)?osu\.ppy\.sh\/([b,s])\/(\d+)[&,?].=\d\s?(\+.+)?|(?>https?:\/\/)?osu\.ppy\.sh\/([b,s])\/(\d+)\s?(\+.+)");
                 if (regexMatch.Groups.Count > 1)
                 {
                     Group[] groups = new Group[9];

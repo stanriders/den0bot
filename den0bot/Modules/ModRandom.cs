@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using Telegram.Bot.Types;
+using den0bot.DB;
 
 namespace den0bot.Modules
 {
@@ -7,21 +9,16 @@ namespace den0bot.Modules
     {
         private Random rng;
 
-        private List<int> usedMemes;
-        private readonly List<string> memeBase = Config.memes;
-
         public ModRandom()
         {
             Log.Info(this, "Enabled");
             rng = new Random();
-
-            usedMemes = new List<int>();
         }
 
-        public override string ProcessCommand(string msg, Telegram.Bot.Types.Chat sender)
+        public override string ProcessCommand(string msg, Chat sender)
         {
             if (msg.StartsWith("shitposter"))
-                return GetRandomShitposter();
+                return GetRandomShitposter(sender);
             else if (msg.StartsWith("den0saur"))
                 return GetRandomDinosaur(sender);
             else if (msg.StartsWith("roll"))
@@ -34,24 +31,32 @@ namespace den0bot.Modules
 
         public override void Think(){}
 
-        private string GetRandomShitposter()
+        private string GetRandomShitposter(Chat sender)
         {
-            return Extensions.GetUsername((Users)rng.Next(0, (int)Users.UserCount)) + " - щитпостер"; 
+            if (Database.GetPlayerCount(sender.Id) <= 0)
+                return "Ты щитпостер";
+
+            int num = rng.Next(0, Database.GetPlayerCount(sender.Id));
+
+            if (Database.GetPlayerChatID(num) != sender.Id)
+                return GetRandomShitposter(sender);
+
+            return Database.GetPlayerFriendlyName(num) + " - щитпостер"; 
         }
 
-        private string GetRandomDinosaur(Telegram.Bot.Types.Chat sender)
+        private string GetRandomDinosaur(Chat sender)
         {
             switch (rng.Next(1, 4))
             {
                 case 1: return "динозавр?";
                 case 2:
                     {
-                        API.api.SendStickerAsync(sender.Id, new Telegram.Bot.Types.FileToSend("BQADAgADNAADnML7Dbv6HgazQYiIAg"));
+                        API.api.SendStickerAsync(sender.Id, new FileToSend("BQADAgADNAADnML7Dbv6HgazQYiIAg"));
                         return string.Empty;
                     }
                 case 3:
                     {
-                        API.api.SendStickerAsync(sender.Id, new Telegram.Bot.Types.FileToSend("BQADAgADMAADnML7DXy6fUB4x-sqAg"));
+                        API.api.SendStickerAsync(sender.Id, new FileToSend("BQADAgADMAADnML7DXy6fUB4x-sqAg"));
                         return string.Empty;
                     }
                 default: return string.Empty;
@@ -75,21 +80,20 @@ namespace den0bot.Modules
 
         }
 
-        private string GetRandomMeme(Telegram.Bot.Types.Chat sender)
+        private string GetRandomMeme(Chat sender)
         {
-            if (usedMemes.Count == memeBase.Count)
-                usedMemes.Clear();
+            int memeCount = Database.GetMemeCount(sender.Id);
+            if (memeCount <= 0)
+                return "А мемов-то нет";
 
-            int num = rng.Next(0, memeBase.Count+1);
-            if (usedMemes.Find(x => x == num) != 0)
-                return GetRandomMeme(sender);
+            string photo = Database.GetMeme(sender.Id);
+            if (photo != null && photo != string.Empty)
+            { 
+                API.SendPhoto(photo, sender);
+                return string.Empty;
+            }
 
-            string photo = memeBase[num];
-            API.SendPhoto(photo, sender);
-
-            usedMemes.Add(num);
-
-            return string.Empty;
+            return "Чет не получилось";
         }
     }
 }

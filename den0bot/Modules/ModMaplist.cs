@@ -20,7 +20,7 @@ namespace den0bot.Modules
         public ModMaplist()
         {
             Start();
-            Log.Info(this, "Enabled");
+            Log.Info(this, $"Enabled, {Maplist.Count} maps");
         }
 
         private void Start()

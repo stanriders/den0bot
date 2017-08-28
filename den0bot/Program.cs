@@ -7,7 +7,7 @@ namespace den0bot
         static void Main(string[] args)
         {
             Log.Info("", "________________");
-            new Bot().Start();
+            new Bot();
             Log.Info("", "Exiting...");
             Console.Read();
         }

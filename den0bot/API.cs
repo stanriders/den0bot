@@ -1,6 +1,9 @@
 ﻿
 using System;
-
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using den0bot.DB;
 using Telegram.Bot;
 using Telegram.Bot.Args;
 using Telegram.Bot.Types;
@@ -27,7 +30,7 @@ namespace den0bot
             try
             {
                 api.OnMessage += ReceiveMessage;
-                api.OnReceiveGeneralError += delegate (object sender, ReceiveGeneralErrorEventArgs args) { Log.Error("API", args.Exception.Message); };
+                api.OnReceiveGeneralError += delegate (object sender, ReceiveGeneralErrorEventArgs args) { Log.Error("API - OnReceiveGeneralError", args.Exception.InnerException?.Message); };
 
                 api.TestApiAsync();
 
@@ -52,38 +55,58 @@ namespace den0bot
 
         public static void ReceiveMessage(object sender, MessageEventArgs messageEventArgs)
         {
-            Message msg = messageEventArgs.Message;
-
-            parent.ProcessMessage(msg);
+            parent.ProcessMessage(messageEventArgs.Message);
         }
 
-        public static void SendMessage(string message, Chat receiver, ParseMode mode = ParseMode.Default)
+        public static void SendMessage(string message, Chat receiver, ParseMode mode = ParseMode.Default) => SendMessage(message, receiver.Id, mode);
+        public static void SendMessage(string message, long receiverID, ParseMode mode = ParseMode.Default)
         {
             try
             {
-                api?.SendTextMessageAsync(receiver.Id, message, mode, true);
+                if (message != null && message != string.Empty)
+                    api?.SendTextMessageAsync(receiverID, message, mode, true);
             }
-            catch (Exception ex) { Log.Error("API", ex.Message); }
+            catch (Exception ex) { Log.Error("API - SendMessage", ex.Message); }
         }
 
         public static void SendMessageToAllChats(string msg, string image = null, ParseMode mode = ParseMode.Default)
         {
-            foreach (Chat receiver in Bot.ChatList)
+            foreach (DB.Types.Chat receiver in Database.GetAllChats())
             {
-                if (image != null)
-                    SendPhoto(image, receiver, msg);
-                else
-                    SendMessage(msg, receiver, mode);
+                if (!receiver.DisableAnnouncements)
+                {
+                    if (image != null && image != string.Empty)
+                        SendPhoto(image, receiver.Id, msg);
+                    else if (msg != null && msg != string.Empty)
+                        SendMessage(msg, receiver.Id, mode);
+                }
             }
         }
 
-        public static void SendPhoto(string photo, Chat receiver, string message = "")
+        public static void SendPhoto(string photo, Chat receiver, string message = "") => SendPhoto(photo, receiver.Id, message);
+        public static void SendPhoto(string photo, long receiverId, string message = "")
         {
             try
             {
-                api?.SendPhotoAsync(receiver.Id, new FileToSend(new Uri(photo)), message);
+                if (photo != null && photo != string.Empty)
+                {
+                    FileToSend file = new FileToSend();
+                    if (photo.StartsWith("http") && (photo.EndsWith(".jpg") || photo.EndsWith(".png")))
+                        file.Url = new Uri(photo);
+                    else
+                        file.FileId = photo;
+
+                    api?.SendPhotoAsync(receiverId, file, message);
+                }
             }
-            catch (Exception ex) { Log.Error("API", ex.Message); }
+            catch (Exception ex) { Log.Error("API - SendPhoto", ex.Message); }
+        }
+        
+        
+        public static async Task<List<ChatMember>> GetAdmins(long chatID)
+        {
+            ChatMember[] admins = await api?.GetChatAdministratorsAsync(chatID);
+            return admins.ToList();
         }
     }
 }

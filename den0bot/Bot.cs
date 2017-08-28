@@ -4,122 +4,38 @@ using System.Threading;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using den0bot.Modules;
+using den0bot.DB;
 
 namespace den0bot
 {
     public class Bot
     {
         private List<IModule> modules;
-        public static List<Chat> ChatList = new List<Chat>();
+        private bool IsAdmin(long chatID, string username) => (username == "StanRiders") || (API.GetAdmins(chatID).Result.Find(x => x.User.Username == username) != null );
 
         public Bot()
         {
-            modules = new List<IModule>();
-        }
+            Database.Init();
 
-        public void Start()
-        {
-            modules.Add(new ModThread());
-            modules.Add(new ModYoutube());
-            modules.Add(new ModRandom());
-            modules.Add(new ModTopscores());
-            modules.Add(new ModProfile());
-            modules.Add(new ModBeatmap());
-            modules.Add(new ModMaplist());
+            modules = new List<IModule>()
+            {
+                new ModThread(),
+                new ModYoutube(),
+                new ModRandom(),
+                new ModTopscores(),
+                new ModProfile(),
+                new ModBeatmap(),
+                new ModMaplist(),
+                new ModCat(),
+                new ModSettings(),
+                new ModPirate()
+            };
 
             if (API.Connect(this))
             {
                 Log.Info(this, "Started thinking...");
                 Think();
             }
-        }
-
-        private string GreetNewfag(string username)
-        {
-            string result = "Дороу, " + username + "\n" +
-                "Хорошим тоном является:\n" +
-                "1. Кинуть профиль.\n" + 
-                "2. Не инактивить.\n" + 
-                "3. Словить бан при входе.\n" + 
-                "4. Панду бить только ногами, иначе зашкваришься.\n" +
-                "Ден - аниме, но аниме запрещено. В мульти не играть - мужиков не уважать.\n" + 
-                "inb4 - бан";
-
-            return result;
-        }
-        public void ProcessMessage(Message msg)
-        {
-            Chat senderChat = msg.Chat;
-
-            if (senderChat.Title != null)
-            {
-                if (ChatList.Count > 0)
-                {
-                    if (ChatList.FindIndex(chat => chat.Id == senderChat.Id) == -1)
-                    {
-                        ChatList.Add(senderChat);
-                        Log.Info(this, "Added chat '" + msg.Chat.Title + "' to the chat list");
-                    }
-                }
-                else
-                {
-                    ChatList.Add(senderChat);
-                    Log.Info(this, "Added chat '" + msg.Chat.Title + "' to the chat list");
-                }
-            }
-
-            if (msg.NewChatMembers != null && msg.NewChatMembers.Length > 0)
-            {
-                API.SendMessage(GreetNewfag(msg.NewChatMembers[0].FirstName), senderChat);
-                return;
-            }
-
-            if (msg == null || msg.Type != MessageType.TextMessage || msg.ForwardFrom != null || msg.ForwardFromChat != null || msg.Date < DateTime.Now.ToUniversalTime().AddMinutes(-0.5))
-                return;
-
-            ParseMode parseMode = ParseMode.Default;
-
-            API.SendMessage(ProcessCommand(msg, senderChat, ref parseMode), senderChat, parseMode);
-        }
-        public string ProcessCommand(Message message, Chat sender, ref ParseMode parseMode)
-        {
-            string result = string.Empty;
-            string msg = message.Text;
-
-            if (msg.StartsWith("/"))
-            {
-#if diggerTupoi
-                if (message.From.Username == "firedigger" || message.From.Username == "@firedigger")
-                    return Events.Annoy();
-#endif
-                string e = Events.Event();
-                if (e != string.Empty)
-                    return e;
-            }
-
-            foreach (IModule m in modules)
-            {
-                if (msg.StartsWith("/"))
-                {
-                    result += m.ProcessCommand(msg.Remove(0, 1), sender);
-                    if (result != string.Empty)
-                    {
-                        parseMode = m.ParseMode;
-                        return result;
-                    }
-                }
-                else if (m.NeedsAllMessages())
-                {
-                    result += m.ProcessCommand(msg, sender);
-                    if (result != string.Empty)
-                    {
-                        parseMode = m.ParseMode;
-                        return result;
-                    }
-                }
-            }
-
-            return result;
         }
 
         private void Think()
@@ -132,6 +48,91 @@ namespace den0bot
                 }
                 Thread.Sleep(100);
             }
+        }
+
+        private string GreetNewfag(string username, long userID)
+        {
+            string result = $"Дороу, <a href=\"tg://user?id={userID}\">{username}</a>\n" +
+                            "Хорошим тоном является:\n" +
+                            "<b>1.</b> Кинуть профиль.\n" +
+                            "<b>2.</b> Не инактивить.\n" +
+                            "<b>3.</b> Словить бан при входе.\n" +
+                            "<b>4.</b> Панду бить только ногами, иначе зашкваришься.\n" +
+                            "Ден - аниме, но аниме запрещено. В мульти не играть - мужиков не уважать.\n" +
+                            "<i>inb4 - бан</i>";
+
+            return result;
+        }
+
+        public void ProcessMessage(Message msg)
+        {
+            Chat senderChat = msg.Chat;
+
+            // having title means its a chat and not PM
+            if (senderChat.Title != null)
+                Database.AddChat(senderChat.Id);
+
+            if (msg.NewChatMembers != null && msg.NewChatMembers.Length > 0)
+            {
+                API.SendMessage(GreetNewfag(msg.NewChatMembers[0].FirstName, msg.NewChatMembers[0].Id), senderChat, ParseMode.Html);
+                return;
+            }
+
+            if (msg == null ||
+                (msg.Type != MessageType.TextMessage &&
+                msg.Type != MessageType.PhotoMessage) ||
+                msg.ForwardFrom != null || 
+                msg.ForwardFromChat != null || 
+                msg.Date < DateTime.Now.ToUniversalTime().AddSeconds(-15))
+                return;
+
+            if (msg.Text != null && msg.Text.StartsWith("/"))
+            {
+                string e = Events.Event();
+                if (e != string.Empty)
+                {
+                    API.SendMessage(e, senderChat);
+                    return;
+                }
+            }
+
+            ParseMode parseMode = ParseMode.Default;
+            API.SendMessage(ProcessMessageWithModules(msg, ref parseMode), senderChat, parseMode);
+        }
+
+        private string ProcessMessageWithModules(Message msg, ref ParseMode parseMode)
+        {
+            foreach (IModule m in modules)
+            {
+                if (msg.Type == MessageType.PhotoMessage)
+                {
+                    if (!m.NeedsPhotos)
+                        continue;
+                    else
+                        msg.Text = msg.Caption + " photo" + msg.Photo[0].FileId; //kinda hack
+                }
+
+                if (msg.Text.StartsWith("/") && !m.NeedsAllMessages)
+                    msg.Text = msg.Text.Remove(0, 1);
+
+                string result = string.Empty;
+                if (m is IAdminOnly && IsAdmin(msg.Chat.Id, msg.From.Username) && msg.Chat.Title != null)
+                {
+                    IAdminOnly mAdmin = m as IAdminOnly;
+                    result += mAdmin.ProcessAdminCommand(msg.Text, msg.Chat);
+                }
+                else
+                {
+                    result += m.ProcessCommand(msg.Text, msg.Chat);
+                }
+
+                if (result != string.Empty)
+                {
+                    parseMode = m.ParseMode;
+                    return result;
+                }
+            }
+            return string.Empty;
         }
     }
 }

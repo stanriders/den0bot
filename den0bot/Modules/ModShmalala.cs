@@ -4,7 +4,7 @@ namespace den0bot.Modules
 {
     class ModShmalala : IModule
     {
-        public override bool NeedsAllMessages() => true;
+        public override bool NeedsAllMessages => true;
 
         public ModShmalala()
         {
