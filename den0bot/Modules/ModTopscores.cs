@@ -1,4 +1,5 @@
-﻿using System;
+﻿// den0bot (c) StanR 2017 - MIT License
+using System;
 using System.Collections.Generic;
 using den0bot.DB;
 using den0bot.Osu;
@@ -14,7 +15,7 @@ namespace den0bot.Modules
         private Random rng = new Random();
 
         private readonly int scores_num = 5;
-        private readonly double check_interval = 0.1; //minutes
+        private readonly double check_interval = 5; //seconds per player
         private readonly string api_id = Config.osu_token;
 
         public override string ProcessCommand(string msg, Telegram.Bot.Types.Chat sender) => string.Empty;
@@ -74,7 +75,7 @@ namespace den0bot.Modules
             if (nextCheck < DateTime.Now && latestTopscores.Count > 0)
             {
                 Update();
-                nextCheck = DateTime.Now.AddMinutes(check_interval);
+                nextCheck = DateTime.Now.AddSeconds(check_interval);
             }
 #endif
         }
@@ -109,7 +110,7 @@ namespace den0bot.Modules
                     if (enabledMods > 0)
                         mods = " +" + enabledMods.ToString().Replace(", ", "");
 
-                    string mapInfo = Extensions.FilterToHTML(string.Format("{0} - {1} [{2}]", map.Artist, map.Title, map.Difficulty));
+                    string mapInfo = string.Format("{0} - {1} [{2}]", map.Artist, map.Title, map.Difficulty).FilterToHTML();
 
                     string formattedMessage = string.Format("Там <b>{0}</b> фарманул новый скор: \n<i>{1}</i>{2} ({3}, {4}%) | <b>{5} пп</b>! Поздравим сраного фармера!",
                         Database.GetPlayerFriendlyName(currentUser), mapInfo, mods, currentTopscores[scoreNum].Rank, currentTopscores[scoreNum].Accuracy().ToString("N2"), currentTopscores[scoreNum].Pp);

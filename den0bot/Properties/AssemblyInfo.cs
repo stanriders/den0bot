@@ -1,4 +1,5 @@
-﻿using System.Reflection;
+﻿// den0bot (c) StanR 2017 - MIT License
+using System.Reflection;
 using System.Runtime.InteropServices;
 
 // Управление общими сведениями о сборке осуществляется с помощью 

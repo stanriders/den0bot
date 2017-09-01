@@ -1,4 +1,5 @@
-﻿using System;
+﻿// den0bot (c) StanR 2017 - MIT License
+using System;
 using System.Diagnostics;
 using System.Linq;
 using Newtonsoft.Json.Linq;

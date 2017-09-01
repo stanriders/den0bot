@@ -1,5 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿// den0bot (c) StanR 2017 - MIT License
+using System;
 using Telegram.Bot.Types;
 using den0bot.DB;
 
@@ -51,12 +51,12 @@ namespace den0bot.Modules
                 case 1: return "динозавр?";
                 case 2:
                     {
-                        API.api.SendStickerAsync(sender.Id, new FileToSend("BQADAgADNAADnML7Dbv6HgazQYiIAg"));
+                        API.SendSticker(new FileToSend("BQADAgADNAADnML7Dbv6HgazQYiIAg"), sender.Id);
                         return string.Empty;
                     }
                 case 3:
                     {
-                        API.api.SendStickerAsync(sender.Id, new FileToSend("BQADAgADMAADnML7DXy6fUB4x-sqAg"));
+                        API.SendSticker(new FileToSend("BQADAgADMAADnML7DXy6fUB4x-sqAg"), sender.Id);
                         return string.Empty;
                     }
                 default: return string.Empty;

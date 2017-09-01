@@ -1,4 +1,5 @@
-﻿using System;
+﻿// den0bot (c) StanR 2017 - MIT License
+using System;
 using System.Collections.Generic;
 using System.IO;
 using den0bot.DB.Types;

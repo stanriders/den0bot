@@ -1,4 +1,5 @@
-﻿using System;
+﻿// den0bot (c) StanR 2017 - MIT License
+using System;
 using Telegram.Bot.Types;
 
 namespace den0bot.Modules
@@ -80,7 +81,7 @@ namespace den0bot.Modules
                     }
                 case 2:
                     {
-                        API.SendMessage(dick1, receiver);
+                        API.SendMessage(dick, receiver);
                         break;
                     }
                 case 3:

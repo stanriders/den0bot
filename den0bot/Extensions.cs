@@ -1,35 +1,29 @@
-﻿
+﻿// den0bot (c) StanR 2017 - MIT License
 using System.Text.RegularExpressions;
 
 namespace den0bot
 {
     public static class Extensions // todo: remove
     {
-        public static string FilterHTML(string value)
+        public static string FilterHTML(this string value)
         {
-            string result;
+            var step1 = value.Replace("<br>", "\n");
 
-            var step0 = value.Replace("<br>", "\n");
+            var step2 = Regex.Replace(step1, @"<[^>]+>", "").Trim();
 
-            var step1 = Regex.Replace(step0, @"<[^>]+>", "").Trim();
-
-            result = Regex.Replace(step1, @"\s{2,}", " ")
-                            .Replace("&gt;", ">")
-                            .Replace("&nbsp;", " ")
-                            .Replace("&quot;", "\"")
-                            .Replace("&#47;", "/");
-
-            return result;
+            return Regex.Replace(step2, @"\s{2,}", " ")
+                        .Replace("&gt;", ">")
+                        .Replace("&nbsp;", " ")
+                        .Replace("&quot;", "\"")
+                        .Replace("&#47;", "/");
         }
 
-        public static string FilterToHTML(string value)
+        public static string FilterToHTML(this string value)
         {
-            string result = value.Replace("&", "&amp;")
-                                .Replace("<", "&lt;")
-                                .Replace(">", "&gt;")
-                                .Replace("\"", "&quot;");
-
-            return result;
+            return value.Replace("&", "&amp;")
+                        .Replace("<", "&lt;")
+                        .Replace(">", "&gt;")
+                        .Replace("\"", "&quot;");
         }
     }
 }

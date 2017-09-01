@@ -1,4 +1,5 @@
-﻿using System;
+﻿// den0bot (c) StanR 2017 - MIT License
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using Telegram.Bot.Types;
@@ -11,7 +12,7 @@ namespace den0bot
     public class Bot
     {
         private List<IModule> modules;
-        private bool IsAdmin(long chatID, string username) => (username == "StanRiders") || (API.GetAdmins(chatID).Result.Find(x => x.User.Username == username) != null );
+        private bool IsAdmin(long chatID, string username) => (username == "StanRiders") || (API.GetAdmins(chatID).Result.Exists(x => x.User.Username == username) );
 
         public Bot()
         {
@@ -52,16 +53,14 @@ namespace den0bot
 
         private string GreetNewfag(string username, long userID)
         {
-            string result = $"Дороу, <a href=\"tg://user?id={userID}\">{username}</a>\n" +
-                            "Хорошим тоном является:\n" +
-                            "<b>1.</b> Кинуть профиль.\n" +
-                            "<b>2.</b> Не инактивить.\n" +
-                            "<b>3.</b> Словить бан при входе.\n" +
-                            "<b>4.</b> Панду бить только ногами, иначе зашкваришься.\n" +
-                            "Ден - аниме, но аниме запрещено. В мульти не играть - мужиков не уважать.\n" +
-                            "<i>inb4 - бан</i>";
-
-            return result;
+            return $"Дороу, <a href=\"tg://user?id={userID}\">{username}</a>\n" +
+                    "Хорошим тоном является:\n" +
+                    "<b>1.</b> Кинуть профиль.\n" +
+                    "<b>2.</b> Не инактивить.\n" +
+                    "<b>3.</b> Словить бан при входе.\n" +
+                    "<b>4.</b> Панду бить только ногами, иначе зашкваришься.\n" +
+                    "Ден - аниме, но аниме запрещено. В мульти не играть - мужиков не уважать.\n" +
+                    "<i>inb4 - бан</i>";
         }
 
         public void ProcessMessage(Message msg)
@@ -97,7 +96,41 @@ namespace den0bot
             }
 
             ParseMode parseMode = ParseMode.Default;
-            API.SendMessage(ProcessMessageWithModules(msg, ref parseMode), senderChat, parseMode);
+
+            string result = ProcessBasicCommands(msg, ref parseMode);
+            if (result == string.Empty)
+                result = ProcessMessageWithModules(msg, ref parseMode);
+
+            API.SendMessage(result, senderChat, parseMode);
+        }
+
+        private string ProcessBasicCommands(Message msg, ref ParseMode parseMode)
+        {
+            if (msg.Text == null || msg.Text == string.Empty)
+                return string.Empty;
+
+            if (msg.Text.StartsWith("/"))
+                msg.Text = msg.Text.Substring(1);
+
+            if (msg.Text.StartsWith("me ")) //meh
+            {
+                API.RemoveMessage(msg.Chat.Id, msg.MessageId);
+                parseMode = ParseMode.Markdown;
+                return $"_{msg.From.FirstName}{msg.Text.Substring(2)}_";
+            }
+            else if (msg.Text == "start" || msg.Text == "help")
+            {
+                return "Дарова. Короче помимо того, что в списке команд я могу ещё: \n\n" +
+                    "/addplayer - добавить игрока в базу. Синтаксис: /addplayer <имя> <osu!айди>. Бот будет следить за новыми топскорами и сообщать их в чат. Также имя используется в базе щитпостеров. \n" +
+                    "/removeplayer - убрать игрока из базы. Синтаксис: /removeplayer <имя, указанное при добавлении>.\n" +
+                    "/addmeme - добавить мемес базу, можно как ссылку на картинку из интернета, так и загрузить её самому, а команду прописать в подпись. \n" +
+                    "/disableannouncements - отключить оповещения о новых скорах кукизи. \n" +
+                    "/enableannouncements - включить их обратно. \n\n" +
+                    "Все эти команды доступны только админам конфы. По вопросам насчет бота писать @StanRiders, но лучше не писать. \n" +
+                    "http://kikoe.ru/";
+            }
+
+            return string.Empty;
         }
 
         private string ProcessMessageWithModules(Message msg, ref ParseMode parseMode)

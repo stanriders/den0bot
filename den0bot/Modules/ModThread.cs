@@ -1,4 +1,5 @@
-﻿using System;
+﻿// den0bot (c) StanR 2017 - MIT License
+using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Text;
@@ -99,7 +100,7 @@ namespace den0bot.Modules
 
                 foreach (string post in posts)
                 {
-                    result += "___________" + Environment.NewLine + Extensions.FilterHTML(post) + Environment.NewLine;
+                    result += "___________" + Environment.NewLine + post.FilterHTML() + Environment.NewLine;
                 }
 
                 return result;

@@ -1,4 +1,5 @@
-﻿using Telegram.Bot.Types.Enums;
+﻿// den0bot (c) StanR 2017 - MIT License
+using Telegram.Bot.Types.Enums;
 
 namespace den0bot
 {

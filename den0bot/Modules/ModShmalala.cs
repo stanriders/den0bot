@@ -1,4 +1,5 @@
-﻿//using Neural.NET;
+﻿// den0bot (c) StanR 2017 - MIT License
+//using Neural.NET;
 
 namespace den0bot.Modules
 {

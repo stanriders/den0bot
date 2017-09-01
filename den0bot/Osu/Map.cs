@@ -1,4 +1,4 @@
-﻿
+﻿// den0bot (c) StanR 2017 - MIT License
 using System;
 
 namespace den0bot.Osu
