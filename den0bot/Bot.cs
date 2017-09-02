@@ -65,6 +65,12 @@ namespace den0bot
 
         public void ProcessMessage(Message msg)
         {
+            if (msg == null ||
+                msg.ForwardFrom != null ||
+                msg.ForwardFromChat != null ||
+                msg.Date < DateTime.Now.ToUniversalTime().AddSeconds(-15))
+                return;
+
             Chat senderChat = msg.Chat;
 
             // having title means its a chat and not PM
@@ -77,12 +83,8 @@ namespace den0bot
                 return;
             }
 
-            if (msg == null ||
-                (msg.Type != MessageType.TextMessage &&
-                msg.Type != MessageType.PhotoMessage) ||
-                msg.ForwardFrom != null || 
-                msg.ForwardFromChat != null || 
-                msg.Date < DateTime.Now.ToUniversalTime().AddSeconds(-15))
+            if (msg.Type != MessageType.TextMessage &&
+                msg.Type != MessageType.PhotoMessage)
                 return;
 
             if (msg.Text != null && msg.Text.StartsWith("/"))

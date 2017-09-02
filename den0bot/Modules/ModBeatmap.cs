@@ -41,7 +41,7 @@ namespace den0bot.Modules
                     Group[] groups = new Group[9];
                     regexMatch.Groups.CopyTo(groups, 0);
                     List<Group> listGroups = groups.ToList();
-                    listGroups.RemoveAll(x => (x.Length <= 0) || (x == null));
+                    listGroups.RemoveAll(x => (x == null) || (x.Length <= 0));
 
                     Map map = null;
                     string mods = string.Empty;
