@@ -1,4 +1,5 @@
 ﻿// den0bot (c) StanR 2017 - MIT License
+using System;
 using System.Text.RegularExpressions;
 
 namespace den0bot
@@ -24,6 +25,11 @@ namespace den0bot
                         .Replace("<", "&lt;")
                         .Replace(">", "&gt;")
                         .Replace("\"", "&quot;");
+        }
+
+        public static string InnerMessageIfAny(this Exception value)
+        {
+            return value.InnerException?.Message ?? value.Message;
         }
     }
 }

@@ -56,7 +56,7 @@ namespace den0bot.Osu
                 }
                 return result;
             }
-            catch (Exception ex) { Log.Error("osuAPI", "GetTopscores - " + ex.Message); }
+            catch (Exception ex) { Log.Error("osuAPI", "GetTopscores - " + ex.InnerMessageIfAny()); }
             return null;
         }
 
@@ -91,7 +91,7 @@ namespace den0bot.Osu
                     return beatmapSet;
                 }
             }
-            catch (Exception ex) { Log.Error("osuAPI", "GetBeatmapSet - " + ex.Message); }
+            catch (Exception ex) { Log.Error("osuAPI", "GetBeatmapSet - " + ex.InnerMessageIfAny()); }
 
             return null;
         }
@@ -115,7 +115,7 @@ namespace den0bot.Osu
                 if (arr.Count > 0)
                     return ParseBeatmap(arr[0]);
             }
-            catch (Exception ex) { Log.Error("osuAPI", "GetBeatmap - " + ex.Message); }
+            catch (Exception ex) { Log.Error("osuAPI", "GetBeatmap - " + ex.InnerMessageIfAny()); }
 
             return null;
         }
@@ -130,7 +130,7 @@ namespace den0bot.Osu
                 Map result = new Map();
                 result.BeatmapID = token["beatmap_id"].Value<uint>();
                 result.BeatmapSetID = token["beatmapset_id"].Value<uint>();
-                result.Status = token["approved"].Value<int>();
+                result.Status = (RankedStatus)Enum.Parse(typeof(RankedStatus), token["approved"].ToString());
 
                 result.UpdatedDate = token["last_update"].Value<DateTime>();
                 if (result.Status > 0)
@@ -140,6 +140,12 @@ namespace den0bot.Osu
                 result.Title = token["title"].ToString();
                 result.Difficulty = token["version"].ToString();
                 result.Creator = token["creator"].ToString();
+
+                result.StarRating = token["difficultyrating"].Value<double>();
+                result.CS = token["diff_size"].Value<double>();
+                result.AR = token["diff_approach"].Value<double>();
+                result.OD = token["diff_overall"].Value<double>();
+                result.HP = token["diff_drain"].Value<double>();
 
                 result.MaxCombo = token["max_combo"].Value<uint>();
                 result.DrainLength = token["hit_length"].Value<uint>();
@@ -197,7 +203,7 @@ namespace den0bot.Osu
                     return result;
                 }
             }
-            catch (Exception ex) { Log.Error("osuAPI", "GetPlayer - " + ex.Message); }
+            catch (Exception ex) { Log.Error("osuAPI", "GetPlayer - " + ex.InnerMessageIfAny()); }
 
             return null;
         }

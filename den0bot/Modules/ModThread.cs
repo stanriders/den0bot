@@ -51,16 +51,16 @@ namespace den0bot.Modules
 
                 foreach (JObject o in obj["threads"])
                 {
-                    string subject = (string)o["subject"];
-                    if (subject.ToLower().StartsWith("osu") || subject.ToLower().StartsWith("осу"))
+                    string subject = o["subject"].ToString().ToLower();
+                    if (subject.StartsWith("osu") || subject.StartsWith("осу"))
                     {
-                        Log.Info(this, subject + " | " + (string)o["num"]);
-                        return (int)o["num"];
+                        Log.Info(this, subject + " | " + o["num"].ToString());
+                        return o["num"].Value<int>();
                     }
 
                 }
             }
-            catch (Exception ex) { Log.Error(this, ex.Message); }
+            catch (Exception ex) { Log.Error(this, ex.InnerMessageIfAny()); }
 
             return 0;
         }
@@ -73,24 +73,24 @@ namespace den0bot.Modules
 
             try
             {
-                string request = "https://2ch.hk/a/res/" + threadID + ".json";
+                string request = $"https://2ch.hk/a/res/{threadID}.json";
 
                 WebClient web = new WebClient();
                 var data = web.DownloadData(request);
                 web.Dispose();
 
-                JObject obj = JObject.Parse(Encoding.UTF8.GetString(data));
+                JToken obj = JObject.Parse(Encoding.UTF8.GetString(data))["threads"][0];
 
-                string result = "https://2ch.hk/a/res/" + threadID + ".html" + /*" | Постов: " + obj["posts_count"] +*/ Environment.NewLine;
+                string result = $"https://2ch.hk/a/res/{threadID}.html\n";
 
                 List<string> posts = new List<string>();
 
-                foreach (JObject o in obj["threads"][0]["posts"])
+                foreach (JToken o in obj["posts"])
                 {
-                    string msg = o["comment"].Value<string>();
+                    string msg = o["comment"].ToString();
 
                     if (o["files"].HasValues)
-                        msg = "http://2ch.hk" + o["files"][0]["path"].Value<string>() + "\n" + o["comment"].Value<string>();
+                        msg = "http://2ch.hk" + o["files"][0]["path"].ToString() + "\n" + o["comment"].ToString();
 
                     posts.Add(msg);
                 }
@@ -105,7 +105,7 @@ namespace den0bot.Modules
 
                 return result;
             }
-            catch (Exception ex) { Log.Error(this, ex.Message); }
+            catch (Exception ex) { Log.Error(this, ex.InnerMessageIfAny()); }
 
             return string.Empty;
         }

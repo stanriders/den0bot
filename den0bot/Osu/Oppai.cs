@@ -39,31 +39,31 @@ namespace den0bot.Osu
                 data += oppai.StandardOutput.ReadLine() + Environment.NewLine;
             }
 
-            JToken info = JToken.Parse(data);
-            if (info.Count() > 0)
+            try
             {
-                OppaiInfo result = new OppaiInfo();
-                result.version = info["version"].ToString();
+                JToken info = JToken.Parse(data);
 
-                result.od = info["od"].Value<double>();
-                result.ar = info["ar"].Value<double>();
-                result.cs = info["cs"].Value<double>();
-                result.hp = info["hp"].Value<double>();
+                if (info?.Count() > 0)
+                {
+                    OppaiInfo result = new OppaiInfo();
+                    result.version = info["version"].ToString();
 
-                result.max_combo = info["max_combo"].Value<short>();
+                    result.max_combo = info["max_combo"].Value<short>();
 
-                result.num_circles = info["num_circles"].Value<short>();
-                result.num_sliders = info["num_sliders"].Value<short>();
-                result.num_spinners = info["num_spinners"].Value<short>();
+                    result.num_circles = info["num_circles"].Value<short>();
+                    result.num_sliders = info["num_sliders"].Value<short>();
+                    result.num_spinners = info["num_spinners"].Value<short>();
 
-                result.stars = info["stars"].Value<double>();
-                result.speed = info["speed_stars"].Value<double>();
-                result.aim = info["aim_stars"].Value<double>();
+                    result.stars = info["stars"].Value<double>();
+                    result.speed = info["speed_stars"].Value<double>();
+                    result.aim = info["aim_stars"].Value<double>();
 
-                result.pp = info["pp"].Value<double>();
+                    result.pp = info["pp"].Value<double>();
 
-                return result;
+                    return result;
+                }
             }
+            catch (Exception e) { Log.Error("Oppai", e.InnerMessageIfAny()); }
 
             return null;
         }

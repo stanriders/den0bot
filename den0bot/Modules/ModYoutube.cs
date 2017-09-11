@@ -86,7 +86,7 @@ namespace den0bot.Modules
                     }
                 }
             }
-            catch (Exception ex) { Log.Error(this, ex.Message); }
+            catch (Exception ex) { Log.Error(this, ex.InnerMessageIfAny()); }
         }
 
         private string GetLastScores(int amount)
@@ -114,7 +114,7 @@ namespace den0bot.Modules
                     }
                 }
             }
-            catch (Exception ex) { Log.Error(this, ex.Message); }
+            catch (Exception ex) { Log.Error(this, ex.InnerMessageIfAny()); }
 
             return result;
         }

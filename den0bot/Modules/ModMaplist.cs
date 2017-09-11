@@ -45,7 +45,7 @@ namespace den0bot.Modules
                     isEnabled = true;
                 }
             }
-            catch (Exception ex) { Log.Error(this, "Failed to start: " + ex.Message); }
+            catch (Exception ex) { Log.Error(this, "Failed to start: " + ex.InnerMessageIfAny()); }
         }
 
         public override string ProcessCommand(string msg, Chat sender)

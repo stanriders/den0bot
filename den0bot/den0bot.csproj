@@ -97,8 +97,8 @@
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
     <Reference Include="System.Xml.Linq" />
-    <Reference Include="Telegram.Bot, Version=13.0.1.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Telegram.Bot.13.1.0\lib\netstandard1.1\Telegram.Bot.dll</HintPath>
+    <Reference Include="Telegram.Bot, Version=13.2.2.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Telegram.Bot.13.2.2-rc\lib\netstandard1.1\Telegram.Bot.dll</HintPath>
       <Private>True</Private>
     </Reference>
   </ItemGroup>
@@ -115,7 +115,6 @@
     <Compile Include="IModule.cs" />
     <Compile Include="Log.cs" />
     <Compile Include="Events.cs" />
-    <Compile Include="Modules\ModPirate.cs" />
     <Compile Include="Modules\ModSettings.cs" />
     <Compile Include="Modules\ModBeatmap.cs" />
     <Compile Include="Modules\ModCat.cs" />
@@ -132,6 +131,7 @@
     <Compile Include="Osu\Mods.cs" />
     <Compile Include="Osu\OsuAPI.cs" />
     <Compile Include="Osu\Player.cs" />
+    <Compile Include="Osu\RankedStatus.cs" />
     <Compile Include="Osu\Score.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

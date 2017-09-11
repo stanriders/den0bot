@@ -1,6 +1,7 @@
 ﻿// den0bot (c) StanR 2017 - MIT License
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using den0bot.DB.Types;
 using SQLite;
@@ -110,9 +111,10 @@ namespace den0bot.DB
         public static int GetPlayerCount() => db.Table<Player>().Count();
         public static int GetPlayerCount(long chatID) => (int)db.Table<Player>().Where(x => x.ChatID == chatID)?.Count();
 
-        public static string GetPlayerFriendlyName(int ID) => db.Table<Player>().Where(x => x.Id == ID)?.First().FriendlyName;
-        public static uint GetPlayerOsuID(int ID) => (uint)db.Table<Player>().Where(x => x.Id == ID)?.First().OsuID;
-        public static long GetPlayerChatID(int ID) => (long)db.Table<Player>().Where(x => x.Id == ID)?.First().ChatID;
+        private static Player GetPlayer(int ID) => db.Table<Player>().Where(x => x.Id == ID)?.FirstOrDefault();
+        public static string GetPlayerFriendlyName(int ID) => GetPlayer(ID)?.FriendlyName;
+        public static uint GetPlayerOsuID(int ID) => GetPlayer(ID)?.OsuID ?? 0;
+        public static long GetPlayerChatID(int ID) => GetPlayer(ID)?.ChatID ?? 0;
 
         public static void AddPlayer(string name, uint osuID, long chatID)
         {
@@ -149,7 +151,7 @@ namespace den0bot.DB
                         result.Add(new Osu.Score
                         {
                             ScoreID = uint.Parse(scoreID),
-                            Date = DateTime.Parse(date)
+                            Date = DateTime.Parse(date, CultureInfo.GetCultureInfo("en-us"))
                         });
                     }
                 }
@@ -165,7 +167,7 @@ namespace den0bot.DB
                 string result = string.Empty;
                 foreach (Osu.Score score in scores)
                 {
-                    result += score.ScoreID + "-" + score.Date.ToString() + ";";
+                    result += score.ScoreID + "-" + score.Date.ToString(CultureInfo.GetCultureInfo("en-us")) + ";";
                 }
                 player.Topscores = result;
                 db.Update(player);

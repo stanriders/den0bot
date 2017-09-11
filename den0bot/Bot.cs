@@ -12,7 +12,7 @@ namespace den0bot
     public class Bot
     {
         private List<IModule> modules;
-        private bool IsAdmin(long chatID, string username) => (username == "StanRiders") || (API.GetAdmins(chatID).Result.Exists(x => x.User.Username == username) );
+        private bool IsAdmin(long chatID, string username) => (username == "StanRiders") || (API.GetAdmins(chatID).Exists(x => x.User.Username == username) );
 
         public Bot()
         {
@@ -28,8 +28,7 @@ namespace den0bot
                 new ModBeatmap(),
                 new ModMaplist(),
                 new ModCat(),
-                new ModSettings(),
-                new ModPirate()
+                new ModSettings()
             };
 
             if (API.Connect(this))
@@ -111,16 +110,18 @@ namespace den0bot
             if (msg.Text == null || msg.Text == string.Empty)
                 return string.Empty;
 
-            if (msg.Text.StartsWith("/"))
-                msg.Text = msg.Text.Substring(1);
+            string text = msg.Text;
 
-            if (msg.Text.StartsWith("me ")) //meh
+            if (text.StartsWith("/"))
+                text = text.Substring(1);
+
+            if (text.StartsWith("me ")) //meh
             {
                 API.RemoveMessage(msg.Chat.Id, msg.MessageId);
                 parseMode = ParseMode.Markdown;
-                return $"_{msg.From.FirstName}{msg.Text.Substring(2)}_";
+                return $"_{msg.From.FirstName}{text.Substring(2)}_";
             }
-            else if (msg.Text == "start" || msg.Text == "help")
+            else if (text == "start" || text == "help")
             {
                 return "Дарова. Короче помимо того, что в списке команд я могу ещё: \n\n" +
                     "/addplayer - добавить игрока в базу. Синтаксис: /addplayer <имя> <osu!айди>. Бот будет следить за новыми топскорами и сообщать их в чат. Также имя используется в базе щитпостеров. \n" +
@@ -139,26 +140,30 @@ namespace den0bot
         {
             foreach (IModule m in modules)
             {
+                string text = msg.Text;
                 if (msg.Type == MessageType.PhotoMessage)
                 {
                     if (!m.NeedsPhotos)
                         continue;
                     else
-                        msg.Text = msg.Caption + " photo" + msg.Photo[0].FileId; //kinda hack
+                        text = msg.Caption + " photo" + msg.Photo[0].FileId; //kinda hack
                 }
 
-                if (msg.Text.StartsWith("/") && !m.NeedsAllMessages)
-                    msg.Text = msg.Text.Remove(0, 1);
+                if (!text.StartsWith("/") && !m.NeedsAllMessages)
+                    continue;
+
+                if (text.StartsWith("/") && !m.NeedsAllMessages)
+                    text = text.Substring(1);
 
                 string result = string.Empty;
                 if (m is IAdminOnly && IsAdmin(msg.Chat.Id, msg.From.Username) && msg.Chat.Title != null)
                 {
                     IAdminOnly mAdmin = m as IAdminOnly;
-                    result += mAdmin.ProcessAdminCommand(msg.Text, msg.Chat);
+                    result += mAdmin.ProcessAdminCommand(text, msg.Chat);
                 }
                 else
                 {
-                    result += m.ProcessCommand(msg.Text, msg.Chat);
+                    result += m.ProcessCommand(text, msg.Chat);
                 }
 
                 if (result != string.Empty)

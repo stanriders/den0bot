@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Telegram.Bot.Types;
 using den0bot.Osu;
+using System.Text.RegularExpressions;
 
 namespace den0bot.Modules
 {
@@ -15,24 +16,12 @@ namespace den0bot.Modules
 
         public override string ProcessCommand(string msg, Chat sender)
         {
-            if (msg.Contains("osu.ppy.sh/u/") || msg.Contains("osu.ppy.sh/users/"))
+            Match regexMatch = Regex.Match(msg, @"(?>https?:\/\/)?osu\.ppy\.sh\/u(?>sers)?\/(\d+|\S+)", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+            if (regexMatch.Groups.Count > 1)
             {
-                string playerID = string.Empty;
-
-                int index = msg.LastIndexOf("osu.ppy.sh/u/");
-                if (index > 0)
-                {
-                    playerID = msg.Substring(index + 13);
-                }
-                else
-                {
-                    index = msg.LastIndexOf("osu.ppy.sh/users/");
-                    if (index > 0)
-                    {
-                        playerID = msg.Substring(index + 17);
-                    }
-                }
-                return FormatPlayerInfo(playerID);
+                string playerID = regexMatch.Groups[1]?.Value;
+                if (!string.IsNullOrEmpty(playerID))
+                    return FormatPlayerInfo(playerID);
             }
             return string.Empty;
         }

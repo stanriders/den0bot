@@ -7,14 +7,12 @@ using System.Net;
 using System.Text.RegularExpressions;
 using den0bot.Osu;
 using Telegram.Bot.Types;
-using Telegram.Bot.Types.Enums;
 
 namespace den0bot.Modules
 {
     class ModBeatmap : IModule
     {
         public override bool NeedsAllMessages => true;
-        public override ParseMode ParseMode => ParseMode.Html;
         public override void Think() { }
 
         private bool foundOppai = true;
@@ -33,9 +31,10 @@ namespace den0bot.Modules
             if (!foundOppai)
                 return string.Empty;
 
-            if (msg.Contains("osu.ppy.sh/b/") || msg.Contains("osu.ppy.sh/s/"))
+            //if (msg.Contains("osu.ppy.sh/b/") || msg.Contains("osu.ppy.sh/s/"))
             {
-                Match regexMatch = Regex.Match(msg, @"(?>https?:\/\/)?osu\.ppy\.sh\/([b,s])\/(\d+)$|(?>https?:\/\/)?osu\.ppy\.sh\/([b,s])\/(\d+)[&,?].=\d\s?(\+.+)?|(?>https?:\/\/)?osu\.ppy\.sh\/([b,s])\/(\d+)\s?(\+.+)");
+                Match regexMatch = Regex.Match(msg, @"(?>https?:\/\/)?osu\.ppy\.sh\/([b,s])\/(\d+)$|
+                                                      (?>https?:\/\/)?osu\.ppy\.sh\/([b,s])\/(\d+)(?>[&,?].=\d)?\s?(\+.+)?", RegexOptions.Compiled | RegexOptions.IgnoreCase);
                 if (regexMatch.Groups.Count > 1)
                 {
                     Group[] groups = new Group[9];
@@ -55,7 +54,7 @@ namespace den0bot.Modules
                     if (listGroups.Count > 3)
                         mods = listGroups[3].Value;
 
-                    return FormatMapInfo(map, mods);
+                    API.SendPhoto(map.Thumbnail(), sender, FormatMapInfo(map, mods));
                 }
             }
             return string.Empty;
@@ -93,18 +92,20 @@ namespace den0bot.Modules
             OppaiInfo info95 = Oppai.GetBeatmapInfo(mapFile, mods, 95);
             if (info100 != null)
             {
-                result += string.Format("<b>[{0}]</b> - {1}* - {2}\n<b>CS:</b> {3} | <b>AR:</b> {4} | <b>OD:</b> {5} | <b>BPM:</b> {6}\n<b>100%</b> - {7}pp",
-                    info100.version, info100.stars.ToString("N2"), drain.ToString("mm':'ss"),
-                    info100.cs, info100.ar, info100.od, bpm.ToString("N2").Replace(" ",""), 
+                result += string.Format("[{0}] - {1}* - {2} - {3}\nCS: {4} | AR: {5} | OD: {6} | BPM: {7}\n100% - {8}pp",
+                    info100.version, map.StarRating.ToString("N2"), drain.ToString("mm':'ss"), map.Status.ToString(),
+                    map.CS, map.AR, map.OD, map.BPM, 
                     info100.pp.ToString("N2"));
             }
             if (info98 != null)
-                result += string.Format(" | <b>98%</b> - {0}pp", info98.pp.ToString("N2"));
+                result += string.Format(" | 98% - {0}pp", info98.pp.ToString("N2"));
             if (info95 != null)
-                result += string.Format(" | <b>95%</b> - {0}pp", info95.pp.ToString("N2"));
+                result += string.Format(" | 95% - {0}pp", info95.pp.ToString("N2"));
 
             return result;
         }
-
+        /* "<b>[{0}]</b> - {1}* - {2}\n
+         * <b>CS:</b> {3} | <b>AR:</b> {4} | <b>OD:</b> {5} | <b>BPM:</b> {6}\n
+         * <b>100%</b> - {7}pp | <b>98%</b> - {0}pp | <b>95%</b> - {0}pp" */
     }
 }

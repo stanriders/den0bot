@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 using den0bot.DB;
 using Telegram.Bot;
@@ -33,7 +34,8 @@ namespace den0bot
             try
             {
                 api.OnMessage += ReceiveMessage;
-                api.OnReceiveGeneralError += delegate (object sender, ReceiveGeneralErrorEventArgs args) { Log.Error("API - OnReceiveGeneralError", args.Exception.InnerException?.Message); };
+                api.OnReceiveGeneralError += delegate (object sender, ReceiveGeneralErrorEventArgs args) { Log.Error("API - OnReceiveGeneralError", args.Exception.InnerMessageIfAny()); };
+                api.OnReceiveError += delegate (object sender, ReceiveErrorEventArgs args) { Log.Error("API - OnReceiveError", args.ApiRequestException.InnerMessageIfAny()); };
 
                 api.TestApiAsync();
 
@@ -41,7 +43,7 @@ namespace den0bot
             }
             catch (Exception ex)
             {
-                Log.Error("API", ex.Message);
+                Log.Error("API", ex.InnerMessageIfAny());
                 return false;
             }
 
@@ -79,10 +81,10 @@ namespace den0bot
         {
             try
             {
-                if (message != null && message != string.Empty)
+                if (!string.IsNullOrEmpty(message))
                     api?.SendTextMessageAsync(receiverID, message, mode, true);
             }
-            catch (Exception ex) { Log.Error("API - SendMessage", ex.Message); }
+            catch (Exception ex) { Log.Error("API - SendMessage", ex.InnerMessageIfAny()); }
         }
 
         /// <summary>
@@ -97,9 +99,9 @@ namespace den0bot
             {
                 if (!receiver.DisableAnnouncements)
                 {
-                    if (image != null && image != string.Empty)
+                    if (!string.IsNullOrEmpty(image))
                         SendPhoto(image, receiver.Id, msg);
-                    else if (msg != null && msg != string.Empty)
+                    else if (!string.IsNullOrEmpty(msg))
                         SendMessage(msg, receiver.Id, mode);
                 }
             }
@@ -123,18 +125,37 @@ namespace den0bot
         {
             try
             {
-                if (photo != null && photo != string.Empty)
+                if (!string.IsNullOrEmpty(photo))
                 {
                     FileToSend file = new FileToSend();
                     if (photo.StartsWith("http") && (photo.EndsWith(".jpg") || photo.EndsWith(".png")))
-                        file.Url = new Uri(photo);
+                    {
+                        file = UriPhotoDownload(new Uri(photo));
+                        if (file.Content == null)
+                        {
+                            SendMessage(message, receiverId);
+                            return;
+                        }
+                    }
                     else
                         file.FileId = photo;
 
                     api?.SendPhotoAsync(receiverId, file, message);
                 }
             }
-            catch (Exception ex) { Log.Error("API - SendPhoto", ex.Message); }
+            catch (Exception ex) { Log.Error("API - SendPhoto", ex.InnerMessageIfAny()); }
+        }
+        private static FileToSend UriPhotoDownload(Uri link)
+        {
+            try
+            {
+                return new WebClient().OpenRead(link).ToFileToSend("yo");
+            }
+            catch (Exception ex)
+            {
+                Log.Error("API - UriPhotoDownload", ex.InnerMessageIfAny());
+                return new FileToSend();
+            }
         }
 
         /// <summary>
@@ -148,16 +169,15 @@ namespace den0bot
             {
                 api.SendStickerAsync(receiverID, sticker);
             }
-            catch (Exception ex) { Log.Error("API - SendSticker", ex.Message); }
+            catch (Exception ex) { Log.Error("API - SendSticker", ex.InnerMessageIfAny()); }
         }
 
         /// <summary>
         /// Returns List of chat memebers that are admins
         /// </summary>
-        public static async Task<List<ChatMember>> GetAdmins(long chatID)
+        public static List<ChatMember> GetAdmins(long chatID)
         {
-            ChatMember[] admins = await api?.GetChatAdministratorsAsync(chatID);
-            return admins.ToList();
+            return api?.GetChatAdministratorsAsync(chatID).Result?.ToList();
         }
 
         /// <summary>
@@ -171,7 +191,7 @@ namespace den0bot
             {
                 api.DeleteMessageAsync(chatID, msgID);
             }
-            catch (Exception ex) { Log.Error("API - RemoveMessage", ex.Message); }
+            catch (Exception ex) { Log.Error("API - RemoveMessage", ex.InnerMessageIfAny()); }
         }
     }
 }
