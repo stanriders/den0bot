@@ -26,18 +26,21 @@ namespace den0bot.Osu
         public string Rank;
         public double Pp;
 
-        public double Accuracy()
+        public double Accuracy
         {
-            /*
-             * Accuracy = Total points of hits / (Total number of hits * 300)
-             * Total points of hits  =  Number of 50s * 50 + Number of 100s * 100 + Number of 300s * 300
-             * Total number of hits  =  Number of misses + Number of 50's + Number of 100's + Number of 300's
-             */
+            get
+            {
+                /*
+                 * Accuracy = Total points of hits / (Total number of hits * 300)
+                 * Total points of hits  =  Number of 50s * 50 + Number of 100s * 100 + Number of 300s * 300
+                 * Total number of hits  =  Number of misses + Number of 50's + Number of 100's + Number of 300's
+                 */
 
-            double totalPoints = Count50 * 50 + Count100 * 100 + Count300 * 300;
-            double totalHits = Misses + Count50 + Count100 + Count300;
+                double totalPoints = Count50 * 50 + Count100 * 100 + Count300 * 300;
+                double totalHits = Misses + Count50 + Count100 + Count300;
 
-            return totalPoints / (totalHits * 300) * 100;
+                return totalPoints / (totalHits * 300) * 100;
+            }
 
         }
 

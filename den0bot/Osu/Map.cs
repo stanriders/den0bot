@@ -29,9 +29,9 @@ namespace den0bot.Osu
 
         public double BPM;
 
-        public string Thumbnail()
+        public string Thumbnail
         {
-            return "https://assets.ppy.sh/beatmaps/"+BeatmapSetID+"/covers/cover.jpg";
+            get { return "https://assets.ppy.sh/beatmaps/" + BeatmapSetID + "/covers/cover.jpg"; }
         }
     }
 }

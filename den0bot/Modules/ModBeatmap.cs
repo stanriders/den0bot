@@ -16,6 +16,7 @@ namespace den0bot.Modules
         public override void Think() { }
 
         private bool foundOppai = true;
+        private Regex regex = new Regex(@"(?>https?:\/\/)?osu\.ppy\.sh\/([b,s])\/(\d+)$|(?>https?:\/\/)?osu\.ppy\.sh\/([b,s])\/(\d+)(?>[&,?].=\d)?\s?(\+.+)?", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
         public ModBeatmap()
         {
@@ -31,31 +32,23 @@ namespace den0bot.Modules
             if (!foundOppai)
                 return string.Empty;
 
-            //if (msg.Contains("osu.ppy.sh/b/") || msg.Contains("osu.ppy.sh/s/"))
+            Match regexMatch = regex.Match(msg);
+            if (regexMatch.Groups.Count > 1)
             {
-                Match regexMatch = Regex.Match(msg, @"(?>https?:\/\/)?osu\.ppy\.sh\/([b,s])\/(\d+)$|
-                                                      (?>https?:\/\/)?osu\.ppy\.sh\/([b,s])\/(\d+)(?>[&,?].=\d)?\s?(\+.+)?", RegexOptions.Compiled | RegexOptions.IgnoreCase);
-                if (regexMatch.Groups.Count > 1)
-                {
-                    Group[] groups = new Group[9];
-                    regexMatch.Groups.CopyTo(groups, 0);
-                    List<Group> listGroups = groups.ToList();
-                    listGroups.RemoveAll(x => (x == null) || (x.Length <= 0));
+                List<Group> listGroups = regexMatch.Groups.OfType<Group>().Where(x => (x != null) && (x.Length > 0)).ToList();
+                bool isSet = listGroups[1].Value == "s" ? true : false;
 
-                    Map map = null;
-                    string mods = string.Empty;
-                    bool isSet = listGroups[1].Value == "s" ? true : false;
+                Map map = null;
+                if (isSet)
+                    map = OsuAPI.GetBeatmapSet(uint.Parse(listGroups[2].Value)).Last();
+                else
+                    map = OsuAPI.GetBeatmap(uint.Parse(listGroups[2].Value));
 
-                    if (isSet)
-                        map = OsuAPI.GetBeatmapSet(uint.Parse(listGroups[2].Value)).Last();
-                    else
-                        map = OsuAPI.GetBeatmap(uint.Parse(listGroups[2].Value));
+                string mods = string.Empty;
+                if (listGroups.Count > 3)
+                    mods = listGroups[3].Value;
 
-                    if (listGroups.Count > 3)
-                        mods = listGroups[3].Value;
-
-                    API.SendPhoto(map.Thumbnail(), sender, FormatMapInfo(map, mods));
-                }
+                API.SendPhoto(map.Thumbnail, sender, FormatMapInfo(map, mods));
             }
             return string.Empty;
         }
