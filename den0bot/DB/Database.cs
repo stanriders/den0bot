@@ -108,6 +108,7 @@ namespace den0bot.DB
         // ---
         // Users
         // ---
+        public static List<Player> GetAllPlayers(long chatID) => db.Table<Player>().Where(x => x.ChatID == chatID)?.ToList();
         public static int GetPlayerCount() => db.Table<Player>().Count();
         public static int GetPlayerCount(long chatID) => (int)db.Table<Player>().Where(x => x.ChatID == chatID)?.Count();
 

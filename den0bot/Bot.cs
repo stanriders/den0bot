@@ -52,13 +52,13 @@ namespace den0bot
 
         private string GreetNewfag(string username, long userID)
         {
-            return $"Дороу, <a href=\"tg://user?id={userID}\">{username}</a>\n" +
-                    "Хорошим тоном является:\n" +
-                    "<b>1.</b> Кинуть профиль.\n" +
-                    "<b>2.</b> Не инактивить.\n" +
-                    "<b>3.</b> Словить бан при входе.\n" +
-                    "<b>4.</b> Панду бить только ногами, иначе зашкваришься.\n" +
-                    "Ден - аниме, но аниме запрещено. В мульти не играть - мужиков не уважать.\n" +
+            return $"Дороу, <a href=\"tg://user?id={userID}\">{username}</a>" + Environment.NewLine +
+                    "Хорошим тоном является:" + Environment.NewLine +
+                    "<b>1.</b> Кинуть профиль." + Environment.NewLine +
+                    "<b>2.</b> Не инактивить." + Environment.NewLine +
+                    "<b>3.</b> Словить бан при входе." + Environment.NewLine +
+                    "<b>4.</b> Панду бить только ногами, иначе зашкваришься." + Environment.NewLine +
+                    "Ден - аниме, но аниме запрещено. В мульти не играть - мужиков не уважать." + Environment.NewLine +
                     "<i>inb4 - бан</i>";
         }
 
@@ -79,6 +79,11 @@ namespace den0bot
             if (msg.NewChatMembers != null && msg.NewChatMembers.Length > 0)
             {
                 API.SendMessage(GreetNewfag(msg.NewChatMembers[0].FirstName, msg.NewChatMembers[0].Id), senderChat, ParseMode.Html);
+                return;
+            }
+            if (msg.LeftChatMember != null)
+            {
+                API.SendMessage(msg.LeftChatMember.FirstName + " покинул нас", senderChat);
                 return;
             }
 
@@ -107,29 +112,26 @@ namespace den0bot
 
         private string ProcessBasicCommands(Message msg, ref ParseMode parseMode)
         {
-            if (msg.Text == null || msg.Text == string.Empty)
+            if (msg.Text == null || msg.Text == string.Empty || msg.Text[0] != '/')
                 return string.Empty;
 
             string text = msg.Text;
 
-            if (text.StartsWith("/"))
-                text = text.Substring(1);
-
-            if (text.StartsWith("me ")) //meh
+            if (text.StartsWith("/me ")) //meh
             {
                 API.RemoveMessage(msg.Chat.Id, msg.MessageId);
                 parseMode = ParseMode.Markdown;
-                return $"_{msg.From.FirstName}{text.Substring(2)}_";
+                return $"_{msg.From.FirstName}{text.Substring(3)}_";
             }
-            else if (text == "start" || text == "help")
+            else if (text == "/start" || text == "/help")
             {
-                return "Дарова. Короче помимо того, что в списке команд я могу ещё: \n\n" +
-                    "/addplayer - добавить игрока в базу. Синтаксис: /addplayer <имя> <osu!айди>. Бот будет следить за новыми топскорами и сообщать их в чат. Также имя используется в базе щитпостеров. \n" +
-                    "/removeplayer - убрать игрока из базы. Синтаксис: /removeplayer <имя, указанное при добавлении>.\n" +
-                    "/addmeme - добавить мемес базу, можно как ссылку на картинку из интернета, так и загрузить её самому, а команду прописать в подпись. \n" +
-                    "/disableannouncements - отключить оповещения о новых скорах кукизи. \n" +
-                    "/enableannouncements - включить их обратно. \n\n" +
-                    "Все эти команды доступны только админам конфы. По вопросам насчет бота писать @StanRiders, но лучше не писать. \n" +
+                return "Дарова. Короче помимо того, что в списке команд я могу ещё:" + Environment.NewLine + Environment.NewLine +
+                    "/addplayer - добавить игрока в базу. Синтаксис: /addplayer <имя> <osu!айди>. Бот будет следить за новыми топскорами и сообщать их в чат. Также имя используется в базе щитпостеров." + Environment.NewLine +
+                    "/removeplayer - убрать игрока из базы. Синтаксис: /removeplayer <имя, указанное при добавлении>." + Environment.NewLine +
+                    "/addmeme - добавить мемес базу, можно как ссылку на картинку из интернета, так и загрузить её самому, а команду прописать в подпись." + Environment.NewLine +
+                    "/disableannouncements - отключить оповещения о новых скорах кукизи." + Environment.NewLine +
+                    "/enableannouncements - включить их обратно." + Environment.NewLine + Environment.NewLine +
+                    "Все эти команды доступны только админам конфы. По вопросам насчет бота писать @StanRiders, но лучше не писать." + Environment.NewLine +
                     "http://kikoe.ru/";
             }
 
@@ -149,7 +151,7 @@ namespace den0bot
                         text = msg.Caption + " photo" + msg.Photo[0].FileId; //kinda hack
                 }
 
-                if (!text.StartsWith("/") && !m.NeedsAllMessages)
+                if (text == null || !text.StartsWith("/") && !m.NeedsAllMessages)
                     continue;
 
                 if (text.StartsWith("/") && !m.NeedsAllMessages)

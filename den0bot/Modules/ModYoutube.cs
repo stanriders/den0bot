@@ -7,13 +7,13 @@ using Newtonsoft.Json.Linq;
 
 namespace den0bot.Modules
 {
-    // check osu!content's youtube channel and post new highscores to all chats
+    // check certain youtube channel and post new highscores to all chats
     class ModYoutube : IModule
     {
         private DateTime nextCheck;
 
         private readonly string api_key = Config.googleapi_token;
-        private readonly string channel_id = "UC-Slh6DZ_G-_hqmjZFtlusg";  // osu!content
+        private readonly string channel_id = "UCt1GKXk_zkcBUEwAeXZ43RA";  // circle people again
         private readonly double check_interval = 1.0; // minutes
         private readonly int default_score_amount = 3;
 
@@ -80,7 +80,7 @@ namespace den0bot.Modules
                             string title = (string)vid["snippet"]["title"];
                             string id = (string)vid["contentDetails"]["upload"]["videoId"];
 
-                            string result = "❗️ " + title + "\n" + "http://youtu.be/" + id;
+                            string result = "❗️ " + title + Environment.NewLine + "http://youtu.be/" + id;
                             API.SendMessageToAllChats(result);
                         }
                     }
@@ -110,7 +110,7 @@ namespace den0bot.Modules
                     {
                         string title = (string) obj["items"][i]["snippet"]["title"];
                         string id = (string) obj["items"][i]["contentDetails"]["upload"]["videoId"];
-                        result += title + "\n" + "http://youtu.be/" + id + Environment.NewLine + Environment.NewLine;
+                        result += title + Environment.NewLine + "http://youtu.be/" + id + Environment.NewLine + Environment.NewLine;
                     }
                 }
             }

@@ -1,5 +1,6 @@
 ﻿// den0bot (c) StanR 2017 - MIT License
 using System;
+using System.Collections.Generic;
 using den0bot.DB;
 
 namespace den0bot.Modules
@@ -68,7 +69,16 @@ namespace den0bot.Modules
                 }
                 return "Ты че деб?";
             }
-
+            else if (msg.StartsWith("playerlist"))
+            {
+                string result = string.Empty;
+                List<DB.Types.Player> players = Database.GetAllPlayers(sender.Id);
+                foreach (DB.Types.Player player in players)
+                {
+                    result += $"{player.FriendlyName} - /u/{player.OsuID} - {player.Topscores}{Environment.NewLine}";
+                }
+                return result;
+            }
             /*
             else if (msg.StartsWith("kick"))
             {

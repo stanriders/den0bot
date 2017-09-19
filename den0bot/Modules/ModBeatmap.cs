@@ -97,8 +97,8 @@ namespace den0bot.Modules
 
             return result;
         }
-        /* "<b>[{0}]</b> - {1}* - {2}\n
-         * <b>CS:</b> {3} | <b>AR:</b> {4} | <b>OD:</b> {5} | <b>BPM:</b> {6}\n
+        /* "<b>[{0}]</b> - {1}* - {2}
+         * <b>CS:</b> {3} | <b>AR:</b> {4} | <b>OD:</b> {5} | <b>BPM:</b> {6}
          * <b>100%</b> - {7}pp | <b>98%</b> - {0}pp | <b>95%</b> - {0}pp" */
     }
 }

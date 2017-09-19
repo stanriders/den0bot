@@ -3,7 +3,7 @@ using SQLite;
 
 namespace den0bot.DB.Types
 {
-    class Player
+    public class Player
     {
         [PrimaryKey, AutoIncrement]
         public int Id { get; set; }

@@ -55,7 +55,7 @@ namespace den0bot.Modules
                 if (isEnabled)
                 {
                     int num = rng.Next(Maplist.Count);
-                    return string.Format("{0}\n{1}", Maplist[num][0], Maplist[num][1]);
+                    return Maplist[num][0] + Environment.NewLine + Maplist[num][1];
                 }
                 else
                 {

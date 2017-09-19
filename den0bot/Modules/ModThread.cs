@@ -81,7 +81,7 @@ namespace den0bot.Modules
 
                 JToken obj = JObject.Parse(Encoding.UTF8.GetString(data))["threads"][0];
 
-                string result = $"https://2ch.hk/a/res/{threadID}.html\n";
+                string result = $"https://2ch.hk/a/res/{threadID}.html{Environment.NewLine}";
 
                 List<string> posts = new List<string>();
 
@@ -90,7 +90,7 @@ namespace den0bot.Modules
                     string msg = o["comment"].ToString();
 
                     if (o["files"].HasValues)
-                        msg = "http://2ch.hk" + o["files"][0]["path"].ToString() + "\n" + o["comment"].ToString();
+                        msg = "http://2ch.hk" + o["files"][0]["path"].ToString() + Environment.NewLine + o["comment"].ToString();
 
                     posts.Add(msg);
                 }

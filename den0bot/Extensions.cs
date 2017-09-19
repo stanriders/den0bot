@@ -8,7 +8,7 @@ namespace den0bot
     {
         public static string FilterHTML(this string value)
         {
-            var step1 = value.Replace("<br>", "\n");
+            var step1 = value.Replace("<br>", Environment.NewLine);
 
             var step2 = Regex.Replace(step1, @"<[^>]+>", "").Trim();
 
