@@ -27,12 +27,12 @@ namespace den0bot.Modules
                 Log.Error(this, "oppai.exe not found! ModBeatmap disabled.");
         }
 
-        public override string ProcessCommand(string msg, Chat sender)
+        public override string ProcessCommand(Message message)
         {
             if (!foundOppai)
                 return string.Empty;
 
-            Match regexMatch = regex.Match(msg);
+            Match regexMatch = regex.Match(message.Text);
             if (regexMatch.Groups.Count > 1)
             {
                 List<Group> listGroups = regexMatch.Groups.OfType<Group>().Where(x => (x != null) && (x.Length > 0)).ToList();
@@ -48,12 +48,12 @@ namespace den0bot.Modules
                 if (listGroups.Count > 3)
                     mods = listGroups[3].Value;
 
-                API.SendPhoto(map.Thumbnail, sender, FormatMapInfo(map, mods));
+                API.SendPhoto(map?.Thumbnail, message.Chat, FormatMapInfo(map, mods));
             }
             return string.Empty;
         }
 
-        private string FormatMapInfo(Map map, string mods)
+        public static string FormatMapInfo(Map map, string mods)
         {
             string result = string.Empty;
             string mapFile = string.Empty;
@@ -86,7 +86,7 @@ namespace den0bot.Modules
             if (info100 != null)
             {
                 result += string.Format("[{0}] - {1}* - {2} - {3}\nCS: {4} | AR: {5} | OD: {6} | BPM: {7}\n100% - {8}pp",
-                    info100.version, map.StarRating.ToString("N2"), drain.ToString("mm':'ss"), map.Status.ToString(),
+                    info100.version, info100.stars.ToString("N2"), drain.ToString("mm':'ss"), map.Status.ToString(),
                     map.CS, map.AR, map.OD, map.BPM, 
                     info100.pp.ToString("N2"));
             }

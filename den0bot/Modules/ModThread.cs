@@ -16,13 +16,13 @@ namespace den0bot.Modules
             Log.Info(this, "Enabled");
         }
 
-        public override string ProcessCommand(string msg, Telegram.Bot.Types.Chat sender)
+        public override string ProcessCommand(Telegram.Bot.Types.Message message)
         {
-            if (msg.StartsWith("thread"))
+            if (message.Text.StartsWith("thread"))
             {
                 try
                 {
-                    int amount = int.Parse(msg.Remove(0, 7));
+                    int amount = int.Parse(message.Text.Remove(0, 7));
                     if (amount > 20)
                         return GetLastPosts(default_post_amount);
                     else

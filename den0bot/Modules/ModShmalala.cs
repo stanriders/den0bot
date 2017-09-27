@@ -10,7 +10,7 @@ namespace den0bot.Modules
         public ModShmalala()
         {
         }
-        public override string ProcessCommand(string msg, Telegram.Bot.Types.Chat sender)
+        public override string ProcessCommand(Telegram.Bot.Types.Message message)
         {
             return string.Empty;
         }

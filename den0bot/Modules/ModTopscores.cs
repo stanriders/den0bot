@@ -9,24 +9,26 @@ namespace den0bot.Modules
 {
     class ModTopscores : IModule
     {
-        private DateTime nextCheck;
         private Dictionary<int, List<Score>> storedTopscores;
 
         private int currentUser = 1;
-        private Random rng = new Random();
+
+#if !DEBUG
+        private DateTime nextCheck;
+        private readonly double check_interval = 5; //seconds per player
+#endif
 
         private readonly int scores_num = 5;
-        private readonly double check_interval = 5; //seconds per player
         private readonly string api_id = Config.osu_token;
 
-        public override string ProcessCommand(string msg, Telegram.Bot.Types.Chat sender) => string.Empty;
+        public override string ProcessCommand(Telegram.Bot.Types.Message message) => string.Empty;
 
         public ModTopscores()
         {
-            nextCheck = DateTime.Now;
             storedTopscores = new Dictionary<int, List<Score>>();
 
 #if !DEBUG
+            nextCheck = DateTime.Now;
             Start();
 #endif
 
@@ -135,7 +137,7 @@ namespace den0bot.Modules
                 if (oldTopscores != null && 
                     !oldTopscores.Contains(score) && 
                     score.Pp > oldTopscores.Last().Pp &&
-                    score.Date > DateTime.UtcNow.AddHours(-1))
+                    score.Date > DateTime.UtcNow.AddHours(7)) // osu is UTC+8
                 {
                     Map map = OsuAPI.GetBeatmap(score.BeatmapID);
                     Mods enabledMods = score.EnabledMods;

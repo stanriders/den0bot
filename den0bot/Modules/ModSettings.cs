@@ -5,23 +5,25 @@ using den0bot.DB;
 
 namespace den0bot.Modules
 {
-    class ModSettings : IModule, IAdminOnly
+    class ModSettings : IModule, IHasAdminCommands
     {
         public ModSettings() { Log.Info(this, "Enabled"); }
         public override void Think() { }
-        public override string ProcessCommand(string msg, Telegram.Bot.Types.Chat sender) => string.Empty;
+        public override string ProcessCommand(Telegram.Bot.Types.Message message) => string.Empty;
         public override bool NeedsPhotos => true;
 
-        public string ProcessAdminCommand(string msg, Telegram.Bot.Types.Chat sender)
+        public string ProcessAdminCommand(Telegram.Bot.Types.Message message)
         {
+            string msg = message.Text;
+            long chatId = message.Chat.Id;
             if (msg.StartsWith("disableannouncements"))
             {
-                Database.ToggleAnnouncements(sender.Id, false);
+                Database.ToggleAnnouncements(chatId, false);
                 return "Понял, вырубаю";
             }
             else if (msg.StartsWith("enableannouncements"))
             {
-                Database.ToggleAnnouncements(sender.Id, true);
+                Database.ToggleAnnouncements(chatId, true);
                 return "Понял, врубаю";
             }
             else if (msg.StartsWith("addmeme"))
@@ -30,22 +32,23 @@ namespace den0bot.Modules
 
                 if (link.StartsWith("http") && (link.EndsWith(".jpg") || link.EndsWith(".png")))
                 {
-                    Database.AddMeme(link, sender.Id);
+                    Database.AddMeme(link, chatId);
                     return "Мемес добавлен!";
                 }
                 else if (link.StartsWith("photo"))
                 {
-                    Database.AddMeme(link.Substring(5), sender.Id);
+                    Database.AddMeme(link.Substring(5), chatId);
                     return "Мемес добавлен!";
                 }
                 return "Ты че деб?";
             }
             else if (msg.StartsWith("addplayer"))
             {
-                string name = msg.Split(' ')[1];
-                string id = msg.Split(' ')[2];
+                string username = msg.Split(' ')[1];
+                string name = msg.Split(' ')[2];
+                string id = msg.Split(' ')[3];
 
-                if (name != null && name != string.Empty)
+                if (!string.IsNullOrEmpty(username) && !string.IsNullOrEmpty(name))
                 {
                     uint osuID = 0;
                     if (id != null && id != string.Empty)
@@ -53,8 +56,8 @@ namespace den0bot.Modules
                         try { osuID = uint.Parse(id); } catch (Exception) { }
                     }
 
-                    Database.AddPlayer(name, osuID, sender.Id);
-                    return $"Игрок добавлен! Имя {name}, профиль {osuID}";
+                    Database.AddPlayer(username.Substring(1), name, osuID, chatId);
+                    return $"{username.Substring(1)} добавлен! Имя {name}, профиль {osuID}";
                 }
                 return "Ты че деб?";
             }
@@ -64,7 +67,7 @@ namespace den0bot.Modules
 
                 if (name != null && name != string.Empty)
                 {
-                    Database.RemovePlayer(name, sender.Id);
+                    Database.RemovePlayer(name, chatId);
                     return $"{name} удален.";
                 }
                 return "Ты че деб?";
@@ -72,7 +75,7 @@ namespace den0bot.Modules
             else if (msg.StartsWith("playerlist"))
             {
                 string result = string.Empty;
-                List<DB.Types.Player> players = Database.GetAllPlayers(sender.Id);
+                List<DB.Types.Player> players = Database.GetAllPlayers(chatId);
                 foreach (DB.Types.Player player in players)
                 {
                     result += $"{player.FriendlyName} - /u/{player.OsuID} - {player.Topscores}{Environment.NewLine}";

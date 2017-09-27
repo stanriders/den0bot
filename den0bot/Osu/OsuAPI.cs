@@ -207,5 +207,50 @@ namespace den0bot.Osu
 
             return null;
         }
+
+        public static List<Score> GetRecentScores(string user, int amount = 5)
+        {
+            if (string.IsNullOrEmpty(user) || amount <= 0)
+                return null;
+
+            try
+            {
+                WebClient web = new WebClient();
+                string request = "https://osu.ppy.sh/api/get_user_recent?k=" + Config.osu_token + "&limit=" + amount + "&u=" + user;
+                var data = web.DownloadData(request);
+                web.Dispose();
+
+                JArray arr = JArray.Parse(Encoding.UTF8.GetString(data));
+
+                List<Score> result = new List<Score>();
+                foreach (JToken info in arr)
+                {
+                    Score score = new Score();
+                    score.BeatmapID = info["beatmap_id"].Value<uint>();
+                    score.ScoreID = info["score"].Value<uint>();
+                    score.UserID = info["user_id"].Value<uint>();
+
+                    score.Date = info["date"].Value<DateTime>();
+
+                    score.Combo = info["maxcombo"].Value<uint>();
+                    score.Perfect = Convert.ToBoolean(info["perfect"].Value<short>());
+
+                    score.Count300 = info["count300"].Value<uint>();
+                    score.Count100 = info["count100"].Value<uint>();
+                    score.Count50 = info["count50"].Value<uint>();
+                    score.Misses = info["countmiss"].Value<uint>();
+                    score.CountKatu = info["countkatu"].Value<uint>();
+                    score.CountGeki = info["countgeki"].Value<uint>();
+
+                    score.EnabledMods = (Mods)Enum.Parse(typeof(Mods), info["enabled_mods"].ToString());
+                    score.Rank = info["rank"].ToString();
+
+                    result.Add(score);
+                }
+                return result;
+            }
+            catch (Exception ex) { Log.Error("osuAPI", "GetRecentScores - " + ex.InnerMessageIfAny()); }
+            return null;
+        }
     }
 }

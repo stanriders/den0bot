@@ -3,7 +3,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
-using System.Threading.Tasks;
 using den0bot.DB;
 using Telegram.Bot;
 using Telegram.Bot.Args;
@@ -14,9 +13,7 @@ namespace den0bot
 {
     static class API
     {
-        private static readonly string token = Config.telegam_token;
-        private static TelegramBotClient api = new TelegramBotClient(token);
-        private static Bot parent;
+        private static TelegramBotClient api = new TelegramBotClient(Config.telegam_token);
 
         public static bool IsConnected
         {
@@ -26,14 +23,12 @@ namespace den0bot
         /// <summary>
         /// Connect and start receiving messages. Returns false if failed to connect.
         /// </summary>
-        /// <param name="b">Bot that called Connect and will receive all messages</param>
-        public static bool Connect(Bot b)
+        public static bool Connect()
         {
-            parent = b;
             Log.Info("API", "Connecting...");
             try
             {
-                api.OnMessage += ReceiveMessage;
+                api.OnMessage += OnMessage;
                 api.OnReceiveGeneralError += delegate (object sender, ReceiveGeneralErrorEventArgs args) { Log.Error("API - OnReceiveGeneralError", args.Exception.InnerMessageIfAny()); };
                 api.OnReceiveError += delegate (object sender, ReceiveErrorEventArgs args) { Log.Error("API - OnReceiveError", args.ApiRequestException.InnerMessageIfAny()); };
 
@@ -58,10 +53,7 @@ namespace den0bot
             api.StopReceiving();
         }
 
-        private static void ReceiveMessage(object sender, MessageEventArgs messageEventArgs)
-        {
-            parent.ProcessMessage(messageEventArgs.Message);
-        }
+        public static event EventHandler<MessageEventArgs> OnMessage;
 
         /// <summary>
         /// Send message

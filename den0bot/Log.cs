@@ -41,5 +41,15 @@ namespace den0bot
 
             File.AppendAllText(Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) + @"\log.txt", result);
         }
+
+        public static void IRC(string sender, string text)
+        {
+            if (string.IsNullOrEmpty(text))
+               return;
+
+            string result = string.Format("({0}) {1}: {2}" + Environment.NewLine, DateTime.Now, sender, text);
+
+            File.AppendAllText(Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) + @"\IRC.txt", result);
+        }
     }
 }

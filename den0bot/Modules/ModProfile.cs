@@ -14,9 +14,9 @@ namespace den0bot.Modules
         public override void Think() { }
         public ModProfile() { Log.Info(this, "Enabled"); }
 
-        public override string ProcessCommand(string msg, Chat sender)
+        public override string ProcessCommand(Telegram.Bot.Types.Message message)
         {
-            Match regexMatch = Regex.Match(msg, @"(?>https?:\/\/)?osu\.ppy\.sh\/u(?>sers)?\/(\d+|\S+)", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+            Match regexMatch = Regex.Match(message.Text, @"(?>https?:\/\/)?osu\.ppy\.sh\/u(?>sers)?\/(\d+|\S+)", RegexOptions.Compiled | RegexOptions.IgnoreCase);
             if (regexMatch.Groups.Count > 1)
             {
                 string playerID = regexMatch.Groups[1]?.Value;

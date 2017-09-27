@@ -15,11 +15,11 @@ namespace den0bot.Modules
 
         private DateTime nextPost = DateTime.Now;
 
-        public override string ProcessCommand(string msg, Chat sender)
+        public override string ProcessCommand(Telegram.Bot.Types.Message message)
         {
             if (nextPost < DateTime.Now)
             {
-                string cat = msg.ToLower()
+                string cat = message.Text.ToLower()
                     .Split(' ')
                     .Where(x => (x.Contains("кот") && !x.Contains("котор")))
                     .FirstOrDefault()
@@ -30,7 +30,7 @@ namespace den0bot.Modules
                     XmlDocument xml = new XmlDocument();
                     xml.Load(api_link);
 
-                    API.SendPhoto(xml.SelectSingleNode("response/data/images/image/url")?.InnerText, sender, string.Format("Кто-то сказал {0}?", cat));
+                    API.SendPhoto(xml.SelectSingleNode("response/data/images/image/url")?.InnerText, message.Chat, string.Format("Кто-то сказал {0}?", cat));
 
                     nextPost = DateTime.Now.AddMinutes(5);
                 }

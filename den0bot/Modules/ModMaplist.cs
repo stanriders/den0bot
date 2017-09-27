@@ -1,8 +1,10 @@
 ﻿// den0bot (c) StanR 2017 - MIT License
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Text;
+using den0bot.Osu;
 using Newtonsoft.Json.Linq;
 using Telegram.Bot.Types;
 
@@ -13,7 +15,6 @@ namespace den0bot.Modules
         public override void Think() { }
 
         private List<string[]> Maplist = new List<string[]>();
-        private Random rng = new Random();
         private readonly string spreadsheet = "1AxoXTpNjFnWsFPuSa8rlMbtSnMtkYnKZyzUY_4FTbig";
 
         private bool isEnabled = false;
@@ -48,14 +49,29 @@ namespace den0bot.Modules
             catch (Exception ex) { Log.Error(this, "Failed to start: " + ex.InnerMessageIfAny()); }
         }
 
-        public override string ProcessCommand(string msg, Chat sender)
+        public override string ProcessCommand(Telegram.Bot.Types.Message message)
         {
-            if (msg.StartsWith("map"))
+            if (message.Text.StartsWith("map"))
             {
                 if (isEnabled)
                 {
-                    int num = rng.Next(Maplist.Count);
-                    return Maplist[num][0] + Environment.NewLine + Maplist[num][1];
+                    int num = RNG.Next(Maplist.Count);
+                    string temp = Maplist[num][1].Substring(19);
+                    Map map = null;
+                    if (temp[0] == 's')
+                    {
+                        map = OsuAPI.GetBeatmapSet(uint.Parse(temp.Substring(2))).Last();
+                    }
+                    else if (temp[0] == 'b')
+                    {
+                        map = OsuAPI.GetBeatmap(uint.Parse(temp.Substring(2)));
+                    }
+                    else
+                    {
+                        return Maplist[num][0] + Environment.NewLine + Maplist[num][1];
+                    }
+                    API.SendPhoto(map.Thumbnail, message.Chat, $"{Maplist[num][1]}{Environment.NewLine}{Maplist[num][0]} {ModBeatmap.FormatMapInfo(map, string.Empty)}");
+                    return string.Empty;
                 }
                 else
                 {

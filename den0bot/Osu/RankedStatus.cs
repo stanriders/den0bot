@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
+﻿// den0bot (c) StanR 2017 - MIT License
 namespace den0bot.Osu
 {
     public enum RankedStatus

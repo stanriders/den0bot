@@ -7,8 +7,7 @@ namespace den0bot
     {
         public static string Event()
         {
-            Random rng = new Random();
-            switch (rng.Next(0, 1000))
+            switch (RNG.NextNoMemory(0, 1000))
             {
                 case 9: return "Амати, положи нож";
                 case 99: return "Панда - щитпостер";
@@ -24,8 +23,7 @@ namespace den0bot
         }
         public static string Annoy()
         {
-            Random rng = new Random();
-            switch (rng.Next(0, 9))
+            switch (RNG.NextNoMemory(0, 9))
             {
                 case 0: return "Чот лень";
                 case 1: return "Панда - щитпостер";

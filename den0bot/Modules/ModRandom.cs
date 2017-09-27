@@ -7,24 +7,21 @@ namespace den0bot.Modules
 {
     class ModRandom : IModule
     {
-        private Random rng;
-
         public ModRandom()
         {
             Log.Info(this, "Enabled");
-            rng = new Random();
         }
 
-        public override string ProcessCommand(string msg, Chat sender)
+        public override string ProcessCommand(Message message)
         {
-            if (msg.StartsWith("shitposter"))
-                return GetRandomShitposter(sender);
-            else if (msg.StartsWith("den0saur"))
-                return GetRandomDinosaur(sender);
-            else if (msg.StartsWith("roll"))
-                return Roll(msg);
-            else if (msg.StartsWith("meme"))
-                return GetRandomMeme(sender);
+            if (message.Text.StartsWith("shitposter"))
+                return GetRandomShitposter(message.Chat);
+            else if (message.Text.StartsWith("den0saur"))
+                return GetRandomDinosaur(message.Chat);
+            else if (message.Text.StartsWith("roll"))
+                return Roll(message.Text);
+            else if (message.Text.StartsWith("meme"))
+                return GetRandomMeme(message.Chat);
             else
                 return string.Empty;
         }
@@ -36,7 +33,7 @@ namespace den0bot.Modules
             if (Database.GetPlayerCount(sender.Id) <= 0)
                 return "Ты щитпостер";
 
-            int num = rng.Next(0, Database.GetPlayerCount(sender.Id));
+            int num = RNG.Next(0, Database.GetPlayerCount(sender.Id));
 
             if (Database.GetPlayerChatID(num) != sender.Id)
                 return GetRandomShitposter(sender);
@@ -46,7 +43,7 @@ namespace den0bot.Modules
 
         private string GetRandomDinosaur(Chat sender)
         {
-            switch (rng.Next(1, 4))
+            switch (RNG.Next(1, 4))
             {
                 case 1: return "динозавр?";
                 case 2:
@@ -67,7 +64,7 @@ namespace den0bot.Modules
         {
             try
             {
-                int i = rng.Next(1, int.Parse(msg.Remove(0, 5))+1); // random is (minvalue, maxvalue-1)
+                int i = RNG.Next(1, int.Parse(msg.Remove(0, 5))+1); // random is (minvalue, maxvalue-1)
                 return "Нароллил " + i;
             }
             catch (Exception e)
@@ -75,7 +72,7 @@ namespace den0bot.Modules
                 if (e is OverflowException)
                     return "Нихуя ты загнул";
 
-                return "Нароллил " + rng.Next(1, 101).ToString();
+                return "Нароллил " + RNG.Next(1, 101).ToString();
             }
 
         }

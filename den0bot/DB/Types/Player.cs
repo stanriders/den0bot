@@ -14,6 +14,8 @@ namespace den0bot.DB.Types
 
         public string Topscores { get; set; }
 
+        public string Username { get; set; }
+
         public long ChatID { get; set; }
     }
 }

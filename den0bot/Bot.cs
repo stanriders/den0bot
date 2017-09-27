@@ -6,6 +6,7 @@ using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using den0bot.Modules;
 using den0bot.DB;
+using Telegram.Bot.Args;
 
 namespace den0bot
 {
@@ -28,10 +29,14 @@ namespace den0bot
                 new ModBeatmap(),
                 new ModMaplist(),
                 new ModCat(),
-                new ModSettings()
+                new ModSettings(),
+                new ModAutohost(),
+                new ModRecentScores()
             };
 
-            if (API.Connect(this))
+            API.OnMessage += ProcessMessage;
+
+            if (API.Connect())
             {
                 Log.Info(this, "Started thinking...");
                 Think();
@@ -62,8 +67,10 @@ namespace den0bot
                     "<i>inb4 - бан</i>";
         }
 
-        public void ProcessMessage(Message msg)
+        public void ProcessMessage(object sender, MessageEventArgs messageEventArgs)
         {
+            Message msg = messageEventArgs.Message;
+
             if (msg == null ||
                 msg.ForwardFrom != null ||
                 msg.ForwardFromChat != null ||
@@ -72,8 +79,7 @@ namespace den0bot
 
             Chat senderChat = msg.Chat;
 
-            // having title means its a chat and not PM
-            if (senderChat.Title != null)
+            if (msg.Chat.Type != ChatType.Private)
                 Database.AddChat(senderChat.Id);
 
             if (msg.NewChatMembers != null && msg.NewChatMembers.Length > 0)
@@ -123,7 +129,7 @@ namespace den0bot
                 parseMode = ParseMode.Markdown;
                 return $"_{msg.From.FirstName}{text.Substring(3)}_";
             }
-            else if (text == "/start" || text == "/help")
+            else if (text.StartsWith("/start") || text.StartsWith("/help"))
             {
                 return "Дарова. Короче помимо того, что в списке команд я могу ещё:" + Environment.NewLine + Environment.NewLine +
                     "/addplayer - добавить игрока в базу. Синтаксис: /addplayer <имя> <osu!айди>. Бот будет следить за новыми топскорами и сообщать их в чат. Также имя используется в базе щитпостеров." + Environment.NewLine +
@@ -142,6 +148,7 @@ namespace den0bot
         {
             foreach (IModule m in modules)
             {
+                Message newMessage = msg.Clone();
                 string text = msg.Text;
                 if (msg.Type == MessageType.PhotoMessage)
                 {
@@ -157,16 +164,16 @@ namespace den0bot
                 if (text.StartsWith("/") && !m.NeedsAllMessages)
                     text = text.Substring(1);
 
+                newMessage.Text = text;
+
                 string result = string.Empty;
-                if (m is IAdminOnly && IsAdmin(msg.Chat.Id, msg.From.Username) && msg.Chat.Title != null)
+                if (m is IHasAdminCommands && IsAdmin(msg.Chat.Id, msg.From.Username) && msg.Chat.Type != ChatType.Private)
                 {
-                    IAdminOnly mAdmin = m as IAdminOnly;
-                    result += mAdmin.ProcessAdminCommand(text, msg.Chat);
+                    IHasAdminCommands mAdmin = m as IHasAdminCommands;
+                    result += mAdmin.ProcessAdminCommand(newMessage);
                 }
-                else
-                {
-                    result += m.ProcessCommand(text, msg.Chat);
-                }
+
+                result += m.ProcessCommand(newMessage);
 
                 if (result != string.Empty)
                 {

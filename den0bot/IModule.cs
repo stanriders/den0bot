@@ -10,6 +10,6 @@ namespace den0bot
         public virtual ParseMode ParseMode => ParseMode.Default;
 
         public abstract void Think();
-        public abstract string ProcessCommand(string msg, Telegram.Bot.Types.Chat sender);
+        public abstract string ProcessCommand(Telegram.Bot.Types.Message message);
     }
 }

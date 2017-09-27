@@ -33,13 +33,13 @@ namespace den0bot.Modules
             }
         }
 
-        public override string ProcessCommand(string msg, Telegram.Bot.Types.Chat sender)
+        public override string ProcessCommand(Telegram.Bot.Types.Message message)
         {
-            if (msg.StartsWith("newscores"))
+            if (message.Text.StartsWith("newscores"))
             {
                 try
                 {
-                    int amount = int.Parse(msg.Remove(0, 10));
+                    int amount = int.Parse(message.Text.Remove(0, 10));
                     if (amount > 20)
                         return GetLastScores(default_score_amount);
                     else
