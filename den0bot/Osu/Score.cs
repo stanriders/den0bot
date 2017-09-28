@@ -1,29 +1,45 @@
 ﻿// den0bot (c) StanR 2017 - MIT License
 using System;
+using Newtonsoft.Json;
 
 namespace den0bot.Osu
 {
     public class Score
     {
+        [JsonProperty("beatmap_id")]
         public uint BeatmapID;
+        [JsonProperty("score")]
         public uint ScoreID;
-        //public string Username;
+        [JsonProperty("user_id")]
         public uint UserID;
 
+        [JsonProperty("date")]
         public DateTime Date;
 
+        [JsonProperty("maxcombo")]
         public uint Combo;
-        public bool Perfect;
 
+        [JsonProperty("perfect")]
+        public short Perfect;
+
+        [JsonProperty("count300")]
         public uint Count300;
+        [JsonProperty("count100")]
         public uint Count100;
+        [JsonProperty("count50")]
         public uint Count50;
+        [JsonProperty("countmiss")]
         public uint Misses;
+        [JsonProperty("countkatu")]
         public uint CountKatu;
+        [JsonProperty("countgeki")]
         public uint CountGeki;
 
+        [JsonProperty("enabled_mods")]
         public Mods EnabledMods;
+        [JsonProperty("rank")]
         public string Rank;
+        [JsonProperty("pp")]
         public double Pp;
 
         public double Accuracy

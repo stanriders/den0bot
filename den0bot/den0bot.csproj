@@ -132,6 +132,7 @@
     <Compile Include="Modules\ModTopscores.cs" />
     <Compile Include="Modules\ModYoutube.cs" />
     <Compile Include="Osu\IRC.cs" />
+    <Compile Include="Osu\Mode.cs" />
     <Compile Include="Osu\Oppai.cs" />
     <Compile Include="Osu\OppaiInfo.cs" />
     <Compile Include="Osu\Map.cs" />
