@@ -2,7 +2,7 @@
 using System;
 using System.Net;
 using System.Text;
-
+using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 
 namespace den0bot.Modules
@@ -21,6 +21,27 @@ namespace den0bot.Modules
         {
             nextCheck = DateTime.Now;
 
+            AddCommand(new Command()
+            {
+                Name = "newscores",
+                IsAsync = true,
+                ActionAsync = (msg) =>
+                {
+                    try
+                    {
+                        int amount = int.Parse(msg.Text.Remove(0, 10));
+                        if (amount > 20)
+                            return GetLastScores(default_score_amount);
+                        else
+                            return GetLastScores(amount);
+                    }
+                    catch (Exception)
+                    {
+                        return GetLastScores(default_score_amount);
+                    }
+                }
+            });
+
             Log.Info(this, "Enabled");
         }
 
@@ -33,85 +54,59 @@ namespace den0bot.Modules
             }
         }
 
-        public override string ProcessCommand(Telegram.Bot.Types.Message message)
-        {
-            if (message.Text.StartsWith("newscores"))
-            {
-                try
-                {
-                    int amount = int.Parse(message.Text.Remove(0, 10));
-                    if (amount > 20)
-                        return GetLastScores(default_score_amount);
-                    else
-                        return GetLastScores(amount);
-                }
-                catch (Exception)
-                {
-                    return GetLastScores(default_score_amount);
-                }
-            }
-            return string.Empty;
-        }
-
         private async void Update(DateTime lastChecked)
         {
             try
             {
-                using (WebClient web = new WebClient())
+                lastChecked = lastChecked.AddMinutes(-check_interval);
+
+                string request = string.Format("https://www.googleapis.com/youtube/v3/activities?part=snippet,contentDetails" +
+                                                "&key={0}" + "&fields={1}" + "&publishedAfter={2}" + "&channelId={3}",
+                                                api_key,
+                                                Uri.EscapeDataString("items(contentDetails/upload,snippet/title)"),
+                                                Uri.EscapeDataString(lastChecked.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss.sZ")),
+                                                channel_id);
+
+
+                var data = await new WebClient().DownloadDataTaskAsync(request);
+
+                JObject obj = JObject.Parse(Encoding.UTF8.GetString(data));
+
+                if (obj["items"].HasValues)
                 {
-                    lastChecked = lastChecked.AddMinutes(-check_interval);
-
-                    string request = string.Format("https://www.googleapis.com/youtube/v3/activities?part=snippet,contentDetails" +
-                                                    "&key={0}"+ "&fields={1}" + "&publishedAfter={2}" + "&channelId={3}", 
-                                                    api_key, 
-                                                    Uri.EscapeDataString("items(contentDetails/upload,snippet/title)"), 
-                                                    Uri.EscapeDataString(lastChecked.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss.sZ")), 
-                                                    channel_id);
-
-
-                    var data = await web.DownloadDataTaskAsync(request);
-
-                    JObject obj = JObject.Parse(Encoding.UTF8.GetString(data));
-
-                    if (obj["items"].HasValues)
+                    foreach (JObject vid in obj["items"])
                     {
-                        foreach (JObject vid in obj["items"])
-                        {
-                            string title = (string)vid["snippet"]["title"];
-                            string id = (string)vid["contentDetails"]["upload"]["videoId"];
+                        string title = (string)vid["snippet"]["title"];
+                        string id = (string)vid["contentDetails"]["upload"]["videoId"];
 
-                            string result = "❗️ " + title + Environment.NewLine + "http://youtu.be/" + id;
-                            API.SendMessageToAllChats(result);
-                        }
+                        string result = "❗️ " + title + Environment.NewLine + "http://youtu.be/" + id;
+                        API.SendMessageToAllChats(result);
                     }
                 }
             }
             catch (Exception ex) { Log.Error(this, ex.InnerMessageIfAny()); }
         }
 
-        private string GetLastScores(int amount)
+        private async Task<string> GetLastScores(int amount)
         {
             string result = string.Empty;
             try
             {
-                using (WebClient web = new WebClient())
+                string request = string.Format("https://www.googleapis.com/youtube/v3/activities?part=snippet,contentDetails" +
+                                                "&maxResults={0}" + "&key={1}" + "&fields={2}" + "&channelId={3}",
+                                                amount,
+                                                api_key,
+                                                Uri.EscapeDataString("items(contentDetails/upload,snippet/title)"),
+                                                channel_id);
+
+                var data = await new WebClient().DownloadDataTaskAsync(request);
+
+                JObject obj = JObject.Parse(Encoding.UTF8.GetString(data));
+                for (int i = 0; i < 3; i++)
                 {
-                    string request = string.Format("https://www.googleapis.com/youtube/v3/activities?part=snippet,contentDetails" + 
-                                                    "&maxResults={0}" + "&key={1}" + "&fields={2}" + "&channelId={3}",
-                                                    amount,
-                                                    api_key, 
-                                                    Uri.EscapeDataString("items(contentDetails/upload,snippet/title)"), 
-                                                    channel_id);
-
-                    var data = web.DownloadData(request);
-
-                    JObject obj = JObject.Parse(Encoding.UTF8.GetString(data));
-                    for (int i = 0; i < 3; i++)
-                    {
-                        string title = (string) obj["items"][i]["snippet"]["title"];
-                        string id = (string) obj["items"][i]["contentDetails"]["upload"]["videoId"];
-                        result += title + Environment.NewLine + "http://youtu.be/" + id + Environment.NewLine + Environment.NewLine;
-                    }
+                    string title = (string)obj["items"][i]["snippet"]["title"];
+                    string id = (string)obj["items"][i]["contentDetails"]["upload"]["videoId"];
+                    result += title + Environment.NewLine + "http://youtu.be/" + id + Environment.NewLine + Environment.NewLine;
                 }
             }
             catch (Exception ex) { Log.Error(this, ex.InnerMessageIfAny()); }

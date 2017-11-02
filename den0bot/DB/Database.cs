@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using den0bot.DB.Types;
 using SQLite;
 
@@ -79,7 +80,7 @@ namespace den0bot.DB
                 }
                 else
                 {
-                    int num = RNG.Next(0, memes.Count);
+                    int num = RNG.Next(memes.Count);
 
                     SetUsed(memes[num].Id);
                     return memes[num].Link;

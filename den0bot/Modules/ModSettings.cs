@@ -5,94 +5,113 @@ using den0bot.DB;
 
 namespace den0bot.Modules
 {
-    class ModSettings : IModule, IHasAdminCommands
+    class ModSettings : IModule
     {
-        public ModSettings() { Log.Info(this, "Enabled"); }
-        public override void Think() { }
-        public override string ProcessCommand(Telegram.Bot.Types.Message message) => string.Empty;
         public override bool NeedsPhotos => true;
-
-        public string ProcessAdminCommand(Telegram.Bot.Types.Message message)
+        public ModSettings()
         {
-            string msg = message.Text;
+            AddCommands(new Command[]
+            {
+                new Command()
+                {
+                    Name = "disableannouncements",
+                    IsAdminOnly = true,
+                    Action = (msg) => { Database.ToggleAnnouncements(msg.Chat.Id, false); return "Понял, вырубаю"; }
+                },
+                new Command()
+                {
+                    Name = "enableannouncements",
+                    IsAdminOnly = true,
+                    Action = (msg) => { Database.ToggleAnnouncements(msg.Chat.Id, true); return "Понял, врубаю"; }
+                },
+                new Command()
+                {
+                    Name = "addmeme",
+                    IsAdminOnly = true,
+                    Action = (msg) => AddMeme(msg)
+                },
+                new Command()
+                {
+                    Name = "addplayer",
+                    IsAdminOnly = true,
+                    Action = (msg) => AddPlayer(msg)
+                },
+                new Command()
+                {
+                    Name = "removeplayer",
+                    IsAdminOnly = true,
+                    Action = (msg) => RemovePlayer(msg)
+                },
+                new Command()
+                {
+                    Name = "playerlist",
+                    IsAdminOnly = true,
+                    Action = (msg) => GetPlayerList(msg)
+                },
+            });
+            Log.Info(this, "Enabled");
+        }
+
+        private string AddMeme(Telegram.Bot.Types.Message message)
+        {
             long chatId = message.Chat.Id;
-            if (msg.StartsWith("disableannouncements"))
-            {
-                Database.ToggleAnnouncements(chatId, false);
-                return "Понял, вырубаю";
-            }
-            else if (msg.StartsWith("enableannouncements"))
-            {
-                Database.ToggleAnnouncements(chatId, true);
-                return "Понял, врубаю";
-            }
-            else if (msg.StartsWith("addmeme"))
-            {
-                string link = msg.Substring(8);
+            string link = message.Text.Substring(8);
 
-                if (link.StartsWith("http") && (link.EndsWith(".jpg") || link.EndsWith(".png")))
+            if (link.StartsWith("http") && (link.EndsWith(".jpg") || link.EndsWith(".png")))
+            {
+                Database.AddMeme(link, chatId);
+                return "Мемес добавлен!";
+            }
+            else if (link.StartsWith("photo"))
+            {
+                Database.AddMeme(link.Substring(5), chatId);
+                return "Мемес добавлен!";
+            }
+            return "Ты че деб?";
+        }
+
+        private string AddPlayer(Telegram.Bot.Types.Message message)
+        {
+            string[] msg = message.Text.Split(' ');
+            string username = msg[1];
+            string name = msg[2];
+            string id = msg[3];
+
+            if (!string.IsNullOrEmpty(username) && !string.IsNullOrEmpty(name))
+            {
+                uint osuID = 0;
+                if (id != null && id != string.Empty)
                 {
-                    Database.AddMeme(link, chatId);
-                    return "Мемес добавлен!";
+                    try { osuID = uint.Parse(id); } catch (Exception) { }
                 }
-                else if (link.StartsWith("photo"))
-                {
-                    Database.AddMeme(link.Substring(5), chatId);
-                    return "Мемес добавлен!";
-                }
-                return "Ты че деб?";
+
+                Database.AddPlayer(username.Substring(1), name, osuID, message.Chat.Id);
+                return $"{username.Substring(1)} добавлен! Имя {name}, профиль {osuID}";
             }
-            else if (msg.StartsWith("addplayer"))
+            return "Ты че деб?";
+        }
+
+        private string RemovePlayer(Telegram.Bot.Types.Message message)
+        {
+            string name = message.Text.Substring(13);
+
+            if (name != null && name != string.Empty)
             {
-                string username = msg.Split(' ')[1];
-                string name = msg.Split(' ')[2];
-                string id = msg.Split(' ')[3];
-
-                if (!string.IsNullOrEmpty(username) && !string.IsNullOrEmpty(name))
-                {
-                    uint osuID = 0;
-                    if (id != null && id != string.Empty)
-                    {
-                        try { osuID = uint.Parse(id); } catch (Exception) { }
-                    }
-
-                    Database.AddPlayer(username.Substring(1), name, osuID, chatId);
-                    return $"{username.Substring(1)} добавлен! Имя {name}, профиль {osuID}";
-                }
-                return "Ты че деб?";
+                Database.RemovePlayer(name, message.Chat.Id);
+                return $"{name} удален.";
             }
-            else if (msg.StartsWith("removeplayer"))
-            {
-                string name = msg.Substring(13);
+            return "Ты че деб?";
+        }
 
-                if (name != null && name != string.Empty)
-                {
-                    Database.RemovePlayer(name, chatId);
-                    return $"{name} удален.";
-                }
-                return "Ты че деб?";
+        private string GetPlayerList(Telegram.Bot.Types.Message message)
+        {
+            string result = string.Empty;
+            List<DB.Types.Player> players = Database.GetAllPlayers(message.Chat.Id);
+            foreach (DB.Types.Player player in players)
+            {
+                result += $"{player.FriendlyName} - /u/{player.OsuID} - {player.Topscores}{Environment.NewLine}";
             }
-            else if (msg.StartsWith("playerlist"))
-            {
-                string result = string.Empty;
-                List<DB.Types.Player> players = Database.GetAllPlayers(chatId);
-                foreach (DB.Types.Player player in players)
-                {
-                    result += $"{player.FriendlyName} - /u/{player.OsuID} - {player.Topscores}{Environment.NewLine}";
-                }
-                return result;
-            }
-            /*
-            else if (msg.StartsWith("kick"))
-            {
-                string username = msg.Substring(12);
-
-                if (username.StartsWith("@"))
-                    username = username.Substring(1);
-
-                //API.api.KickChatMemberAsync()
-            }*/
-            return string.Empty;
+            return result;
         }
     }
 }

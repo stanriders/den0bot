@@ -1,22 +1,20 @@
 ﻿// den0bot (c) StanR 2017 - MIT License
 //using Neural.NET;
 
+using System;
+using Telegram.Bot.Types;
+
 namespace den0bot.Modules
 {
-    class ModShmalala : IModule
+    class ModShmalala : IModule, IProcessAllMessages
     {
-        public override bool NeedsAllMessages => true;
-
         public ModShmalala()
         {
         }
-        public override string ProcessCommand(Telegram.Bot.Types.Message message)
-        {
-            return string.Empty;
-        }
 
-        public override void Think()
+        public void ReceiveMessage(Message message)
         {
+            throw new NotImplementedException();
         }
     }
 }

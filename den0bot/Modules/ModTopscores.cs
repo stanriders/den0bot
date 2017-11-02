@@ -19,9 +19,6 @@ namespace den0bot.Modules
 #endif
 
         private readonly int scores_num = 5;
-        private readonly string api_id = Config.osu_token;
-
-        public override string ProcessCommand(Telegram.Bot.Types.Message message) => string.Empty;
 
         public ModTopscores()
         {
@@ -97,13 +94,13 @@ namespace den0bot.Modules
             return false;
         }
 
-        private void Update()
+        private async void Update()
         {
             int playerCount = Database.GetPlayerCount();
             if (playerCount <= 0)
                 return;
 
-            if (currentUser == playerCount + 1)
+            if (currentUser >= playerCount + 1)
                 currentUser = 1;
 
             uint userID = Database.GetPlayerOsuID(currentUser);
@@ -125,7 +122,7 @@ namespace den0bot.Modules
                 }
             }
             List<Score> oldTopscores = storedTopscores[currentUser];
-            List<Score> currentTopscores = OsuAPI.GetTopscores(userID, scores_num);
+            List<Score> currentTopscores = await OsuAPI.GetTopscoresAsync(userID, scores_num);
             if (currentTopscores == null || currentTopscores.Count <= 0)
             {
                 currentUser++;
@@ -139,7 +136,7 @@ namespace den0bot.Modules
                     score.Pp > oldTopscores.Last().Pp &&
                     score.Date > DateTime.UtcNow.AddHours(7)) // osu is UTC+8
                 {
-                    Map map = OsuAPI.GetBeatmap(score.BeatmapID);
+                    Map map = await OsuAPI.GetBeatmapAsync(score.BeatmapID);
                     Mods enabledMods = score.EnabledMods;
 
                     string mods = string.Empty;

@@ -8,9 +8,8 @@ using Telegram.Bot.Types.Enums;
 
 namespace den0bot.Modules
 {
-    class ModAutohost : IModule, IHasAdminCommands
+    class ModAutohost : IModule
     {
-        public override ParseMode ParseMode => ParseMode.Html;
         private IRC irc = new IRC();
 
 #if !DEBUG
@@ -38,6 +37,26 @@ namespace den0bot.Modules
 
         public ModAutohost()
         {
+            AddCommands(new Command[]
+            {
+                new Command()
+                {
+                    Name = "mplink",
+                    Action = (msg) => { return $"{Config.osu_lobby_name} - {Config.osu_lobby_password} {Environment.NewLine}https://osu.ppy.sh/community/matches/{currentLobby}"; }
+                },
+                new Command()
+                {
+                    Name = "ircsend",
+                    IsAdminOnly = true,
+                    Action = (msg) => { irc.SendMessage(msg.Text.Substring(8), CurrentChannel); return string.Empty; }
+                },
+                new Command()
+                {
+                    Name = "mpuserlist",
+                    Action = (msg) => GetUserlist()
+                }
+            });
+
             irc.OnMessage += OnIRCMessage;
             irc.Connect();
 #if !DEBUG
@@ -107,39 +126,23 @@ namespace den0bot.Modules
             currentHost = userlist[nextHost];
         }
 
-        public string ProcessAdminCommand(Telegram.Bot.Types.Message message)
+        private string GetUserlist()
         {
-            if (message.Text.StartsWith("ircsend"))
+            List<string> userlist = UserList;
+            if (userlist != null)
             {
-                irc.SendMessage(message.Text.Substring(8), CurrentChannel);
-            }
-            return string.Empty;
-        }
+                if (userlist.Count <= 0)
+                    return "Никто сейчас не играет";
 
-        public override string ProcessCommand(Telegram.Bot.Types.Message message)
-        {
-            if (message.Text.StartsWith("mpuserlist"))
-            {
-                List<string> userlist = UserList;
-                if (userlist != null)
+                string result = string.Empty;
+                foreach (string s in userlist)
                 {
-                    if (userlist.Count <= 0)
-                        return "Никто сейчас не играет";
+                    if (currentHost == s)
+                        result += "(Host)";
 
-                    string result = string.Empty;
-                    foreach (string s in userlist)
-                    {
-                        if (currentHost == s)
-                            result += "(Host)";
-
-                        result += s + Environment.NewLine;
-                    }
-                    return result;
+                    result += s + Environment.NewLine;
                 }
-            } 
-            else if (message.Text.StartsWith("mplink"))
-            {
-                return $"{Config.osu_lobby_name} - {Config.osu_lobby_password} {Environment.NewLine}https://osu.ppy.sh/community/matches/{currentLobby}";
+                return result;
             }
             return string.Empty;
         }

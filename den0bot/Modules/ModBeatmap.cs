@@ -3,34 +3,35 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Net;
 using System.Text.RegularExpressions;
 using den0bot.Osu;
 using Telegram.Bot.Types;
 
 namespace den0bot.Modules
 {
-    class ModBeatmap : IModule
+    class ModBeatmap : IModule, IProcessAllMessages
     {
-        public override bool NeedsAllMessages => true;
-        public override void Think() { }
-
-        private bool foundOppai = true;
+        private static bool foundOppai = true;
         private Regex regex = new Regex(@"(?>https?:\/\/)?osu\.ppy\.sh\/([b,s])\/(\d+)$|(?>https?:\/\/)?osu\.ppy\.sh\/([b,s])\/(\d+)(?>[&,?].=\d)?\s?(\+.+)?", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
         public ModBeatmap()
         {
             string oppaiPath = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) + @"\oppai.exe";
             if (System.IO.File.Exists(oppaiPath))
+            { 
                 Log.Info(this, "Enabled");
+            }
             else
+            {
+                foundOppai = false;
                 Log.Error(this, "oppai.exe not found! ModBeatmap disabled.");
+            }
         }
 
-        public override string ProcessCommand(Message message)
+        public async void ReceiveMessage(Message message)
         {
             if (!foundOppai)
-                return string.Empty;
+                return;
 
             Match regexMatch = regex.Match(message.Text);
             if (regexMatch.Groups.Count > 1)
@@ -40,9 +41,14 @@ namespace den0bot.Modules
 
                 Map map = null;
                 if (isSet)
-                    map = OsuAPI.GetBeatmapSet(uint.Parse(listGroups[2].Value)).Last();
+                {
+                    List<Map> set = await OsuAPI.GetBeatmapSetAsync(uint.Parse(listGroups[2].Value));
+                    map = set?.Last();
+                }
                 else
-                    map = OsuAPI.GetBeatmap(uint.Parse(listGroups[2].Value));
+                {
+                    map = await OsuAPI.GetBeatmapAsync(uint.Parse(listGroups[2].Value));
+                }
 
                 string mods = string.Empty;
                 if (listGroups.Count > 3)
@@ -50,22 +56,16 @@ namespace den0bot.Modules
 
                 API.SendPhoto(map?.Thumbnail, message.Chat, FormatMapInfo(map, mods));
             }
-            return string.Empty;
         }
 
         public static string FormatMapInfo(Map map, string mods)
         {
             string result = string.Empty;
-            string mapFile = string.Empty;
 
             if (map == null)
                 return result;
 
-            using (WebClient web = new WebClient())
-            {
-                mapFile = web.DownloadString("http://osu.ppy.sh/osu/" + map.BeatmapID);
-                web.Dispose();
-            }
+            string mapFile = map.File;
 
             TimeSpan drain = TimeSpan.FromSeconds(map.DrainLength);
             double bpm = map.BPM;
@@ -79,26 +79,35 @@ namespace den0bot.Modules
                 bpm *= 0.75;
                 drain = TimeSpan.FromTicks((long)(drain.Ticks * 1.333333));
             }
-
-            OppaiInfo info100 = Oppai.GetBeatmapInfo(mapFile, mods, 100);
-            OppaiInfo info98 = Oppai.GetBeatmapInfo(mapFile, mods, 98);
-            OppaiInfo info95 = Oppai.GetBeatmapInfo(mapFile, mods, 95);
-            if (info100 != null)
+            if (foundOppai)
             {
-                result += string.Format("[{0}] - {1}* - {2} - {3}\nCS: {4} | AR: {5} | OD: {6} | BPM: {7}\n100% - {8}pp",
-                    info100.version, info100.stars.ToString("N2"), drain.ToString("mm':'ss"), map.Status.ToString(),
-                    map.CS, map.AR, map.OD, map.BPM, 
-                    info100.pp.ToString("N2"));
+                OppaiInfo info100 = Oppai.GetBeatmapInfo(mapFile, mods, 100);
+                OppaiInfo info98 = Oppai.GetBeatmapInfo(mapFile, mods, 98);
+                OppaiInfo info95 = Oppai.GetBeatmapInfo(mapFile, mods, 95);
+                if (info100 != null)
+                {
+                    result = string.Format("[{0}] - {1}* - {2} - {3}\nCS: {4} | AR: {5} | OD: {6} | BPM: {7}\n100% - {8}pp",
+                        info100.version, info100.stars.ToString("N2"), drain.ToString("mm':'ss"), map.Status.ToString(),
+                        map.CS, map.AR, map.OD, map.BPM,
+                        info100.pp.ToString("N2"));
+                }
+                if (info98 != null)
+                    result += string.Format(" | 98% - {0}pp", info98.pp.ToString("N2"));
+                if (info95 != null)
+                    result += string.Format(" | 95% - {0}pp", info95.pp.ToString("N2"));
             }
-            if (info98 != null)
-                result += string.Format(" | 98% - {0}pp", info98.pp.ToString("N2"));
-            if (info95 != null)
-                result += string.Format(" | 95% - {0}pp", info95.pp.ToString("N2"));
-
+            else
+            {
+                result = string.Format("[{0}] - {1}* - {2} - {3}\nCS: {4} | AR: {5} | OD: {6} | BPM: {7}",
+                        map.Difficulty, map.StarRating.ToString("N2"), drain.ToString("mm':'ss"), map.Status.ToString(),
+                        map.CS, map.AR, map.OD, map.BPM);
+            }
             return result;
         }
-        /* "<b>[{0}]</b> - {1}* - {2}
-         * <b>CS:</b> {3} | <b>AR:</b> {4} | <b>OD:</b> {5} | <b>BPM:</b> {6}
-         * <b>100%</b> - {7}pp | <b>98%</b> - {0}pp | <b>95%</b> - {0}pp" */
+
+    /* "<b>[{0}]</b> - {1}* - {2}
+     * <b>CS:</b> {3} | <b>AR:</b> {4} | <b>OD:</b> {5} | <b>BPM:</b> {6}
+     * <b>100%</b> - {7}pp | <b>98%</b> - {0}pp | <b>95%</b> - {0}pp" */
+
     }
 }

@@ -9,31 +9,38 @@ namespace den0bot.Modules
     {
         public ModRandom()
         {
+            AddCommands(new Command[]
+            {
+                new Command
+                {
+                    Name = "roll",
+                    Action = (msg) => Roll(msg.Text)
+                },
+                new Command
+                {
+                    Name = "meme",
+                    ActionAsync = (msg) => GetRandomMeme(msg.Chat)
+                },
+                new Command
+                {
+                    Name = "shitposter",
+                    Action = (msg) => GetRandomShitposter(msg.Chat)
+                },
+                new Command
+                {
+                    Name = "den0saur",
+                    Action = (msg) => GetRandomDinosaur(msg.Chat)
+                }
+            });
             Log.Info(this, "Enabled");
         }
-
-        public override string ProcessCommand(Message message)
-        {
-            if (message.Text.StartsWith("shitposter"))
-                return GetRandomShitposter(message.Chat);
-            else if (message.Text.StartsWith("den0saur"))
-                return GetRandomDinosaur(message.Chat);
-            else if (message.Text.StartsWith("roll"))
-                return Roll(message.Text);
-            else if (message.Text.StartsWith("meme"))
-                return GetRandomMeme(message.Chat);
-            else
-                return string.Empty;
-        }
-
-        public override void Think(){}
 
         private string GetRandomShitposter(Chat sender)
         {
             if (Database.GetPlayerCount(sender.Id) <= 0)
                 return "Ты щитпостер";
 
-            int num = RNG.Next(0, Database.GetPlayerCount(sender.Id));
+            int num = RNG.Next(Database.GetPlayerCount(sender.Id));
 
             if (Database.GetPlayerChatID(num) != sender.Id)
                 return GetRandomShitposter(sender);
@@ -46,18 +53,10 @@ namespace den0bot.Modules
             switch (RNG.Next(1, 4))
             {
                 case 1: return "динозавр?";
-                case 2:
-                    {
-                        API.SendSticker(new FileToSend("BQADAgADNAADnML7Dbv6HgazQYiIAg"), sender.Id);
-                        return string.Empty;
-                    }
-                case 3:
-                    {
-                        API.SendSticker(new FileToSend("BQADAgADMAADnML7DXy6fUB4x-sqAg"), sender.Id);
-                        return string.Empty;
-                    }
-                default: return string.Empty;
+                case 2: API.SendSticker(new FileToSend("BQADAgADNAADnML7Dbv6HgazQYiIAg"), sender.Id); break;
+                case 3: API.SendSticker(new FileToSend("BQADAgADMAADnML7DXy6fUB4x-sqAg"), sender.Id); break;
             }
+            return string.Empty;
         }
 
         private string Roll(string msg)

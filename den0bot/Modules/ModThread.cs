@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Text;
+using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 
 namespace den0bot.Modules
@@ -13,46 +14,43 @@ namespace den0bot.Modules
 
         public ModThread()
         {
+            AddCommand(new Command()
+            {
+                Name = "thread",
+                IsAsync = true,
+                ActionAsync = (msg) =>
+                {
+                    try
+                    {
+                        int amount = int.Parse(msg.Text.Remove(0, 7));
+                        if (amount > 20)
+                            return GetLastPosts(default_post_amount);
+                        else
+                            return GetLastPosts(amount);
+                    }
+                    catch (Exception)
+                    {
+                        return GetLastPosts(default_post_amount);
+                    }
+                }
+            });
             Log.Info(this, "Enabled");
         }
 
-        public override string ProcessCommand(Telegram.Bot.Types.Message message)
-        {
-            if (message.Text.StartsWith("thread"))
-            {
-                try
-                {
-                    int amount = int.Parse(message.Text.Remove(0, 7));
-                    if (amount > 20)
-                        return GetLastPosts(default_post_amount);
-                    else
-                        return GetLastPosts(amount);
-                }
-                catch (Exception)
-                {
-                    return GetLastPosts(default_post_amount);
-                }
-            }
-            else
-                return string.Empty;
-        }
-
-        public override void Think() { }
-
         public int FindThread()
         {
+#if !ENDLESSTHREAD
+            return 4011800;
+#else
             try
             {
-                WebClient web = new WebClient();
-                var data = web.DownloadData("https://2ch.hk/a/catalog_num.json");
-                web.Dispose();
-
+                var data = new WebClient().DownloadData("https://2ch.hk/a/catalog_num.json");
                 JObject obj = JObject.Parse(Encoding.UTF8.GetString(data));
 
                 foreach (JObject o in obj["threads"])
                 {
                     string subject = o["subject"].ToString().ToLower();
-                    if (subject.StartsWith("osu") || subject.StartsWith("осу"))
+                    if (subject == ("osu!thread"))
                     {
                         Log.Info(this, subject + " | " + o["num"].ToString());
                         return o["num"].Value<int>();
@@ -63,9 +61,10 @@ namespace den0bot.Modules
             catch (Exception ex) { Log.Error(this, ex.InnerMessageIfAny()); }
 
             return 0;
+#endif
         }
 
-        public string GetLastPosts(int amount)
+        public async Task<string> GetLastPosts(int amount)
         {
             int threadID = FindThread();
             if (threadID == 0)
@@ -74,10 +73,7 @@ namespace den0bot.Modules
             try
             {
                 string request = $"https://2ch.hk/a/res/{threadID}.json";
-
-                WebClient web = new WebClient();
-                var data = web.DownloadData(request);
-                web.Dispose();
+                var data = await new WebClient().DownloadDataTaskAsync(request);
 
                 JToken obj = JObject.Parse(Encoding.UTF8.GetString(data))["threads"][0];
 

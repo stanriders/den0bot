@@ -14,6 +14,7 @@ namespace den0bot
     {
         private List<IModule> modules;
         private bool IsAdmin(long chatID, string username) => (username == "StanRiders") || (API.GetAdmins(chatID).Exists(x => x.User.Username == username) );
+        private DateTime startupTime;
 
         public Bot()
         {
@@ -39,6 +40,7 @@ namespace den0bot
             if (API.Connect())
             {
                 Log.Info(this, "Started thinking...");
+                startupTime = DateTime.Now;
                 Think();
             }
         }
@@ -67,7 +69,7 @@ namespace den0bot
                     "<i>inb4 - бан</i>";
         }
 
-        public void ProcessMessage(object sender, MessageEventArgs messageEventArgs)
+        public async void ProcessMessage(object sender, MessageEventArgs messageEventArgs)
         {
             Message msg = messageEventArgs.Message;
 
@@ -87,12 +89,6 @@ namespace den0bot
                 API.SendMessage(GreetNewfag(msg.NewChatMembers[0].FirstName, msg.NewChatMembers[0].Id), senderChat, ParseMode.Html);
                 return;
             }
-            if (msg.LeftChatMember != null)
-            {
-                API.SendMessage(msg.LeftChatMember.FirstName + " покинул нас", senderChat);
-                return;
-            }
-
             if (msg.Type != MessageType.TextMessage &&
                 msg.Type != MessageType.PhotoMessage)
                 return;
@@ -111,7 +107,46 @@ namespace den0bot
 
             string result = ProcessBasicCommands(msg, ref parseMode);
             if (result == string.Empty)
-                result = ProcessMessageWithModules(msg, ref parseMode);
+            {
+                foreach (IModule m in modules)
+                {
+                    if (msg.Type == MessageType.PhotoMessage)
+                    {
+                        if (!m.NeedsPhotos)
+                            continue;
+
+                        msg.Text = msg.Caption + " photo" + msg.Photo[0].FileId; //kinda hack
+                    }
+
+                    if (msg.Text == null)
+                        continue;
+
+                    if (m is IProcessAllMessages)
+                        (m as IProcessAllMessages).ReceiveMessage(msg);
+                    else if (msg.Text[0] != '/')
+                        continue;
+
+                    Command c = m.GetCommand(msg.Text);
+                    if (c != null)
+                    {
+                        if (c.IsAdminOnly && !IsAdmin(msg.Chat.Id, msg.From.Username) || msg.Chat.Type == ChatType.Private)
+                            continue;
+
+                        string res = string.Empty;
+                        if (c.IsAsync)
+                            res = await c.ActionAsync(msg);
+                        else
+                            res = c.Action(msg);
+
+                        if (!string.IsNullOrEmpty(res))
+                        {
+                            parseMode = c.ParseMode;
+                            result = res;
+                            break;
+                        }
+                    }
+                }
+            }
 
             API.SendMessage(result, senderChat, parseMode);
         }
@@ -129,7 +164,7 @@ namespace den0bot
                 parseMode = ParseMode.Markdown;
                 return $"_{msg.From.FirstName}{text.Substring(3)}_";
             }
-            else if (text.StartsWith("/start") || text.StartsWith("/help"))
+            else if ((msg.Chat.Type == ChatType.Private) && (text.StartsWith("/start") || text.StartsWith("/help")))
             {
                 return "Дарова. Короче помимо того, что в списке команд я могу ещё:" + Environment.NewLine + Environment.NewLine +
                     "/addplayer - добавить игрока в базу. Синтаксис: /addplayer <имя> <osu!айди>. Бот будет следить за новыми топскорами и сообщать их в чат. Также имя используется в базе щитпостеров." + Environment.NewLine +
@@ -140,47 +175,14 @@ namespace den0bot
                     "Все эти команды доступны только админам конфы. По вопросам насчет бота писать @StanRiders, но лучше не писать." + Environment.NewLine +
                     "http://kikoe.ru/";
             }
-
-            return string.Empty;
-        }
-
-        private string ProcessMessageWithModules(Message msg, ref ParseMode parseMode)
-        {
-            foreach (IModule m in modules)
+            else if (text.StartsWith("/requestcount"))
             {
-                Message newMessage = msg.Clone();
-                string text = msg.Text;
-                if (msg.Type == MessageType.PhotoMessage)
+                if (IsAdmin(msg.Chat.Id, msg.From.Username))
                 {
-                    if (!m.NeedsPhotos)
-                        continue;
-                    else
-                        text = msg.Caption + " photo" + msg.Photo[0].FileId; //kinda hack
-                }
-
-                if (text == null || !text.StartsWith("/") && !m.NeedsAllMessages)
-                    continue;
-
-                if (text.StartsWith("/") && !m.NeedsAllMessages)
-                    text = text.Substring(1);
-
-                newMessage.Text = text;
-
-                string result = string.Empty;
-                if (m is IHasAdminCommands && IsAdmin(msg.Chat.Id, msg.From.Username) && msg.Chat.Type != ChatType.Private)
-                {
-                    IHasAdminCommands mAdmin = m as IHasAdminCommands;
-                    result += mAdmin.ProcessAdminCommand(newMessage);
-                }
-
-                result += m.ProcessCommand(newMessage);
-
-                if (result != string.Empty)
-                {
-                    parseMode = m.ParseMode;
-                    return result;
+                    return (Osu.OsuAPI.RequestCount / ((DateTime.Now - startupTime).TotalSeconds / 60.0d)).ToString();
                 }
             }
+
             return string.Empty;
         }
     }

@@ -1,5 +1,6 @@
 ﻿// den0bot (c) StanR 2017 - MIT License
 using System;
+using System.Net;
 using Newtonsoft.Json;
 
 namespace den0bot.Osu
@@ -12,9 +13,9 @@ namespace den0bot.Osu
         public uint BeatmapSetID;
 
         [JsonProperty("last_update")]
-        public DateTime UpdatedDate;
+        public DateTime? UpdatedDate;
         [JsonProperty("approved_date")]
-        public DateTime RankedDate;
+        public DateTime? RankedDate;
         [JsonProperty("approved")]
         public RankedStatus Status;
 
@@ -41,7 +42,7 @@ namespace den0bot.Osu
         public double HP;
 
         [JsonProperty("max_combo")]
-        public uint MaxCombo;
+        public uint? MaxCombo;
         [JsonProperty("hit_length")]
         public uint DrainLength;
         [JsonProperty("total_length")]
@@ -53,6 +54,16 @@ namespace den0bot.Osu
         public string Thumbnail
         {
             get { return "https://assets.ppy.sh/beatmaps/" + BeatmapSetID + "/covers/cover.jpg"; }
+        }
+
+        public string File
+        {
+            get { return new WebClient().DownloadString("http://osu.ppy.sh/osu/" + BeatmapID); }
+        }
+
+        public string Link
+        {
+            get { return "https://osu.ppy.sh/b/" + BeatmapID; }
         }
     }
 }

@@ -1,21 +1,26 @@
 ﻿// den0bot (c) StanR 2017 - MIT License
 using System;
 using System.Diagnostics;
-using System.Linq;
-using Newtonsoft.Json.Linq;
+using Newtonsoft.Json;
 
 namespace den0bot.Osu
 {
     static class Oppai
     {
-        public static OppaiInfo GetBeatmapInfo(string beatmap, string mods, double accuracy = 100)
+        public static OppaiInfo GetBeatmapInfo(string beatmap, string mods, double accuracy = 100, uint combo = 0, uint misses = 0)
         {
+            string args = $"{mods} {accuracy}% ";
+            if (combo != 0)
+                args += $"{combo}x ";
+            if (misses != 0)
+                args += $"{misses}m";
+
             Process oppai = new Process
             {
                 StartInfo = new ProcessStartInfo
                 {
                     FileName = "oppai.exe",
-                    Arguments = string.Format("- {0} {1}% -ojson", mods, accuracy),
+                    Arguments = $"- {args} -ojson",
                     UseShellExecute = false,
                     CreateNoWindow = true,
                     RedirectStandardOutput = true,
@@ -41,27 +46,7 @@ namespace den0bot.Osu
 
             try
             {
-                JToken info = JToken.Parse(data);
-
-                if (info?.Count() > 0)
-                {
-                    OppaiInfo result = new OppaiInfo();
-                    result.version = info["version"].ToString();
-
-                    result.max_combo = info["max_combo"].Value<short>();
-
-                    result.num_circles = info["num_circles"].Value<short>();
-                    result.num_sliders = info["num_sliders"].Value<short>();
-                    result.num_spinners = info["num_spinners"].Value<short>();
-
-                    result.stars = info["stars"].Value<double>();
-                    result.speed = info["speed_stars"].Value<double>();
-                    result.aim = info["aim_stars"].Value<double>();
-
-                    result.pp = info["pp"].Value<double>();
-
-                    return result;
-                }
+                return JsonConvert.DeserializeObject<OppaiInfo>(data);
             }
             catch (Exception e) { Log.Error("Oppai", e.InnerMessageIfAny()); }
 

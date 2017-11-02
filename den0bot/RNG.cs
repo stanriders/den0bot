@@ -7,6 +7,7 @@ namespace den0bot
         private static Random rng = new Random();
         private static int previousNum = 0;
 
+        public static int Next(int max = int.MaxValue) => Next(0, max);
         public static int Next(int min = 0, int max = int.MaxValue)
         {
             int result = rng.Next(min, max);

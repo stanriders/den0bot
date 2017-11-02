@@ -6,16 +6,13 @@ using Telegram.Bot.Types;
 
 namespace den0bot.Modules
 {
-    class ModCat : IModule
+    class ModCat : IModule, IProcessAllMessages
     {
-        public override void Think() { }
-        public override bool NeedsAllMessages => true;
-
         private readonly string api_link = "http://thecatapi.com/api/images/get?format=xml&size=small&type=jpg,png&api_key=" + Config.cat_token;
 
         private DateTime nextPost = DateTime.Now;
 
-        public override string ProcessCommand(Telegram.Bot.Types.Message message)
+        public void ReceiveMessage(Message message)
         {
             if (nextPost < DateTime.Now)
             {
@@ -35,8 +32,6 @@ namespace den0bot.Modules
                     nextPost = DateTime.Now.AddMinutes(5);
                 }
             }
-            return string.Empty;
         }
-
     }
 }
