@@ -19,7 +19,7 @@ namespace den0bot.Modules
                 new Command
                 {
                     Name = "meme",
-                    ActionAsync = (msg) => GetRandomMeme(msg.Chat)
+                    Action = (msg) => GetRandomMeme(msg.Chat)
                 },
                 new Command
                 {
