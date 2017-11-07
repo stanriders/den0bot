@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using den0bot.DB;
 using den0bot.Osu;
 using Meebey.SmartIrc4net;
-using Telegram.Bot.Types.Enums;
 
 namespace den0bot.Modules
 {

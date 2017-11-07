@@ -25,6 +25,7 @@ namespace den0bot
 
         public bool IsAdminOnly;
         public bool IsAsync;
+        public bool Reply;
 
         public Func<Message, Task<string>> ActionAsync;
         public Func<Message, string> Action;

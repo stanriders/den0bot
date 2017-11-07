@@ -58,7 +58,18 @@ namespace den0bot.Osu
 
         public string File
         {
-            get { return new WebClient().DownloadString("http://osu.ppy.sh/osu/" + BeatmapID); }
+            get
+            {
+                try
+                {
+                    return new WebClient().DownloadString("http://osu.ppy.sh/osu/" + BeatmapID);
+                }
+                catch (Exception e)
+                {
+                    Log.Error(this, $"File - {e.InnerMessageIfAny()}");
+                    return string.Empty;
+                }
+            }
         }
 
         public string Link

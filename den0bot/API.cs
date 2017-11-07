@@ -61,7 +61,8 @@ namespace den0bot
         /// <param name="message">Text to send</param>
         /// <param name="receiver">Chat to send message to</param>
         /// <param name="mode">ParseMode to use (None/Markdown/HTML)</param>
-        public static void SendMessage(string message, Chat receiver, ParseMode mode = ParseMode.Default) => SendMessage(message, receiver.Id, mode);
+        /// <param name="replyID">Message ID to reply to</param>
+        public static void SendMessage(string message, Chat receiver, ParseMode mode = ParseMode.Default, int replyID = 0) => SendMessage(message, receiver.Id, mode, replyID);
 
         /// <summary>
         /// Send message
@@ -69,12 +70,13 @@ namespace den0bot
         /// <param name="message">Text to send</param>
         /// <param name="receiverID">Chat ID to send message to</param>
         /// <param name="mode">ParseMode to use (None/Markdown/HTML)</param>
-        public static void SendMessage(string message, long receiverID, ParseMode mode = ParseMode.Default)
+        /// <param name="replyID">Message ID to reply to</param>
+        public static void SendMessage(string message, long receiverID, ParseMode mode = ParseMode.Default, int replyID = 0)
         {
             try
             {
                 if (!string.IsNullOrEmpty(message))
-                    api?.SendTextMessageAsync(receiverID, message, mode, true);
+                    api?.SendTextMessageAsync(receiverID, message, mode, true, false, replyID);
             }
             catch (Exception ex) { Log.Error("API - SendMessage", ex.InnerMessageIfAny()); }
         }

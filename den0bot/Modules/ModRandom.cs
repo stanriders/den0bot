@@ -2,6 +2,8 @@
 using System;
 using Telegram.Bot.Types;
 using den0bot.DB;
+using System.Linq;
+using System.Collections.Generic;
 
 namespace den0bot.Modules
 {
@@ -14,6 +16,7 @@ namespace den0bot.Modules
                 new Command
                 {
                     Name = "roll",
+                    Reply = true,
                     Action = (msg) => Roll(msg.Text)
                 },
                 new Command
@@ -61,19 +64,22 @@ namespace den0bot.Modules
 
         private string Roll(string msg)
         {
-            try
-            {
-                int i = RNG.Next(1, int.Parse(msg.Remove(0, 5))+1); // random is (minvalue, maxvalue-1)
-                return "Нароллил " + i;
-            }
-            catch (Exception e)
-            {
-                if (e is OverflowException)
-                    return "Нихуя ты загнул";
+            int max = 101;
 
-                return "Нароллил " + RNG.Next(1, 101).ToString();
+            List<string> msgArr = msg.Split(' ').ToList();
+            if (msgArr.Count > 1)
+            {
+                try
+                {
+                    max = (int)uint.Parse(msgArr[1]) + 1;
+                }
+                catch (Exception e)
+                {
+                    if (e is OverflowException)
+                        return "Нихуя ты загнул";
+                }
             }
-
+            return "Нароллил " + RNG.Next(1, max).ToString();
         }
 
         private string GetRandomMeme(Chat sender)

@@ -104,6 +104,7 @@ namespace den0bot
             }
 
             ParseMode parseMode = ParseMode.Default;
+            int replyID = 0;
 
             string result = ProcessBasicCommands(msg, ref parseMode);
             if (result == string.Empty)
@@ -141,6 +142,9 @@ namespace den0bot
                         if (!string.IsNullOrEmpty(res))
                         {
                             parseMode = c.ParseMode;
+                            if (c.Reply)
+                                replyID = msg.MessageId;
+
                             result = res;
                             break;
                         }
@@ -148,7 +152,7 @@ namespace den0bot
                 }
             }
 
-            API.SendMessage(result, senderChat, parseMode);
+            API.SendMessage(result, senderChat, parseMode, replyID);
         }
 
         private string ProcessBasicCommands(Message msg, ref ParseMode parseMode)

@@ -13,10 +13,7 @@ namespace den0bot
             if (sourceName == "String")
                 sourceName = (string)source;
 
-            if (text == null)
-                text = "null";
-
-            string result = string.Format("({0}) [ERROR] {1}: {2}" + Environment.NewLine, DateTime.Now, sourceName, text);
+            string result = $"({DateTime.Now}) [ERROR] {sourceName}: {text ?? "null"}{Environment.NewLine}";
 
             Console.ForegroundColor = ConsoleColor.Red;
             Console.Write(result);
@@ -32,10 +29,7 @@ namespace den0bot
             if (sourceName == "String")
                 sourceName = (string)source;
 
-            if (text == null)
-                text = "null";
-
-            string result = string.Format("({0}) {1}: {2}" + Environment.NewLine, DateTime.Now, sourceName, text);
+            string result = $"({DateTime.Now}) {sourceName}: {text ?? "null"}{Environment.NewLine}";
 
             Console.Write(result);
 

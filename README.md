@@ -1,5 +1,6 @@
 den0bot - osu!-related telegram chat bot
 ==============
+[![Build status](https://ci.appveyor.com/api/projects/status/113qhc1dsm4q5c3p?svg=true)](https://ci.appveyor.com/project/stanriders/den0bot)
 
 Uses [Telegram.Bot](https://github.com/TelegramBots/telegram.bot), [SQLite-net](https://github.com/praeclarum/sqlite-net), [Newtonsoft.Json](https://www.newtonsoft.com/json), [Meebey.SmartIrc4net](http://www.meebey.net/projects/smartirc4net/)
 
