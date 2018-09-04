@@ -8,7 +8,7 @@ namespace den0bot.Modules
 {
     class ModCat : IModule, IProcessAllMessages
     {
-        private readonly string api_link = "http://thecatapi.com/api/images/get?format=xml&size=small&type=jpg,png&api_key=" + Config.cat_token;
+        private readonly string api_link = "http://thecatapi.com/api/images/get?format=xml&size=med&type=jpg,png&api_key=" + Config.cat_token;
 
         private DateTime nextPost = DateTime.Now;
 
@@ -27,7 +27,12 @@ namespace den0bot.Modules
                     XmlDocument xml = new XmlDocument();
                     xml.Load(api_link);
 
-                    API.SendPhoto(xml.SelectSingleNode("response/data/images/image/url")?.InnerText, message.Chat, string.Format("Кто-то сказал {0}?", cat));
+                    string res = xml.SelectSingleNode("response/data/images/image/url")?.InnerText;
+
+                    if (!string.IsNullOrEmpty(res))
+                        API.SendPhoto(res, message.Chat, string.Format("Кто-то сказал {0}?", cat));
+                    else
+                        API.SendMessage("КОТа сегодня не будет...", message.Chat);
 
                     nextPost = DateTime.Now.AddMinutes(5);
                 }

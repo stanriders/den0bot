@@ -5,6 +5,7 @@ using System.Linq;
 using den0bot.DB;
 using den0bot.Osu;
 
+#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.
 namespace den0bot.Modules
 {
     class ModTopscores : IModule
@@ -27,9 +28,8 @@ namespace den0bot.Modules
 #if !DEBUG
             nextCheck = DateTime.Now;
             Start();
-#endif
-
             Log.Info(this, "Enabled");
+#endif
         }
 
         private void Start()
@@ -44,11 +44,13 @@ namespace den0bot.Modules
                     List<Score> topscores = Database.GetPlayerTopscores(i);
                     if (topscores != null)
                     {
+                        // we found topscores in db
                         storedTopscores.Add(i, topscores);
                         Log.Info(this, $"Restored {i} ({topscores[0].ScoreID.ToString()} {topscores[1].ScoreID.ToString()} {topscores[2].ScoreID.ToString()})");
                     }
                     else
                     {
+                        // populate db with topscores and add user to storedTopscores
                         AddPlayer(i);
                     }
                 }
@@ -76,8 +78,7 @@ namespace den0bot.Modules
             uint id = Database.GetPlayerOsuID(user);
             if (id != 0)
             {
-                List<Score> topscores = Database.GetPlayerTopscores(user);
-                topscores = OsuAPI.GetTopscores(id, scores_num);
+                List<Score> topscores = OsuAPI.GetTopscoresAsync(id, scores_num).Result;
                 if (topscores == null || topscores.Count <= 0)
                 {
                     Log.Error(this, $"Failed to add {user}!");
@@ -111,6 +112,7 @@ namespace den0bot.Modules
                 return;
             }
 
+            // someone added player to db, add them to storedTopscores
             if (storedTopscores.Count < currentUser)
             {
                 if (!AddPlayer(currentUser))
@@ -121,42 +123,46 @@ namespace den0bot.Modules
                     return;
                 }
             }
+
             List<Score> oldTopscores = storedTopscores[currentUser];
             List<Score> currentTopscores = await OsuAPI.GetTopscoresAsync(userID, scores_num);
-            if (currentTopscores == null || currentTopscores.Count <= 0)
+            if (currentTopscores != null || currentTopscores.Count > 0)
             {
-                currentUser++;
-                return;
-            }
-
-            foreach(Score score in currentTopscores)
-            {
-                if (oldTopscores != null && 
-                    !oldTopscores.Contains(score) && 
-                    score.Pp > oldTopscores.Last().Pp &&
-                    score.Date > DateTime.UtcNow.AddHours(7)) // osu is UTC+8
+                bool needDBUpdate = false;
+                foreach (Score score in currentTopscores)
                 {
-                    Map map = await OsuAPI.GetBeatmapAsync(score.BeatmapID);
-                    Mods enabledMods = score.EnabledMods;
+                    if (oldTopscores != null &&
+                        oldTopscores.Count == scores_num && // if we somehow have less topscores than we should, ignore it
+                        !oldTopscores.Contains(score) &&
+                        score.Pp > oldTopscores.Last().Pp && // if PP is smaller than scores_num'th topscore we dont want it
+                        score.Date > DateTime.UtcNow.AddHours(7)) // osu is UTC+8, we use topscores that aren't older than 1 hour
+                    {
+                        Map map = await OsuAPI.GetBeatmapAsync(score.BeatmapID);
+                        Mods enabledMods = score.EnabledMods;
 
-                    string mods = string.Empty;
-                    if (enabledMods > 0)
-                        mods = " +" + enabledMods.ToString().Replace(", ", "");
+                        string mods = string.Empty;
+                        if (enabledMods > 0)
+                            mods = " +" + enabledMods.ToString().Replace(", ", "");
 
-                    string mapInfo = string.Format("{0} - {1} [{2}]", map.Artist, map.Title, map.Difficulty).FilterToHTML();
+                        string mapInfo = string.Format("{0} - {1} [{2}]", map.Artist, map.Title, map.Difficulty).FilterToHTML();
 
-                    string formattedMessage = string.Format("Там <b>{0}</b> фарманул новый скор: \n<i>{1}</i>{2} ({3}, {4}%) | <b>{5} пп</b>! Поздравим сраного фармера!",
-                        Database.GetPlayerFriendlyName(currentUser), mapInfo, mods, score.Rank, score.Accuracy.ToString("N2"), score.Pp);
+                        string formattedMessage = string.Format("Там <b>{0}</b> фарманул новый скор: \n<i>{1}</i>{2} ({3}, {4}%) | <b>{5} пп</b>! Поздравим сраного фармера!",
+                            Database.GetPlayerFriendlyName(currentUser), mapInfo, mods, score.Rank, score.Accuracy.FN2(), score.Pp);
 
-                    API.SendMessage(formattedMessage, Database.GetPlayerChatID(currentUser), Telegram.Bot.Types.Enums.ParseMode.Html);
-                    break;
+                        API.SendMessage(formattedMessage, Database.GetPlayerChatID(currentUser), Telegram.Bot.Types.Enums.ParseMode.Html);
+
+                        needDBUpdate = true;
+                        break;
+                    }
                 }
+
+                if (needDBUpdate)
+                    Database.SetPlayerTopscores(currentTopscores, currentUser);
+
+                storedTopscores[currentUser] = currentTopscores;
             }
-
-            Database.SetPlayerTopscores(currentTopscores, currentUser);
-            storedTopscores[currentUser] = currentTopscores;
-
             currentUser++;
         }
     }
 }
+#pragma warning restore CS4014

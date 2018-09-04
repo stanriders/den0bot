@@ -12,6 +12,7 @@ namespace den0bot.Osu
         None = 0,
         NF = 1,
         EZ = 2,
+        TD = 4, // previously NoVideo, now TouchDevice
         HD = 8,
         HR = 16,
         SD = 32,
@@ -21,7 +22,7 @@ namespace den0bot.Osu
         FL = 1024,
         SO = 4096,
         PF = 16384, // Only set along with SuddenDeath. i.e: PF only gives 16416  
-        Key4 = 32768,
+        /*Key4 = 32768,
         Key5 = 65536,
         Key6 = 131072,
         Key7 = 262144,
@@ -33,6 +34,6 @@ namespace den0bot.Osu
         Key10 = 33554432,
         Key1 = 67108864,
         Key3 = 134217728,
-        Key2 = 268435456
+        Key2 = 268435456*/
     }
 }

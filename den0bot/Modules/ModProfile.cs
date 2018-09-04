@@ -47,7 +47,7 @@ namespace den0bot.Modules
                     mods = " +" + enabledMods.ToString().Replace(", ", "");
 
                 // 1. Artist - Title [Diffname] +Mods (Rank, Accuracy%) - 123pp
-                formatedTopscores += string.Format("{0}. {1} - {2} [{3}]{4} ({5}, {6}%) - {7}pp\n", (i+1), map.Artist, map.Title, map.Difficulty, mods, score.Rank, score.Accuracy.ToString("N2"), score.Pp);
+                formatedTopscores += string.Format("{0}. {1} - {2} [{3}]{4} ({5}, {6}%) - {7}pp\n", (i+1), map.Artist, map.Title, map.Difficulty, mods, score.Rank, score.Accuracy.FN2(), score.Pp);
             }
 
             return string.Format("{0} - #{1} ({2}pp)\nPlaycount: {3}\n______\n{4}", info.Username, info.Rank, info.Pp, info.Playcount, formatedTopscores);

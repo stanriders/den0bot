@@ -24,7 +24,6 @@ namespace den0bot.Modules
             AddCommand(new Command()
             {
                 Name = "newscores",
-                IsAsync = true,
                 ActionAsync = (msg) =>
                 {
                     try
@@ -76,10 +75,10 @@ namespace den0bot.Modules
                 {
                     foreach (JObject vid in obj["items"])
                     {
-                        string title = (string)vid["snippet"]["title"];
-                        string id = (string)vid["contentDetails"]["upload"]["videoId"];
+                        string title = vid["snippet"]["title"].ToString();
+                        string id = vid["contentDetails"]["upload"]["videoId"].ToString();
 
-                        string result = "❗️ " + title + Environment.NewLine + "http://youtu.be/" + id;
+                        string result = $"❗️ {title}{Environment.NewLine}http://youtu.be/{id}";
                         API.SendMessageToAllChats(result);
                     }
                 }
@@ -104,8 +103,8 @@ namespace den0bot.Modules
                 JObject obj = JObject.Parse(Encoding.UTF8.GetString(data));
                 for (int i = 0; i < 3; i++)
                 {
-                    string title = (string)obj["items"][i]["snippet"]["title"];
-                    string id = (string)obj["items"][i]["contentDetails"]["upload"]["videoId"];
+                    string title = obj["items"][i]["snippet"]["title"].ToString();
+                    string id = obj["items"][i]["contentDetails"]["upload"]["videoId"].ToString();
                     result += title + Environment.NewLine + "http://youtu.be/" + id + Environment.NewLine + Environment.NewLine;
                 }
             }

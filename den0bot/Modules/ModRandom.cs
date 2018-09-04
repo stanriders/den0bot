@@ -1,9 +1,10 @@
 ﻿// den0bot (c) StanR 2017 - MIT License
 using System;
-using Telegram.Bot.Types;
-using den0bot.DB;
 using System.Linq;
 using System.Collections.Generic;
+using Telegram.Bot.Types;
+using Telegram.Bot.Types.InputFiles;
+using den0bot.DB;
 
 namespace den0bot.Modules
 {
@@ -56,8 +57,8 @@ namespace den0bot.Modules
             switch (RNG.Next(1, 4))
             {
                 case 1: return "динозавр?";
-                case 2: API.SendSticker(new FileToSend("BQADAgADNAADnML7Dbv6HgazQYiIAg"), sender.Id); break;
-                case 3: API.SendSticker(new FileToSend("BQADAgADMAADnML7DXy6fUB4x-sqAg"), sender.Id); break;
+                case 2: API.SendSticker(new InputOnlineFile("BQADAgADNAADnML7Dbv6HgazQYiIAg"), sender.Id); break;
+                case 3: API.SendSticker(new InputOnlineFile("BQADAgADMAADnML7DXy6fUB4x-sqAg"), sender.Id); break;
             }
             return string.Empty;
         }
@@ -97,5 +98,6 @@ namespace den0bot.Modules
 
             return "Чет не получилось";
         }
+
     }
 }

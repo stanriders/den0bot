@@ -9,30 +9,11 @@ namespace den0bot.Modules
 {
     class ModAutohost : IModule
     {
-        private IRC irc = new IRC();
-
 #if !DEBUG
         private DateTime nextCheck;
         private readonly double check_interval = 30; //seconds
 #endif
-
-        private string currentHost;
-        private int currentLobby = 0;
-        private string CurrentChannel
-        {
-            get{ return $"#mp_{currentLobby}"; }
-        }
-
-        private List<string> UserList
-        {
-            get
-            {
-                List<string> userlist = irc.UserList(CurrentChannel);
-                userlist.Remove("BanchoBot");
-                userlist.Remove(Config.osu_irc_username);
-                return userlist;
-            }
-        }
+        private Lobby lobby;
 
         public ModAutohost()
         {
@@ -41,13 +22,7 @@ namespace den0bot.Modules
                 new Command()
                 {
                     Name = "mplink",
-                    Action = (msg) => { return $"{Config.osu_lobby_name} - {Config.osu_lobby_password} {Environment.NewLine}https://osu.ppy.sh/community/matches/{currentLobby}"; }
-                },
-                new Command()
-                {
-                    Name = "ircsend",
-                    IsAdminOnly = true,
-                    Action = (msg) => { irc.SendMessage(msg.Text.Substring(8), CurrentChannel); return string.Empty; }
+                    Action = (msg) => { return $"{Config.osu_lobby_name} - {Config.osu_lobby_password} {Environment.NewLine}{lobby.Link}"; }
                 },
                 new Command()
                 {
@@ -56,15 +31,15 @@ namespace den0bot.Modules
                 }
             });
 
-            irc.OnMessage += OnIRCMessage;
-            irc.Connect();
+            IRC.OnMessage += OnIRCMessage;
+            //IRC.Connect();
 #if !DEBUG
-            currentLobby = Database.CurrentLobbyID;
-
-            if (currentLobby == 0)
-                irc.SendMessage($"!mp make {Config.osu_lobby_name}", "BanchoBot");
-            else
-                irc.Join(CurrentChannel);
+            lobby = new Lobby((uint)Database.CurrentLobbyID)
+            {
+                Name = Config.osu_lobby_name,
+                Password = Config.osu_lobby_password,
+                Size = 16
+            };
 
             nextCheck = DateTime.Now.AddMinutes(1);
 #endif
@@ -75,83 +50,56 @@ namespace den0bot.Modules
         {
             string message = e.Data.Message;
 
-            if (message.StartsWith("Created the tournament match "))
+            if (message.StartsWith("No such channel"))
             {
-                int lobbynum = int.Parse(message.Substring(51).Split(' ')[0]);
-                currentLobby = lobbynum;
-                Database.CurrentLobbyID = lobbynum;
-
-                SetupLobby();
-            }
-            else if (message.StartsWith("No such channel"))
-            {
-                irc.SendMessage($"!mp make {Config.osu_lobby_name}", "BanchoBot");
+                lobby = new Lobby()
+                {
+                    Name = Config.osu_lobby_name,
+                    Password = Config.osu_lobby_password,
+                    Size = 16
+                };
+                Database.CurrentLobbyID = (int)lobby.ID;
             }
             else if (message == "The match has finished!")
             {
                 RotateHost();
             }
-            else if (message.Contains(" joined in slot "))
-            {
-                if (UserList.Count <= 1)
-                {
-                    string username = message.Remove(message.IndexOf(" joined in slot "));
-                    irc.SendMessage($"!mp host {username}", CurrentChannel);
-                    currentHost = username;
-                }
-            }
+            
             Log.IRC(e.Data.Nick, message);
-        }
-
-        private void SetupLobby()
-        {
-            irc.SendMessage($"!mp password {Config.osu_lobby_password}", CurrentChannel);
-            irc.SendMessage("!mp size 16", CurrentChannel);
-            irc.SendMessage("!mp unlock", CurrentChannel);
-            irc.SendMessage("!mp mods Freemod", CurrentChannel);
         }
 
         private void RotateHost()
         {
-            List<string> userlist = UserList;
-            if (userlist.Count <= 1)
+            if (lobby.UserList.Count <= 1)
                 return;
 
-            int nextHost = userlist.LastIndexOf(currentHost) + 1;
-            if (nextHost >= userlist.Count)
+            int nextHost = lobby.CurrentHost + 1;
+            if (nextHost >= lobby.UserList.Count)
                 nextHost = 0;
 
-            irc.SendMessage($"!mp host {userlist[nextHost]}", CurrentChannel);
-            currentHost = userlist[nextHost];
+            lobby.RotateHost(nextHost);
         }
 
         private string GetUserlist()
         {
-            List<string> userlist = UserList;
-            if (userlist != null)
+            string result = string.Empty;
+            foreach (KeyValuePair<int, string> user in lobby.UserList)
             {
-                if (userlist.Count <= 0)
-                    return "Никто сейчас не играет";
-
-                string result = string.Empty;
-                foreach (string s in userlist)
-                {
-                    if (currentHost == s)
-                        result += "(Host)";
-
-                    result += s + Environment.NewLine;
-                }
-                return result;
+                result += $"{user.Key}. {user.Value}{Environment.NewLine}";
             }
-            return string.Empty;
+
+            if (string.IsNullOrEmpty(result))
+                return "Сейчас никто не играет.";
+
+            return result;
         }
 
         public override void Think()
         {
 #if !DEBUG
-            if (nextCheck < DateTime.Now)
+            if (nextCheck < DateTime.Now && lobby.UserList.Count <= 0)
             {
-                irc.Rejoin(CurrentChannel);
+                IRC.Rejoin(lobby.Channel);
                 nextCheck = DateTime.Now.AddSeconds(check_interval);
             }
 #endif

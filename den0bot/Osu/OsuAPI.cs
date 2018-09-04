@@ -12,71 +12,48 @@ namespace den0bot.Osu
     {
         public static long RequestCount = 0;
 
-        private static string MakeApiRequest(string request)
-        {
-            if (RequestCount < long.MaxValue)
-                RequestCount++;
-
-            return new WebClient().DownloadString("https://osu.ppy.sh/api/" + request);
-        }
         private static async Task<string> MakeApiRequestAsync(string request)
         {
             if (RequestCount < long.MaxValue)
                 RequestCount++;
 
-            return await new WebClient().DownloadStringTaskAsync("https://osu.ppy.sh/api/" + request);
+            return await new WebClient().DownloadStringTaskAsync($"https://osu.ppy.sh/api/{request}&k={Config.osu_token}");
         }
 
         /// <summary>
         /// Returns List with player's topscores from API
         /// </summary>
-        public static List<Score> GetTopscores(uint user, int amount = 5)
-        {
-            if (user <= 0 || amount <= 0)
-                return null;
-
-            try
-            {
-                string request = "get_user_best?k=" + Config.osu_token + "&limit=" + amount + "&u=" + user;
-                return JsonConvert.DeserializeObject<List<Score>>(MakeApiRequest(request));
-            }
-            catch (Exception ex) { Log.Error("osuAPI", "GetTopscores - " + ex.InnerMessageIfAny()); }
-            return null;
-        }
-
         public static async Task<List<Score>> GetTopscoresAsync(uint user, int amount = 5)
         {
-            if (user <= 0 || amount <= 0)
-                return null;
-
-            try
+            if (user > 0 && amount > 0)
             {
-                string request = "get_user_best?k=" + Config.osu_token + "&limit=" + amount + "&u=" + user;
-                return JsonConvert.DeserializeObject<List<Score>>(await MakeApiRequestAsync(request));
+                try
+                {
+                    return JsonConvert.DeserializeObject<List<Score>>(await MakeApiRequestAsync($"get_user_best?limit={amount}&u={user}"));
+                }
+                catch (Exception ex) { Log.Error("osuAPI", "GetTopscoresAsync - " + ex.InnerMessageIfAny()); }
             }
-            catch (Exception ex) { Log.Error("osuAPI", "GetTopscoresAsync - " + ex.InnerMessageIfAny()); }
             return null;
         }
 
         /// <summary>
         /// Returns List of beatmaps from a beatmapset
         /// </summary>
-        public static async Task<List<Map>> GetBeatmapSetAsync(uint beatmapsetID)
+        public static async Task<List<Map>> GetBeatmapSetAsync(uint beatmapsetID, bool onlyStd = true)
         {
-            if (beatmapsetID <= 0)
-                return null;
-
-            try
+            if (beatmapsetID > 0)
             {
-                string request = "get_beatmaps?k=" + Config.osu_token + "&s=" + beatmapsetID;
+                try
+                {
+                    List<Map> set = JsonConvert.DeserializeObject<List<Map>>(await MakeApiRequestAsync($"get_beatmaps?s={beatmapsetID}"));
+                    if (onlyStd)
+                        set.RemoveAll(x => x.Mode != 0);
 
-                List<Map> set = JsonConvert.DeserializeObject<List<Map>>(await MakeApiRequestAsync(request));
-                set.RemoveAll(x => x.Mode != 0);
-                set = set.OrderBy(x => x.StarRating).ToList();
-                return set;
+                    set = set.OrderBy(x => x.StarRating).ToList();
+                    return set;
+                }
+                catch (Exception ex) { Log.Error("osuAPI", "GetBeatmapSetAsync - " + ex.InnerMessageIfAny()); }
             }
-            catch (Exception ex) { Log.Error("osuAPI", "GetBeatmapSetAsync - " + ex.InnerMessageIfAny()); }
-
             return null;
         }
 
@@ -85,16 +62,14 @@ namespace den0bot.Osu
         /// </summary>
         public static async Task<Map> GetBeatmapAsync(uint beatmapID)
         {
-            if (beatmapID <= 0)
-                return null;
-
-            try
+            if (beatmapID > 0)
             {
-                string request = "get_beatmaps?k=" + Config.osu_token + "&limit=1&b=" + beatmapID;
-                return JsonConvert.DeserializeObject<List<Map>>(await MakeApiRequestAsync(request))[0];
+                try
+                {
+                    return JsonConvert.DeserializeObject<List<Map>>(await MakeApiRequestAsync($"get_beatmaps?limit=1&b={beatmapID}"))[0];
+                }
+                catch (Exception ex) { Log.Error("osuAPI", "GetBeatmapAsync - " + ex.InnerMessageIfAny()); }
             }
-            catch (Exception ex) { Log.Error("osuAPI", "GetBeatmapAsync - " + ex.InnerMessageIfAny()); }
-
             return null;
         }
 
@@ -103,30 +78,40 @@ namespace den0bot.Osu
         /// </summary>
         public static async Task<Player> GetPlayerAsync(string profileID)
         {
-            if (profileID == string.Empty)
-                return null;
-
-            try
+            if (!string.IsNullOrEmpty(profileID))
             {
-                string request = "get_user?k=" + Config.osu_token + "&u=" + profileID;
-                return JsonConvert.DeserializeObject<List<Player>>(await MakeApiRequestAsync(request))[0];
+                try
+                {
+                    return JsonConvert.DeserializeObject<List<Player>>(await MakeApiRequestAsync($"get_user?u={profileID}"))[0];
+                }
+                catch (Exception ex) { Log.Error("osuAPI", "GetPlayer - " + ex.InnerMessageIfAny()); }
             }
-            catch (Exception ex) { Log.Error("osuAPI", "GetPlayer - " + ex.InnerMessageIfAny()); }
-
             return null;
         }
 
         public static async Task<List<Score>> GetRecentScoresAsync(string user, int amount = 5)
         {
-            if (string.IsNullOrEmpty(user) || amount <= 0)
-                return null;
-
-            try
+            if (!string.IsNullOrEmpty(user) && amount > 0)
             {
-                string request = "get_user_recent?k=" + Config.osu_token + "&limit=" + amount + "&u=" + user;
-                return JsonConvert.DeserializeObject<List<Score>>(await MakeApiRequestAsync(request));
+                try
+                {
+                    return JsonConvert.DeserializeObject<List<Score>>(await MakeApiRequestAsync($"get_user_recent?limit={amount}&u={user}"));
+                }
+                catch (Exception ex) { Log.Error("osuAPI", "GetRecentScoresAsync - " + ex.InnerMessageIfAny()); }
             }
-            catch (Exception ex) { Log.Error("osuAPI", "GetRecentScoresAsync - " + ex.InnerMessageIfAny()); }
+            return null;
+        }
+
+        public static async Task<MultiplayerMatch> GetMatch(uint mpId)
+        {
+            if (mpId > 0)
+            {
+                try
+                {
+                    return JsonConvert.DeserializeObject<MultiplayerMatch>(await MakeApiRequestAsync($"get_match?mp={mpId}"));
+                }
+                catch (Exception ex) { Log.Error("osuAPI", "GetMatch - " + ex.InnerMessageIfAny()); }
+            }
             return null;
         }
     }

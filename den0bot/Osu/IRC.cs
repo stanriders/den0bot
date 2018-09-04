@@ -6,64 +6,70 @@ using Meebey.SmartIrc4net;
 
 namespace den0bot.Osu
 {
-    class IRC
+    static class IRC
     {
-        private IrcClient irc = new IrcClient()
+        private static bool isConnected = false;
+        private static IrcClient irc = new IrcClient()
         {
             AutoRejoin = true,
             AutoRelogin = true,
             ActiveChannelSyncing = true,
             AutoJoinOnInvite = true
         };
-        public IRC()
-        {
-            irc.OnChannelAction += MessageHandler;
-            irc.OnChannelNotice += MessageHandler;
-            irc.OnChannelMessage += MessageHandler;
-            irc.OnQueryAction += MessageHandler;
-            irc.OnQueryNotice += MessageHandler;
-            irc.OnQueryMessage += MessageHandler;
-            irc.OnMotd += delegate (object sender, MotdEventArgs e) { Log.Info(this, e.Data.Message); }; ;
-            irc.OnError += delegate (object sender, ErrorEventArgs e) { Log.Error(this, e.ErrorMessage); };
-            irc.OnErrorMessage += MessageHandler;
-        }
-        public void Connect()
+        public static void Connect()
         {
             new Thread(new ThreadStart(delegate ()
             {
                 irc.Connect("irc.ppy.sh", 6667);
                 irc.Login(Config.osu_irc_username, "den0bot", 0, Config.osu_irc_username, Config.osu_irc_password);
+                isConnected = irc.IsConnected;
                 irc.Listen();
             })){ Name = "IRCThread" }.Start();
-        }
-        public void MessageHandler(object sender, IrcEventArgs e)
-        {
-            OnMessage(sender, e);
-        }
 
-        public event IrcEventHandler OnMessage;
-
-        public void SendMessage(string msg, string channel)
-        {
-            irc.SendMessage(SendType.Message, channel, msg);
-        }
-
-        public void Join(string name)
-        {
-            irc.RfcJoin(name);
-        }
-        public void Rejoin(string name)
-        {
-            irc.RfcPart(name);
-            irc.RfcJoin(name);
+            if (isConnected)
+            {
+                irc.OnChannelAction += (sender, e) => OnMessage(sender, e);
+                irc.OnChannelNotice += OnMessage;
+                irc.OnChannelMessage += OnMessage;
+                irc.OnQueryAction += (sender, e) => OnMessage(sender, e);
+                irc.OnQueryNotice += OnMessage;
+                irc.OnQueryMessage += OnMessage;
+                irc.OnMotd += delegate (object sender, MotdEventArgs e) { Log.Info("IRC", e.Data.Message); }; ;
+                irc.OnError += delegate (object sender, ErrorEventArgs e) { Log.Error("IRC", e.ErrorMessage); };
+                irc.OnErrorMessage += OnMessage;
+            }
         }
 
-        public List<string> UserList(string channel)
-        {
-            Channel chan = irc.GetChannel(channel);
-            if (chan != null)
-                return chan.Users.Keys.Cast<string>().ToList();
+        public static event IrcEventHandler OnMessage;
 
+        public static void SendMessage(string msg, string channel)
+        {
+            if (isConnected)
+                irc.SendMessage(SendType.Message, channel, msg);
+        }
+
+        public static void Join(string name)
+        {
+            if (isConnected)
+                irc.RfcJoin(name);
+        }
+        public static void Rejoin(string name)
+        {
+            if (isConnected)
+            {
+                irc.RfcPart(name);
+                irc.RfcJoin(name);
+            }
+        }
+
+        public static List<string> UserList(string channel)
+        {
+            if (isConnected)
+            {
+                Channel chan = irc.GetChannel(channel);
+                if (chan != null)
+                    return chan.Users.Keys.Cast<string>().ToList();
+            }
             return null;
         }
     }

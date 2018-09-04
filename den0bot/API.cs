@@ -3,12 +3,15 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Threading.Tasks;
 using den0bot.DB;
 using Telegram.Bot;
 using Telegram.Bot.Args;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
+using Telegram.Bot.Types.InputFiles;
 
+#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.
 namespace den0bot
 {
     static class API
@@ -32,7 +35,8 @@ namespace den0bot
                 api.OnReceiveGeneralError += delegate (object sender, ReceiveGeneralErrorEventArgs args) { Log.Error("API - OnReceiveGeneralError", args.Exception.InnerMessageIfAny()); };
                 api.OnReceiveError += delegate (object sender, ReceiveErrorEventArgs args) { Log.Error("API - OnReceiveError", args.ApiRequestException.InnerMessageIfAny()); };
 
-                api.TestApiAsync();
+                if (!api.TestApiAsync().Result)
+                    return false;
 
                 api.StartReceiving();
             }
@@ -71,14 +75,16 @@ namespace den0bot
         /// <param name="receiverID">Chat ID to send message to</param>
         /// <param name="mode">ParseMode to use (None/Markdown/HTML)</param>
         /// <param name="replyID">Message ID to reply to</param>
-        public static void SendMessage(string message, long receiverID, ParseMode mode = ParseMode.Default, int replyID = 0)
+        public static async Task<Message> SendMessage(string message, long receiverID, ParseMode mode = ParseMode.Default, int replyID = 0)
         {
             try
             {
                 if (!string.IsNullOrEmpty(message))
-                    api?.SendTextMessageAsync(receiverID, message, mode, true, false, replyID);
+                    return await api?.SendTextMessageAsync(receiverID, message, mode, true, false, replyID);
+
+                return null;
             }
-            catch (Exception ex) { Log.Error("API - SendMessage", ex.InnerMessageIfAny()); }
+            catch (Exception ex) { Log.Error("API - SendMessage", ex.InnerMessageIfAny()); return null; }
         }
 
         /// <summary>
@@ -94,8 +100,8 @@ namespace den0bot
                 if (!receiver.DisableAnnouncements)
                 {
                     if (!string.IsNullOrEmpty(image))
-                        SendPhoto(image, receiver.Id, msg);
-                    else if (!string.IsNullOrEmpty(msg))
+                        SendPhoto(image, receiver.Id, msg, mode);
+                    else
                         SendMessage(msg, receiver.Id, mode);
                 }
             }
@@ -107,7 +113,7 @@ namespace den0bot
         /// <param name="photo">Photo to send. Can be both internal telegram photo ID or a link</param>
         /// <param name="receiver">Chat to send photo to</param>
         /// <param name="message">Photo caption if any</param>
-        public static void SendPhoto(string photo, Chat receiver, string message = "") => SendPhoto(photo, receiver.Id, message);
+        public static void SendPhoto(string photo, Chat receiver, string message = "", ParseMode mode = ParseMode.Default) => SendPhoto(photo, receiver.Id, message, mode);
 
         /// <summary>
         /// Send photo
@@ -115,41 +121,57 @@ namespace den0bot
         /// <param name="photo">Photo to send. Can be both internal telegram photo ID or a link</param>
         /// <param name="receiverId">Chat ID to send photo to</param>
         /// <param name="message">Photo caption if any</param>
-        public static void SendPhoto(string photo, long receiverId, string message = "")
+        public static async Task<Message> SendPhoto(string photo, long receiverId, string message = "", ParseMode mode = ParseMode.Default)
         {
             try
             {
                 if (!string.IsNullOrEmpty(photo))
                 {
-                    FileToSend file = new FileToSend();
+                    InputOnlineFile file = new InputOnlineFile(photo);
                     if (photo.StartsWith("http") && (photo.EndsWith(".jpg") || photo.EndsWith(".png")))
                     {
                         file = UriPhotoDownload(new Uri(photo));
-                        if (file.Content == null)
+                        if (file == null)
                         {
-                            SendMessage(message, receiverId);
-                            return;
+                            return await SendMessage(message, receiverId, mode);
                         }
                     }
-                    else
-                        file.FileId = photo;
 
-                    api?.SendPhotoAsync(receiverId, file, message);
+                    return await api?.SendPhotoAsync(receiverId, file, message, mode);
                 }
+                return null;
             }
-            catch (Exception ex) { Log.Error("API - SendPhoto", ex.InnerMessageIfAny()); }
+            catch (Exception ex) { Log.Error("API - SendPhoto", ex.InnerMessageIfAny()); return null; }
         }
-        private static FileToSend UriPhotoDownload(Uri link)
+        private static InputOnlineFile UriPhotoDownload(Uri link)
         {
             try
             {
-                return new WebClient().OpenRead(link).ToFileToSend("yo");
+                return new InputOnlineFile(new WebClient().OpenRead(link));
             }
             catch (Exception ex)
             {
                 Log.Error("API - UriPhotoDownload", ex.InnerMessageIfAny());
-                return new FileToSend();
+                return null;
             }
+        }
+
+        /// <summary>
+        /// Send multiple photos in an album
+        /// </summary>
+        /// <param name="photos">Array of InputMediaPhoto photos</param>
+        /// <param name="receiverID">Chat to send photos to</param>
+        public static async Task<Message[]> SendMultiplePhotos(List<InputMediaPhoto> photos, long receiverId)
+        {
+            try
+            {
+                if (photos != null && photos.Count > 1)
+                {
+                    return await api?.SendMediaGroupAsync(photos, receiverId);
+                }
+                return null;
+            }
+            catch (Exception ex) { Log.Error("API - SendMultiplePhotos", ex.InnerMessageIfAny()); return null; }
         }
 
         /// <summary>
@@ -157,7 +179,7 @@ namespace den0bot
         /// </summary>
         /// <param name="sticker">Telegram sticker ID</param>
         /// <param name="receiverID">Chat to send sticker to</param>
-        public static void SendSticker(FileToSend sticker, long receiverID)
+        public static void SendSticker(InputOnlineFile sticker, long receiverID)
         {
             try
             {
@@ -187,5 +209,21 @@ namespace den0bot
             }
             catch (Exception ex) { Log.Error("API - RemoveMessage", ex.InnerMessageIfAny()); }
         }
-    }
+
+		/// <summary>
+		/// Remove media caption
+		/// </summary>
+		/// <param name="chatID">Chat ID to edit message in</param>
+		/// <param name="msgID">Message to edit</param>
+		/// <param name="caption">New caption</param>
+		public static void EditMediaCaption(long chatID, int msgID, string caption)
+		{
+			try
+			{
+				api.EditMessageCaptionAsync(chatID, msgID, caption);
+			}
+			catch (Exception ex) { Log.Error("API - EditMediaCaption", ex.InnerMessageIfAny()); }
+		}
+	}
 }
+#pragma warning restore CS4014

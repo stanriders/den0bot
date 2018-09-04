@@ -10,44 +10,60 @@ using Telegram.Bot.Args;
 
 namespace den0bot
 {
-    public class Bot
-    {
-        private List<IModule> modules;
-        private bool IsAdmin(long chatID, string username) => (username == "StanRiders") || (API.GetAdmins(chatID).Exists(x => x.User.Username == username) );
-        private DateTime startupTime;
+	public class Bot
+	{
+		private List<IModule> modules;
+		private string GreetNewfag(string username, long userID) => $"Дороу, <a href=\"tg://user?id={userID}\">{username}</a>" + Environment.NewLine +
+																	 "Хорошим тоном является:" + Environment.NewLine +
+																	 "<b>1.</b> Кинуть профиль." + Environment.NewLine +
+																	 "<b>2.</b> Не инактивить." + Environment.NewLine +
+																	 "<b>3.</b> Словить бан при входе." + Environment.NewLine +
+																	 "<b>4.</b> Панду бить только ногами, иначе зашкваришься." + Environment.NewLine +
+																	 "Ден - аниме, но аниме запрещено. В мульти не играть - мужиков не уважать." + Environment.NewLine +
+																	 "<i>inb4 - бан</i>";
 
-        public Bot()
+		public static bool IsOwner(string username) => (username == Config.owner_username);
+		public static bool IsAdmin(long chatID, string username) => IsOwner(username) || (API.GetAdmins(chatID).Exists(x => x.User.Username == username));
+
+		private static bool shouldShutdown = false;
+		public static void Shutdown() {shouldShutdown = true;}
+		
+		public Bot()
         {
             Database.Init();
+
+            Osu.Oppai.CheckOppai();
 
             modules = new List<IModule>()
             {
                 new ModThread(),
                 new ModYoutube(),
                 new ModRandom(),
-                new ModTopscores(),
+                //new ModTopscores(),
                 new ModProfile(),
                 new ModBeatmap(),
                 new ModMaplist(),
                 new ModCat(),
                 new ModSettings(),
-                new ModAutohost(),
-                new ModRecentScores()
+                //new ModAutohost(),
+                new ModRecentScores(),
+                new ModGirls()
             };
+
+            //Osu.IRC.Connect();
 
             API.OnMessage += ProcessMessage;
 
             if (API.Connect())
             {
                 Log.Info(this, "Started thinking...");
-                startupTime = DateTime.Now;
                 Think();
             }
         }
 
         private void Think()
         {
-            while (API.IsConnected)
+            while (API.IsConnected && !shouldShutdown)
             {
                 foreach (IModule m in modules)
                 {
@@ -55,18 +71,6 @@ namespace den0bot
                 }
                 Thread.Sleep(100);
             }
-        }
-
-        private string GreetNewfag(string username, long userID)
-        {
-            return $"Дороу, <a href=\"tg://user?id={userID}\">{username}</a>" + Environment.NewLine +
-                    "Хорошим тоном является:" + Environment.NewLine +
-                    "<b>1.</b> Кинуть профиль." + Environment.NewLine +
-                    "<b>2.</b> Не инактивить." + Environment.NewLine +
-                    "<b>3.</b> Словить бан при входе." + Environment.NewLine +
-                    "<b>4.</b> Панду бить только ногами, иначе зашкваришься." + Environment.NewLine +
-                    "Ден - аниме, но аниме запрещено. В мульти не играть - мужиков не уважать." + Environment.NewLine +
-                    "<i>inb4 - бан</i>";
         }
 
         public async void ProcessMessage(object sender, MessageEventArgs messageEventArgs)
@@ -89,8 +93,8 @@ namespace den0bot
                 API.SendMessage(GreetNewfag(msg.NewChatMembers[0].FirstName, msg.NewChatMembers[0].Id), senderChat, ParseMode.Html);
                 return;
             }
-            if (msg.Type != MessageType.TextMessage &&
-                msg.Type != MessageType.PhotoMessage)
+            if (msg.Type != MessageType.Text &&
+                msg.Type != MessageType.Photo)
                 return;
 
             if (msg.Text != null && msg.Text.StartsWith("/"))
@@ -106,88 +110,70 @@ namespace den0bot
             ParseMode parseMode = ParseMode.Default;
             int replyID = 0;
 
-            string result = ProcessBasicCommands(msg, ref parseMode);
-            if (result == string.Empty)
+            string result = string.Empty;
+            foreach (IModule m in modules)
             {
-                foreach (IModule m in modules)
+                if (msg.Type == MessageType.Photo)
                 {
-                    if (msg.Type == MessageType.PhotoMessage)
-                    {
-                        if (!m.NeedsPhotos)
-                            continue;
+                    if (!m.NeedsPhotos)
+                        continue;
 
-                        msg.Text = msg.Caption + " photo" + msg.Photo[0].FileId; //kinda hack
+                    msg.Text = msg.Caption + " photo" + msg.Photo[0].FileId; //kinda hack
+                }
+
+                // FIXME: move to trigger check?
+                if (msg.Text == null)
+                    continue;
+
+                // send all messages to modules that need them
+                if (m is IProcessAllMessages)
+                    (m as IProcessAllMessages).ReceiveMessage(msg);
+
+                // not a command
+                if (msg.Text[0] != '/')
+                    continue;
+
+                IModule.Command c = m.GetCommand(msg.Text);
+                if (c != null)
+                {
+                    if ((c.IsAdminOnly && !IsAdmin(msg.Chat.Id, msg.From.Username)) ||
+						(c.IsOwnerOnly && !IsOwner(msg.From.Username)))
+					{
+                        // ignore admin commands from non-admins
+                        result = Events.Annoy();
+                        break;
                     }
 
-                    if (msg.Text == null)
-                        continue;
-
-                    if (m is IProcessAllMessages)
-                        (m as IProcessAllMessages).ReceiveMessage(msg);
-                    else if (msg.Text[0] != '/')
-                        continue;
-
-                    Command c = m.GetCommand(msg.Text);
-                    if (c != null)
+                    string res = string.Empty;
+                    if (c.Action != null)
+                        res = c.Action(msg);
+                    else if (c.ActionAsync != null)
+                        res = await c.ActionAsync(msg);
+                    
+                    if (!string.IsNullOrEmpty(res))
                     {
-                        if (c.IsAdminOnly && !IsAdmin(msg.Chat.Id, msg.From.Username) || msg.Chat.Type == ChatType.Private)
-                            continue;
+                        parseMode = c.ParseMode;
+                        if (c.Reply)
+                            replyID = msg.MessageId;
 
-                        string res = string.Empty;
-                        if (c.IsAsync)
-                            res = await c.ActionAsync(msg);
-                        else
-                            res = c.Action(msg);
+                        result = res;
 
-                        if (!string.IsNullOrEmpty(res))
+                        if (c.ActionResult != null)
                         {
-                            parseMode = c.ParseMode;
-                            if (c.Reply)
-                                replyID = msg.MessageId;
-
-                            result = res;
-                            break;
+                            var sentMessage = await API.SendMessage(result, senderChat.Id, parseMode, replyID);
+                            if (sentMessage != null)
+                            {
+                                // call action that recieves sent message
+                                c.ActionResult(sentMessage);
+                                return;
+                            }
                         }
+                        break;
                     }
                 }
             }
 
             API.SendMessage(result, senderChat, parseMode, replyID);
-        }
-
-        private string ProcessBasicCommands(Message msg, ref ParseMode parseMode)
-        {
-            if (msg.Text == null || msg.Text == string.Empty || msg.Text[0] != '/')
-                return string.Empty;
-
-            string text = msg.Text;
-
-            if (text.StartsWith("/me ")) //meh
-            {
-                API.RemoveMessage(msg.Chat.Id, msg.MessageId);
-                parseMode = ParseMode.Markdown;
-                return $"_{msg.From.FirstName}{text.Substring(3)}_";
-            }
-            else if ((msg.Chat.Type == ChatType.Private) && (text.StartsWith("/start") || text.StartsWith("/help")))
-            {
-                return "Дарова. Короче помимо того, что в списке команд я могу ещё:" + Environment.NewLine + Environment.NewLine +
-                    "/addplayer - добавить игрока в базу. Синтаксис: /addplayer <имя> <osu!айди>. Бот будет следить за новыми топскорами и сообщать их в чат. Также имя используется в базе щитпостеров." + Environment.NewLine +
-                    "/removeplayer - убрать игрока из базы. Синтаксис: /removeplayer <имя, указанное при добавлении>." + Environment.NewLine +
-                    "/addmeme - добавить мемес базу, можно как ссылку на картинку из интернета, так и загрузить её самому, а команду прописать в подпись." + Environment.NewLine +
-                    "/disableannouncements - отключить оповещения о новых скорах кукизи." + Environment.NewLine +
-                    "/enableannouncements - включить их обратно." + Environment.NewLine + Environment.NewLine +
-                    "Все эти команды доступны только админам конфы. По вопросам насчет бота писать @StanRiders, но лучше не писать." + Environment.NewLine +
-                    "http://kikoe.ru/";
-            }
-            else if (text.StartsWith("/requestcount"))
-            {
-                if (IsAdmin(msg.Chat.Id, msg.From.Username))
-                {
-                    return (Osu.OsuAPI.RequestCount / ((DateTime.Now - startupTime).TotalSeconds / 60.0d)).ToString();
-                }
-            }
-
-            return string.Empty;
         }
     }
 }

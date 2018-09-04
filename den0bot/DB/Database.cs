@@ -21,6 +21,7 @@ namespace den0bot.DB
             db.CreateTable<Meme>();
             db.CreateTable<Player>();
             db.CreateTable<Misc>();
+            db.CreateTable<Girl>();
         }
         public static void Close() => db.Close();
 
@@ -75,20 +76,20 @@ namespace den0bot.DB
                 memes.RemoveAll(x => x.Used == true);
                 if (memes.Count == 0)
                 {
-                    ResetUsed(chatID);
+                    ResetUsedMeme(chatID);
                     return GetMeme(chatID);
                 }
                 else
                 {
                     int num = RNG.Next(memes.Count);
 
-                    SetUsed(memes[num].Id);
+                    SetUsedMeme(memes[num].Id);
                     return memes[num].Link;
                 }
             }
             return null;
         }
-        public static void SetUsed(int id)
+        public static void SetUsedMeme(int id)
         {
             Meme meme = db.Table<Meme>().Where(x => x.Id == id).First();
             if (meme != null)
@@ -97,7 +98,7 @@ namespace den0bot.DB
                 db.Update(meme);
             }
         }
-        public static void ResetUsed(long chatID)
+        public static void ResetUsedMeme(long chatID)
         {
             List<Meme> memes = db.Table<Meme>().Where(x => x.ChatID == chatID)?.ToList();
             foreach (Meme meme in memes)
@@ -107,6 +108,151 @@ namespace den0bot.DB
         }
 
         // ---
+        // Girls
+        // ---
+        public static int GetGirlCount(long chatID) => db.Table<Girl>().Where(x => x.ChatID == chatID).Count();
+        public static void AddGirl(string link, long chatID)
+        {
+            if (db.Table<Girl>().Where(x => x.Link == link).FirstOrDefault() == null)
+            {
+                db.Insert(new Girl
+                {
+                    Link = link,
+                    ChatID = chatID,
+                    Rating = 0
+                });
+            }
+        }
+        public static void RemoveGirl(int id)
+        {
+            Girl girl = db.Table<Girl>().Where(x => x.Id == id).FirstOrDefault();
+            if (girl != null)
+                db.Delete(girl);
+        }
+        public static Girl GetGirl(long chatID)
+        {
+            List<Girl> girls = db.Table<Girl>().Where(x => x.ChatID == chatID)?.ToList();
+            if (girls != null)
+            {
+                girls.RemoveAll(x => x.Used == true);
+                if (girls.Count == 0)
+                {
+                    ResetUsedGirl(chatID);
+                    return GetGirl(chatID);
+                }
+                else
+                {
+                    int num = RNG.Next(girls.Count);
+
+                    SetUsedGirl(girls[num].Id);
+                    return girls[num];
+                }
+            }
+            return null;
+        }
+        public static Girl GetPlatinumGirl(long chatID)
+        {
+            List<Girl> girls = db.Table<Girl>().Where(x => x.ChatID == chatID && x.Rating >= 10)?.ToList();
+            if (girls != null && girls.Count > 0)
+            {
+                int num = RNG.Next(girls.Count);
+
+                SetUsedGirl(girls[num].Id);
+                return girls[num];
+            }
+            return null;
+        }
+        public static void SetUsedGirl(int id)
+        {
+            Girl girl = db.Table<Girl>().Where(x => x.Id == id)?.First();
+            if (girl != null)
+            {
+                girl.Used = true;
+                db.Update(girl);
+            }
+        }
+        public static void ResetUsedGirl(long chatID)
+        {
+            List<Girl> girls = db.Table<Girl>().Where(x => x.ChatID == chatID)?.ToList();
+            foreach (Girl girl in girls)
+                girl.Used = false;
+
+            db.UpdateAll(girls);
+        }
+        public static void ChangeGirlRating(int id, int rating)
+        {
+            Girl girl = db.Table<Girl>().Where(x => x.Id == id)?.FirstOrDefault();
+            if (girl != null)
+            {
+                girl.Rating += rating;
+                /*if (girl.Rating < -10)
+                {
+                    db.Delete(girl);
+                    return;
+                }*/
+
+                db.Update(girl);
+            }
+        }
+        public static int GetGirlRating(int id)
+        {
+            Girl girl = db.Table<Girl>().Where(x => x.Id == id)?.FirstOrDefault();
+            if (girl != null)
+            {
+                return girl.Rating;
+            }
+            return int.MinValue;
+        }
+        public static void AddGirlVoter(int id, int userID)
+        {
+            Girl girl = db.Table<Girl>().Where(x => x.Id == id)?.FirstOrDefault();
+            if (girl != null)
+            {
+                girl.Voters += $"{userID};";
+                db.Update(girl);
+            }
+        }
+        public static List<int> GetGirlVoters(int id)
+        {
+            Girl girl = db.Table<Girl>().Where(x => x.Id == id)?.FirstOrDefault();
+            if (girl != null && girl.Voters != null)
+            {
+                List<int> result = new List<int>();
+                foreach (var voter in girl.Voters?.Split(';'))
+                {
+                    int voterID = 0;
+                    if (int.TryParse(voter, out voterID))
+                    {
+                        result.Add(voterID);
+                    }
+                }
+                return result;
+            }
+            return null;
+        }
+        public static void ResetGirlVoters(int id)
+        {
+            Girl girl = db.Table<Girl>().Where(x => x.Id == id)?.FirstOrDefault();
+            if (girl != null)
+            {
+                girl.Voters = string.Empty;
+                db.Update(girl);
+            }
+        }
+        public static List<Girl> GetTopGirls(long chatID)
+        {
+            return db.Table<Girl>().Where(x => x.ChatID == chatID).OrderByDescending(x => x.Rating)?.ToList();
+        }
+        public static void RemoveRatings()
+        {
+            var table = db.Table<Girl>();
+            foreach (var girl in table)
+            {
+                girl.Rating = 0;
+            }
+            db.UpdateAll(table);
+        }
+        // ---
         // Users
         // ---
         public static List<Player> GetAllPlayers(long chatID) => db.Table<Player>().Where(x => x.ChatID == chatID)?.ToList();
@@ -114,13 +260,13 @@ namespace den0bot.DB
         public static int GetPlayerCount(long chatID) => (int)db.Table<Player>().Where(x => x.ChatID == chatID)?.Count();
 
         private static Player GetPlayer(int ID) => db.Table<Player>().Where(x => x.Id == ID)?.FirstOrDefault();
-        private static Player GetPlayer(string username) => db.Table<Player>().Where(x => x.Username == username)?.FirstOrDefault();
+        private static Player GetPlayer(string username) => db.Table<Player>().Where(x => x.Username.ToLower() == username.ToLower())?.FirstOrDefault();
         public static string GetPlayerFriendlyName(int ID) => GetPlayer(ID)?.FriendlyName;
         public static uint GetPlayerOsuID(int ID) => GetPlayer(ID)?.OsuID ?? 0;
         public static uint GetPlayerOsuID(string username) => GetPlayer(username)?.OsuID ?? 0;
         public static long GetPlayerChatID(int ID) => GetPlayer(ID)?.ChatID ?? 0;
 
-        public static void AddPlayer(string username, string name, uint osuID, long chatID)
+        public static bool AddPlayer(string username, string name, uint osuID, long chatID)
         {
             if (db.Table<Player>().Where(x => x.FriendlyName == name).FirstOrDefault() == null)
             {
@@ -132,13 +278,19 @@ namespace den0bot.DB
                     ChatID = chatID,
                     Username = username
                 });
+                return true;
             }
+            return false;
         }
-        public static void RemovePlayer(string name, long chatID)
+        public static bool RemovePlayer(string name, long chatID)
         {
-            Player player = db.Table<Player>().Where(x => x.FriendlyName == name && x.ChatID == chatID).FirstOrDefault();
+            Player player = db.Table<Player>().Where(x => x.FriendlyName.ToLower() == name.ToLower() && x.ChatID == chatID).FirstOrDefault();
             if (player != null)
+            {
                 db.Delete(player);
+                return true;
+            }
+            return false;
         }
         public static List<Osu.Score> GetPlayerTopscores(int ID)
         {
@@ -211,8 +363,12 @@ namespace den0bot.DB
                         CurrentMPLobby = value
                     });
                 }
-            
+
             }
+        }
+        public static string GetCurrentTounament()
+        {
+            return string.Empty;
         }
     }
 }

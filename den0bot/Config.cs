@@ -5,9 +5,10 @@ namespace den0bot
     {
         // https://telegram.me/botfather
         public static readonly string telegam_token = "REPLACE_ME";
+		public static readonly string owner_username = "StanRiders";
 
-        // https://osu.ppy.sh/p/api
-        public static readonly string osu_token = "REPLACE_ME";
+		// https://osu.ppy.sh/p/api
+		public static readonly string osu_token = "REPLACE_ME";
 
         // https://osu.ppy.sh/p/irc
         public static readonly string osu_irc_username = "REPLACE_ME";

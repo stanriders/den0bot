@@ -1,4 +1,6 @@
 ﻿// den0bot (c) StanR 2017 - MIT License
+#define ENDLESSTHREAD
+
 using System;
 using System.Collections.Generic;
 using System.Net;
@@ -17,7 +19,6 @@ namespace den0bot.Modules
             AddCommand(new Command()
             {
                 Name = "thread",
-                IsAsync = true,
                 ActionAsync = (msg) =>
                 {
                     try
@@ -39,7 +40,7 @@ namespace den0bot.Modules
 
         public int FindThread()
         {
-#if !ENDLESSTHREAD
+#if ENDLESSTHREAD
             return 4011800;
 #else
             try
