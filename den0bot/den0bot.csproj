@@ -176,6 +176,7 @@
     <Compile Include="Extensions.cs" />
     <Compile Include="IModule.cs" />
     <Compile Include="IProcessAllMessages.cs" />
+    <Compile Include="IReceiveCallback.cs" />
     <Compile Include="Log.cs" />
     <Compile Include="Events.cs" />
     <Compile Include="Modules\ModAutohost.cs" />

@@ -53,6 +53,7 @@ namespace den0bot
             //Osu.IRC.Connect();
 
             API.OnMessage += ProcessMessage;
+			API.OnCallback += ProcessCallback;
 
             if (API.Connect())
             {
@@ -71,6 +72,7 @@ namespace den0bot
                 }
                 Thread.Sleep(100);
             }
+			API.Disconnect();
         }
 
         public async void ProcessMessage(object sender, MessageEventArgs messageEventArgs)
@@ -175,5 +177,20 @@ namespace den0bot
 
             API.SendMessage(result, senderChat, parseMode, replyID);
         }
-    }
+
+		public void ProcessCallback(object sender, CallbackQueryEventArgs callbackEventArgs)
+		{
+			foreach (IModule m in modules)
+			{
+				if (m is IReceiveCallback)
+				{
+					var module = m as IReceiveCallback;
+					//if (callbackEventArgs.CallbackQuery.Data == m.ToString())
+					{
+						module.ReceiveCallback(callbackEventArgs.CallbackQuery);
+					}
+				}
+			}
+		}
+	}
 }

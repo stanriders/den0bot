@@ -10,6 +10,7 @@ using Telegram.Bot.Args;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.InputFiles;
+using Telegram.Bot.Types.ReplyMarkups;
 
 #pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.
 namespace den0bot
@@ -32,7 +33,8 @@ namespace den0bot
             try
             {
                 api.OnMessage += OnMessage;
-                api.OnReceiveGeneralError += delegate (object sender, ReceiveGeneralErrorEventArgs args) { Log.Error("API - OnReceiveGeneralError", args.Exception.InnerMessageIfAny()); };
+				api.OnCallbackQuery += OnCallback;
+				api.OnReceiveGeneralError += delegate (object sender, ReceiveGeneralErrorEventArgs args) { Log.Error("API - OnReceiveGeneralError", args.Exception.InnerMessageIfAny()); };
                 api.OnReceiveError += delegate (object sender, ReceiveErrorEventArgs args) { Log.Error("API - OnReceiveError", args.ApiRequestException.InnerMessageIfAny()); };
 
                 if (!api.TestApiAsync().Result)
@@ -58,15 +60,17 @@ namespace den0bot
         }
 
         public static event EventHandler<MessageEventArgs> OnMessage;
+		public static event EventHandler<CallbackQueryEventArgs> OnCallback;
 
-        /// <summary>
-        /// Send message
-        /// </summary>
-        /// <param name="message">Text to send</param>
-        /// <param name="receiver">Chat to send message to</param>
-        /// <param name="mode">ParseMode to use (None/Markdown/HTML)</param>
-        /// <param name="replyID">Message ID to reply to</param>
-        public static void SendMessage(string message, Chat receiver, ParseMode mode = ParseMode.Default, int replyID = 0) => SendMessage(message, receiver.Id, mode, replyID);
+		/// <summary>
+		/// Send message
+		/// </summary>
+		/// <param name="message">Text to send</param>
+		/// <param name="receiver">Chat to send message to</param>
+		/// <param name="mode">ParseMode to use (None/Markdown/HTML)</param>
+		/// <param name="replyID">Message ID to reply to</param>
+		public static void SendMessage(string message, Chat receiver, ParseMode mode = ParseMode.Default, int replyID = 0, IReplyMarkup replyMarkup = null) => 
+			SendMessage(message, receiver.Id, mode, replyID, replyMarkup);
 
         /// <summary>
         /// Send message
@@ -75,12 +79,12 @@ namespace den0bot
         /// <param name="receiverID">Chat ID to send message to</param>
         /// <param name="mode">ParseMode to use (None/Markdown/HTML)</param>
         /// <param name="replyID">Message ID to reply to</param>
-        public static async Task<Message> SendMessage(string message, long receiverID, ParseMode mode = ParseMode.Default, int replyID = 0)
+        public static async Task<Message> SendMessage(string message, long receiverID, ParseMode mode = ParseMode.Default, int replyID = 0, IReplyMarkup replyMarkup = null)
         {
             try
             {
                 if (!string.IsNullOrEmpty(message))
-                    return await api?.SendTextMessageAsync(receiverID, message, mode, true, false, replyID);
+                    return await api?.SendTextMessageAsync(receiverID, message, mode, true, false, replyID, replyMarkup);
 
                 return null;
             }
@@ -113,15 +117,16 @@ namespace den0bot
         /// <param name="photo">Photo to send. Can be both internal telegram photo ID or a link</param>
         /// <param name="receiver">Chat to send photo to</param>
         /// <param name="message">Photo caption if any</param>
-        public static void SendPhoto(string photo, Chat receiver, string message = "", ParseMode mode = ParseMode.Default) => SendPhoto(photo, receiver.Id, message, mode);
+        public static void SendPhoto(string photo, Chat receiver, string message = "", ParseMode mode = ParseMode.Default, int replyID = 0, IReplyMarkup replyMarkup = null) => 
+			SendPhoto(photo, receiver.Id, message, mode, replyID, replyMarkup);
 
-        /// <summary>
-        /// Send photo
-        /// </summary>
-        /// <param name="photo">Photo to send. Can be both internal telegram photo ID or a link</param>
-        /// <param name="receiverId">Chat ID to send photo to</param>
-        /// <param name="message">Photo caption if any</param>
-        public static async Task<Message> SendPhoto(string photo, long receiverId, string message = "", ParseMode mode = ParseMode.Default)
+		/// <summary>
+		/// Send photo
+		/// </summary>
+		/// <param name="photo">Photo to send. Can be both internal telegram photo ID or a link</param>
+		/// <param name="receiverId">Chat ID to send photo to</param>
+		/// <param name="message">Photo caption if any</param>
+		public static async Task<Message> SendPhoto(string photo, long receiverId, string message = "", ParseMode mode = ParseMode.Default, int replyID = 0, IReplyMarkup replyMarkup = null)
         {
             try
             {
@@ -133,11 +138,11 @@ namespace den0bot
                         file = UriPhotoDownload(new Uri(photo));
                         if (file == null)
                         {
-                            return await SendMessage(message, receiverId, mode);
+                            return await SendMessage(message, receiverId, mode, replyID, replyMarkup);
                         }
                     }
 
-                    return await api?.SendPhotoAsync(receiverId, file, message, mode);
+                    return await api?.SendPhotoAsync(receiverId, file, message, mode, false, replyID, replyMarkup);
                 }
                 return null;
             }
@@ -216,13 +221,28 @@ namespace den0bot
 		/// <param name="chatID">Chat ID to edit message in</param>
 		/// <param name="msgID">Message to edit</param>
 		/// <param name="caption">New caption</param>
-		public static void EditMediaCaption(long chatID, int msgID, string caption)
+		public static void EditMediaCaption(long chatID, int msgID, string caption, InlineKeyboardMarkup replyMarkup = null)
 		{
 			try
 			{
-				api.EditMessageCaptionAsync(chatID, msgID, caption);
+				api.EditMessageCaptionAsync(chatID, msgID, caption, replyMarkup);
 			}
 			catch (Exception ex) { Log.Error("API - EditMediaCaption", ex.InnerMessageIfAny()); }
+		}
+
+		/// <summary>
+		/// Answer callback query after receiving it
+		/// </summary>
+		/// <param name="callbackID">Callback ID that we need to answer</param>
+		/// <param name="text">Text to send</param>
+		/// <param name="showAlert">Alert user</param>
+		public static void AnswerCallbackQuery(string callbackID, string text = null, bool showAlert = false)
+		{
+			try
+			{
+				api.AnswerCallbackQueryAsync(callbackID, text, showAlert);
+			}
+			catch (Exception ex) { Log.Error("API - AnswerCallbackQuery", ex.InnerMessageIfAny()); }
 		}
 	}
 }
