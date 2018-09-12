@@ -33,15 +33,16 @@ namespace den0bot.Osu
         {
             if (foundOppai)
             {
-                Mods enabledMods = score.EnabledMods;
                 string mods = string.Empty;
+
+                if (score == null)
+                    return GetBeatmapInfo_old(map.File, mods);
+
+                Mods enabledMods = score.EnabledMods;
                 if (enabledMods > 0)
                     mods = " +" + enabledMods.ToString().Replace(", ", "");
 
-                if (score != null)
-                    return GetBeatmapInfo_old(map.File, mods, score.Accuracy, score.Combo, score.Misses);
-                else
-                    return GetBeatmapInfo_old(map.File, mods);
+                return GetBeatmapInfo_old(map.File, mods, score.Accuracy, score.Combo, score.Misses);
             }
             else
             {
