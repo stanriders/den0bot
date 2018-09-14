@@ -94,7 +94,7 @@ namespace den0bot.Modules
             catch (Exception)
             { }
 
-            result.FilterToHTML(); // remove any possible html stuff before adding our own
+            result = result.FilterToHTML(); // remove any possible html stuff before adding our own
 
             result += $"\n[<a href=\"https://osu.ppy.sh/beatmapsets/{map.BeatmapSetID}/download\">Download</a>]";
 

@@ -80,13 +80,13 @@ namespace den0bot.Osu
                     RotateHost(slot);
                 }
                 UserList.Add(slot, username);
-                UserList.OrderBy(x => x.Key);
+                UserList = UserList.OrderBy(x => x.Key).ToDictionary(pair => pair.Key, pair => pair.Value);
             }
             else if (message.Contains(" left the game."))
             {
                 string username = message.Remove(message.IndexOf(" left the game."));
                 UserList.Remove(UserList.GetKeyByValue(username));
-                UserList.OrderBy(x => x.Key);
+                UserList = UserList.OrderBy(x => x.Key).ToDictionary(pair => pair.Key, pair => pair.Value);
             }
             else if (message.Contains(" moved to slot "))
             {
@@ -94,7 +94,7 @@ namespace den0bot.Osu
                 int slot = int.Parse(message.Substring(message.LastIndexOf(" moved to slot ")));
                 UserList.Remove(UserList.GetKeyByValue(username));
                 UserList.Add(slot, username);
-                UserList.OrderBy(x => x.Key);
+                UserList = UserList.OrderBy(x => x.Key).ToDictionary(pair => pair.Key, pair => pair.Value);
             }
         }
     }
