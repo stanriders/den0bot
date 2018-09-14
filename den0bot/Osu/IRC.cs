@@ -28,10 +28,10 @@ namespace den0bot.Osu
 
             if (isConnected)
             {
-                irc.OnChannelAction += (sender, e) => OnMessage(sender, e);
+                irc.OnChannelAction += (sender, e) => OnMessage?.Invoke(sender, e);
                 irc.OnChannelNotice += OnMessage;
                 irc.OnChannelMessage += OnMessage;
-                irc.OnQueryAction += (sender, e) => OnMessage(sender, e);
+                irc.OnQueryAction += (sender, e) => OnMessage?.Invoke(sender, e);
                 irc.OnQueryNotice += OnMessage;
                 irc.OnQueryMessage += OnMessage;
                 irc.OnMotd += delegate (object sender, MotdEventArgs e) { Log.Info("IRC", e.Data.Message); }; ;
