@@ -10,7 +10,7 @@ namespace den0bot.Modules
 {
     class ModBeatmap : IModule, IProcessAllMessages
     {
-        private Regex regex = new Regex(@"(?>https?:\/\/)?osu\.ppy\.sh\/([b,s]|(?>beatmapsets))\/(\d+\/?\#osu\/)?(\d+)\/?$|(?>https?:\/\/)?osu\.ppy\.sh\/([b,s]|(?>beatmapsets))\/(\d+\/?\#osu\/)?(\d+)\/?(?>[&,?].=\d)?\s?(\+.+)?", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+        private Regex regex = new Regex(@"(?>https?:\/\/)?osu\.ppy\.sh\/([b,s]|(?>beatmapsets))\/(\d+\/?\#osu\/)?(\d+)\/?$|(?>https?:\/\/)?osu\.ppy\.sh\/([b,s]|(?>beatmapsets))\/(\d+\/?\#osu\/)?(\d+)\/?(?>[&,?].=\d)?\s?\+(.+)?", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
         public async void ReceiveMessage(Message message)
         {
@@ -68,35 +68,39 @@ namespace den0bot.Modules
             if (map == null)
                 return string.Empty;
 
-            string result = string.Format("[{0}] - {1}* - {2}{3} - {4}\nCS: {5} | AR: {6} | OD: {7} | BPM: {8}",
-                map.Difficulty, map.StarRating.FN2(), map.DrainLength(mods).ToString("mm':'ss"), $" - {map.Creator}", map.Status.ToString(),
-                map.CS(mods).FN2(), map.AR(mods).FN2(), map.OD(mods).FN2(), map.BPM(mods).FN2());
+			double starRating = map.StarRating;
+			string pp = string.Empty;
 
-            try
+			try
             {
-                OppaiInfo info100 = Oppai.GetBeatmapOppaiInfo(map, 0, 100);
-                if (info100 != null && info100.pp > 0)
-                {
-                    result += string.Format("\n100% - {0}pp", info100.pp.FN2());
+				Mods modsEnum = mods.ConvertToMods();
 
-                    if (Oppai.foundOppai) // temporary until i fix accuracy in oppai
-                    {
-                        OppaiInfo info98 = Oppai.GetBeatmapOppaiInfo(map, 0, 98);
-                        OppaiInfo info95 = Oppai.GetBeatmapOppaiInfo(map, 0, 95);
+				OppaiInfo info100 = Oppai.GetBeatmapOppaiInfo(map, modsEnum, 100);
+				if (info100 != null && info100.pp > 0)
+				{
+					pp = string.Format("\n100% - {0}pp", info100.pp.FN2());
+					starRating = info100.stars;
+					/*
+					OppaiInfo info98 = Oppai.GetBeatmapOppaiInfo(map, modsEnum, 98);
+					if (info98 != null)
+						pp += string.Format(" | 98% - {0}pp", info98.pp.FN2());
 
-                        if (info98 != null)
-                            result += string.Format(" | 98% - {0}pp", info98.pp.FN2());
-                        if (info95 != null)
-                            result += string.Format(" | 95% - {0}pp", info95.pp.FN2());
-                    }
-                }
+					OppaiInfo info95 = Oppai.GetBeatmapOppaiInfo(map, modsEnum, 95);
+					if (info95 != null)
+						pp += string.Format(" | 95% - {0}pp", info95.pp.FN2());
+					*/
+				}
             }
             catch (Exception)
             { }
 
-            result = result.FilterToHTML(); // remove any possible html stuff before adding our own
+			string result = string.Format("[{0}] - {1}* - {2}{3} - {4}\nCS: {5} | AR: {6} | OD: {7} | BPM: {8}",
+				map.Difficulty, starRating.FN2(), map.DrainLength(mods).ToString("mm':'ss"), $" - {map.Creator}", map.Status.ToString(),
+				map.CS(mods).FN2(), map.AR(mods).FN2(), map.OD(mods).FN2(), map.BPM(mods).FN2());
 
-            result += $"\n[<a href=\"https://osu.ppy.sh/beatmapsets/{map.BeatmapSetID}/download\">Download</a>]";
+			result = result.FilterToHTML(); // remove any possible html stuff before adding our own
+			result += pp;
+			result += $"\n[<a href=\"https://osu.ppy.sh/beatmapsets/{map.BeatmapSetID}/download\">Download</a>]";
 
             return result;
         }

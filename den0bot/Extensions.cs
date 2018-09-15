@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Text.RegularExpressions;
 
 namespace den0bot
@@ -43,5 +44,30 @@ namespace den0bot
         {
             return value.ToString("N2");
         }
+
+		public static Osu.Mods ConvertToMods(this string mods)
+		{
+			Osu.Mods result = Osu.Mods.None;
+			if (Enum.TryParse(mods, true, out result) || string.IsNullOrEmpty(mods))
+				return result;
+			else
+			{
+				StringBuilder builder = new StringBuilder(mods.Length * 2);
+				bool secondChar = false;
+				foreach (char c in mods)
+				{
+					builder.Append(c);
+					if (secondChar)
+					{
+						builder.Append(',');
+						builder.Append(' ');
+					}
+					secondChar = !secondChar;
+				}
+				builder.Remove(builder.Length - 2, 2);
+				Enum.TryParse(builder.ToString(), true, out result);
+				return result;
+			}
+		}
     }
 }
