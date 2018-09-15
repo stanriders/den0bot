@@ -1,6 +1,5 @@
 ﻿// den0bot (c) StanR 2018 - MIT License
 using den0bot.DB;
-using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Telegram.Bot.Types;
