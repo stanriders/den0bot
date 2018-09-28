@@ -75,20 +75,20 @@ namespace den0bot.Modules
             {
 				Mods modsEnum = mods.ConvertToMods();
 
-				OppaiInfo info100 = Oppai.GetBeatmapOppaiInfo(map, modsEnum, 100);
+				OppaiInfo info100 = Oppai.GetBeatmapOppaiInfo(map.FileBytes, modsEnum, 100);
 				if (info100 != null && info100.pp > 0)
 				{
 					pp = string.Format("\n100% - {0}pp", info100.pp.FN2());
 					starRating = info100.stars;
-					/*
-					OppaiInfo info98 = Oppai.GetBeatmapOppaiInfo(map, modsEnum, 98);
-					if (info98 != null)
-						pp += string.Format(" | 98% - {0}pp", info98.pp.FN2());
 
-					OppaiInfo info95 = Oppai.GetBeatmapOppaiInfo(map, modsEnum, 95);
-					if (info95 != null)
-						pp += string.Format(" | 95% - {0}pp", info95.pp.FN2());
-					*/
+					double info98 = Oppai.GetBeatmapPP(map.FileBytes, modsEnum, 98);
+					if (info98 != -1)
+						pp += string.Format(" | 98% - {0}pp", info98.FN2());
+
+					double info95 = Oppai.GetBeatmapPP(map.FileBytes, modsEnum, 95);
+					if (info95 != -1)
+						pp += string.Format(" | 95% - {0}pp", info95.FN2());
+					
 				}
             }
             catch (Exception)

@@ -10,7 +10,6 @@ namespace den0bot
             Log.Info("", "________________");
             new Bot();
             Log.Info("", "Exiting...");
-            Console.Read();
         }
     }
 }

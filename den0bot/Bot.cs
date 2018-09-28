@@ -32,8 +32,6 @@ namespace den0bot
         {
             Database.Init();
 
-            Osu.Oppai.CheckOppai();
-
             modules = new List<IModule>()
             {
                 new ModThread(),
