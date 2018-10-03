@@ -31,7 +31,10 @@ namespace den0bot.Modules
 
         private bool Start()
         {
-            Log.Info(this, "Loading...");
+			if (string.IsNullOrEmpty(Config.googleapi_token))
+				return false;
+
+			Log.Info(this, "Loading...");
             try
             {
                 string request = "https://sheets.googleapis.com/v4/spreadsheets/" + spreadsheet + "/values/A2:B999?key=" + Config.googleapi_token;

@@ -11,6 +11,7 @@ namespace den0bot.Modules
     class ModYoutube : IModule
     {
         private DateTime nextCheck;
+		private bool isEnabled = false;
 
         private readonly string api_key = Config.googleapi_token;
         private readonly string channel_id = "UCt1GKXk_zkcBUEwAeXZ43RA";  // circle people again
@@ -41,12 +42,21 @@ namespace den0bot.Modules
                 }
             });
 
-            Log.Info(this, "Enabled");
+			if (string.IsNullOrEmpty(api_key))
+			{
+				Log.Error(this, "API Key is not defined!");
+
+			}
+			else
+			{
+				isEnabled = true;
+				Log.Info(this, "Enabled");
+			}
         }
 
         public override void Think()
         {
-            if (nextCheck < DateTime.Now)
+            if (isEnabled && nextCheck < DateTime.Now)
             {
                 Update(nextCheck);
                 nextCheck = DateTime.Now.AddMinutes(check_interval);
@@ -88,7 +98,10 @@ namespace den0bot.Modules
 
         private async Task<string> GetLastScores(int amount)
         {
-            string result = string.Empty;
+			if (!isEnabled)
+				return "Сегодня без скоров";
+
+			string result = string.Empty;
             try
             {
                 string request = string.Format("https://www.googleapis.com/youtube/v3/activities?part=snippet,contentDetails" +

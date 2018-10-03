@@ -58,6 +58,10 @@ namespace den0bot
                 Log.Info(this, "Started thinking...");
                 Think();
             }
+			else
+			{
+				Log.Error(this, "Can't connect to Telegram API!");
+			}
         }
 
         private void Think()

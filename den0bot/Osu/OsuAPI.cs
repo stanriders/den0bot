@@ -10,14 +10,15 @@ namespace den0bot.Osu
 {
     public static class OsuAPI
     {
-        public static long RequestCount = 0;
-
         private static async Task<string> MakeApiRequestAsync(string request)
         {
-            if (RequestCount < long.MaxValue)
-                RequestCount++;
-
-            return await new WebClient().DownloadStringTaskAsync($"https://osu.ppy.sh/api/{request}&k={Config.osu_token}");
+			if (string.IsNullOrEmpty(Config.osu_token))
+			{
+				Log.Error("OsuAPI", "API Key is not defined!");
+				return null;
+			}
+			else
+				return await new WebClient().DownloadStringTaskAsync($"https://osu.ppy.sh/api/{request}&k={Config.osu_token}");
         }
 
         /// <summary>

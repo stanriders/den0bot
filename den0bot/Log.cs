@@ -19,7 +19,7 @@ namespace den0bot
             Console.Write(result);
             Console.ResetColor();
 
-            File.AppendAllText(Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) + @"\log.txt", result);
+            File.AppendAllText(Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) + Path.DirectorySeparatorChar + "log.txt", result);
         }
 
         public static void Info(object source, string text)
@@ -33,7 +33,7 @@ namespace den0bot
 
             Console.Write(result);
 
-            File.AppendAllText(Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) + @"\log.txt", result);
+            File.AppendAllText(Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) + Path.DirectorySeparatorChar + "log.txt", result);
         }
 
         public static void IRC(string sender, string text)
@@ -43,7 +43,7 @@ namespace den0bot
 
             string result = string.Format("({0}) {1}: {2}" + Environment.NewLine, DateTime.Now, sender, text);
 
-            File.AppendAllText(Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) + @"\IRC.txt", result);
+            File.AppendAllText(Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) + Path.PathSeparator + "IRC.txt", result);
         }
     }
 }
