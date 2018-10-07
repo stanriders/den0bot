@@ -74,6 +74,7 @@ namespace den0bot
                 }
                 Thread.Sleep(100);
             }
+			Database.Close();
 			API.Disconnect();
         }
 

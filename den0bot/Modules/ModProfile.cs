@@ -21,7 +21,7 @@ namespace den0bot.Modules
             {
                 string playerID = regexMatch.Groups[1]?.Value;
                 if (!string.IsNullOrEmpty(playerID))
-                    API.SendMessage( await FormatPlayerInfo(playerID), message.Chat, ParseMode.Html);
+                    API.SendMessage( await FormatPlayerInfo(playerID), message.Chat, ParseMode.Html, message.MessageId, null, false);
             }
         } 
 
@@ -47,11 +47,14 @@ namespace den0bot.Modules
                 if (enabledMods > 0)
                     mods = " +" + enabledMods.ToString().Replace(", ", "");
 
-                // 1. Artist - Title [Diffname] +Mods (Rank, Accuracy%) - 123pp
-                formatedTopscores += string.Format("{0}. {1} - {2} [{3}]{4} ({5}, {6}%) - {7}pp\n", (i+1), map.Artist, map.Title, map.Difficulty, mods, score.Rank, score.Accuracy.FN2(), score.Pp);
+				// 1. Artist - Title [Diffname] +Mods (Rank, Accuracy%) - 123pp
+				string mapName = $"{map.Artist} - {map.Title} [{map.Difficulty}]".FilterToHTML();
+
+				formatedTopscores += string.Format("<b>{0}</b>. {1}{2} (<b>{3}</b>, {4}%) - <b>{5}</b>pp\n", (i+1), mapName, mods, score.Rank, score.Accuracy.FN2(), score.Pp);
+				
             }
 
-            return $"{info.Username} - #{info.Rank} ({info.Pp}pp)\nPlaycount: {info.Playcount}\n______\n{formatedTopscores}";
+			return $"<b>{info.Username}</b> <a href=\"https://a.ppy.sh/{info.ID}_0.jpeg\">-</a> #{info.Rank} ({info.Pp}pp)\nPlaycount: {info.Playcount}\n__________\n{formatedTopscores}";
         }
 
     }

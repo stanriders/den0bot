@@ -69,8 +69,8 @@ namespace den0bot
 		/// <param name="receiver">Chat to send message to</param>
 		/// <param name="mode">ParseMode to use (None/Markdown/HTML)</param>
 		/// <param name="replyID">Message ID to reply to</param>
-		public static void SendMessage(string message, Chat receiver, ParseMode mode = ParseMode.Default, int replyID = 0, IReplyMarkup replyMarkup = null) => 
-			SendMessage(message, receiver.Id, mode, replyID, replyMarkup);
+		public static void SendMessage(string message, Chat receiver, ParseMode mode = ParseMode.Default, int replyID = 0, IReplyMarkup replyMarkup = null, bool disablePreview = true) => 
+			SendMessage(message, receiver.Id, mode, replyID, replyMarkup, disablePreview);
 
         /// <summary>
         /// Send message
@@ -79,12 +79,12 @@ namespace den0bot
         /// <param name="receiverID">Chat ID to send message to</param>
         /// <param name="mode">ParseMode to use (None/Markdown/HTML)</param>
         /// <param name="replyID">Message ID to reply to</param>
-        public static async Task<Message> SendMessage(string message, long receiverID, ParseMode mode = ParseMode.Default, int replyID = 0, IReplyMarkup replyMarkup = null)
+        public static async Task<Message> SendMessage(string message, long receiverID, ParseMode mode = ParseMode.Default, int replyID = 0, IReplyMarkup replyMarkup = null, bool disablePreview = true)
         {
             try
             {
                 if (!string.IsNullOrEmpty(message))
-                    return await api?.SendTextMessageAsync(receiverID, message, mode, true, false, replyID, replyMarkup);
+                    return await api?.SendTextMessageAsync(receiverID, message, mode, disablePreview, false, replyID, replyMarkup);
 
                 return null;
             }

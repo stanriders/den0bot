@@ -13,8 +13,9 @@ namespace den0bot.DB
     {
         private static SQLiteConnection db;
         private static string databasePath = Path.Combine(Environment.CurrentDirectory, "data.db");
+		private static List<Chat> chatCache;
 
-        public static void Init()
+		public static void Init()
         {
             db = new SQLiteConnection(databasePath);
             db.CreateTable<Chat>();
@@ -22,24 +23,30 @@ namespace den0bot.DB
             db.CreateTable<Player>();
             db.CreateTable<Misc>();
             db.CreateTable<Girl>();
-        }
+
+			chatCache = db.Table<Chat>().ToList();
+
+		}
         public static void Close() => db.Close();
 
         // ---
         // Chats
         // ---
-        public static List<Chat> GetAllChats() => db.Table<Chat>().ToList();
-        public static void AddChat(long chatID)
+        public static List<Chat> GetAllChats() => chatCache;
+		public static void AddChat(long chatID)
         {
-            if (db.Table<Chat>().Where(x => x.Id == chatID).FirstOrDefault() == null)
+            if (chatCache.Where(x => x.Id == chatID).FirstOrDefault() == null)
             {
-                db.Insert(new Chat
-                {
-                    Id = chatID,
-                    Banlist = string.Empty,
-                    DisableAnnouncements = false
-                });
-                Log.Info("Database", string.Format("Added chat '{0}' to the chat list", chatID));
+				var chat = new Chat
+				{
+					Id = chatID,
+					Banlist = string.Empty,
+					DisableAnnouncements = false
+				};
+				db.Insert(chat);
+				chatCache.Add(chat);
+
+				Log.Info("Database", string.Format("Added chat '{0}' to the chat list", chatID));
             }
         }
 
