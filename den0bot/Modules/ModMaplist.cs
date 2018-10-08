@@ -1,4 +1,4 @@
-﻿// den0bot (c) StanR 2017 - MIT License
+﻿// den0bot (c) StanR 2018 - MIT License
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -6,6 +6,7 @@ using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using den0bot.Osu;
+using den0bot.Util;
 using Newtonsoft.Json.Linq;
 using Telegram.Bot.Types.Enums;
 
@@ -77,7 +78,7 @@ namespace den0bot.Modules
                 {
                     return Maplist[num][0] + Environment.NewLine + Maplist[num][1];
                 }
-                API.SendPhoto(map?.Thumbnail, message.Chat, $"{Maplist[num][1]}{Environment.NewLine}{Maplist[num][0]} {ModBeatmap.FormatMapInfo(map, string.Empty)}", ParseMode.Html);
+                API.SendPhoto(map?.Thumbnail, message.Chat, $"{Maplist[num][1]}{Environment.NewLine}{Maplist[num][0]} {ModBeatmap.FormatMapInfo(map, string.Empty, message.Chat.Id)}", ParseMode.Html);
                 return string.Empty;
             }
             else

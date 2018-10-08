@@ -1,10 +1,11 @@
-﻿// den0bot (c) StanR 2017 - MIT License
+﻿// den0bot (c) StanR 2018 - MIT License
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using den0bot.DB;
+using den0bot.Util;
 using Telegram.Bot;
 using Telegram.Bot.Args;
 using Telegram.Bot.Types;
@@ -17,6 +18,7 @@ namespace den0bot
 {
     static class API
     {
+		public static User BotUser;
         private static TelegramBotClient api = new TelegramBotClient(Config.telegam_token);
 
         public static bool IsConnected
@@ -40,7 +42,9 @@ namespace den0bot
                 if (!api.TestApiAsync().Result)
                     return false;
 
-                api.StartReceiving();
+				BotUser = api.GetMeAsync().Result;
+
+				api.StartReceiving();
             }
             catch (Exception ex)
             {
@@ -101,7 +105,13 @@ namespace den0bot
         {
             foreach (DB.Types.Chat receiver in Database.GetAllChats())
             {
-                if (!receiver.DisableAnnouncements)
+				if (api.GetChatAsync(receiver.Id) == null)
+				{
+					Database.RemoveChat(receiver.Id);
+					Log.Info("API", $"Chat {receiver.Id} removed");
+					return;
+				}
+				if (!receiver.DisableAnnouncements)
                 {
                     if (!string.IsNullOrEmpty(image))
                         SendPhoto(image, receiver.Id, msg, mode);

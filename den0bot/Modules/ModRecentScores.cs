@@ -1,10 +1,10 @@
-﻿// den0bot (c) StanR 2017 - MIT License
+﻿// den0bot (c) StanR 2018 - MIT License
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using den0bot.DB;
 using den0bot.Osu;
+using den0bot.Util;
 using Telegram.Bot.Types.Enums;
 
 namespace den0bot.Modules
@@ -51,14 +51,14 @@ namespace den0bot.Modules
             {
                 playerID = Database.GetPlayerOsuID(message.From.Username).ToString();
                 if (playerID == "0")
-                    return "ты кто";
+                    return Localization.Get("recentscores_unknown_player", message.Chat.Id);
             }
 
             List<Score> lastScores =/* await*/ OsuAPI.GetRecentScoresAsync(playerID, amount).Result;
             if (lastScores != null)
             {
                 if (lastScores.Count == 0)
-                    return "Нет скоров";
+                    return Localization.Get("recentscores_no_scores", message.Chat.Id);
 
                 string result = string.Empty;
                 foreach (Score score in lastScores)

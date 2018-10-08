@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace den0bot
+namespace den0bot.Util
 {
     public static class RNG
     {

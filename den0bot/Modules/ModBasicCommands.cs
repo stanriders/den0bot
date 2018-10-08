@@ -1,5 +1,7 @@
-﻿using System;
+﻿// den0bot (c) StanR 2018 - MIT License
+using System;
 using Telegram.Bot.Types.Enums;
+using den0bot.Util;
 
 namespace den0bot.Modules
 {

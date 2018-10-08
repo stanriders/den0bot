@@ -6,8 +6,8 @@ using Telegram.Bot.Types;
 
 namespace den0bot.Modules
 {
-    class ModShmalala : IModule, IProcessAllMessages
-    {
+    class ModShmalala : IModule, IReceiveAllMessages
+	{
         public ModShmalala()
         {
         }

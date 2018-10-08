@@ -1,14 +1,15 @@
-﻿// den0bot (c) StanR 2017 - MIT License
+﻿// den0bot (c) StanR 2018 - MIT License
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using den0bot.Osu;
+using den0bot.Util;
 
 namespace den0bot.Modules
 {
-    class ModProfile : IModule, IProcessAllMessages
+    class ModProfile : IModule, IReceiveAllMessages
     {
         private Regex regex = new Regex(@"(?>https?:\/\/)?osu\.ppy\.sh\/u(?>sers)?\/(\d+|\S+)", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 		private readonly int topscores_to_show = 3;

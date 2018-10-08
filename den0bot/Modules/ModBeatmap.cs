@@ -1,15 +1,16 @@
-﻿// den0bot (c) StanR 2017 - MIT License
+﻿// den0bot (c) StanR 2018 - MIT License
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using den0bot.Osu;
+using den0bot.Util;
 using Telegram.Bot.Types;
 
 namespace den0bot.Modules
 {
-    class ModBeatmap : IModule, IProcessAllMessages
-    {
+    class ModBeatmap : IModule, IReceiveAllMessages
+	{
         private Regex regex = new Regex(@"(?>https?:\/\/)?osu\.ppy\.sh\/([b,s]|(?>beatmapsets))\/(\d+\/?\#osu\/)?(\d+)\/?$|(?>https?:\/\/)?osu\.ppy\.sh\/([b,s]|(?>beatmapsets))\/(\d+\/?\#osu\/)?(\d+)\/?(?>[&,?].=\d)?\s?\+(.+)?", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
         public async void ReceiveMessage(Message message)
@@ -59,11 +60,11 @@ namespace den0bot.Modules
                     map = await OsuAPI.GetBeatmapAsync(beatmapId);
                 }
 
-                API.SendPhoto(map?.Thumbnail, message.Chat, FormatMapInfo(map, mods), Telegram.Bot.Types.Enums.ParseMode.Html);
+                API.SendPhoto(map?.Thumbnail, message.Chat, FormatMapInfo(map, mods, message.Chat.Id), Telegram.Bot.Types.Enums.ParseMode.Html);
             }
         }
 
-        public static string FormatMapInfo(Map map, string mods)
+        public static string FormatMapInfo(Map map, string mods, long chatID)
         {
             if (map == null)
                 return string.Empty;
@@ -100,7 +101,7 @@ namespace den0bot.Modules
 
 			result = result.FilterToHTML(); // remove any possible html stuff before adding our own
 			result += pp;
-			result += $"\n[<a href=\"https://osu.ppy.sh/beatmapsets/{map.BeatmapSetID}/download\">Download</a>]";
+			result += $"\n[<a href=\"https://osu.ppy.sh/beatmapsets/{map.BeatmapSetID}/download\">{Localization.Get("beatmap_download", chatID)}</a>]";
 
             return result;
         }

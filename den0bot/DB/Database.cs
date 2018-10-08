@@ -1,10 +1,11 @@
-﻿// den0bot (c) StanR 2017 - MIT License
+﻿// den0bot (c) StanR 2018 - MIT License
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using den0bot.DB.Types;
+using den0bot.Util;
 using SQLite;
 
 namespace den0bot.DB
@@ -24,6 +25,7 @@ namespace den0bot.DB
             db.CreateTable<Misc>();
             db.CreateTable<Girl>();
 
+			// we keep whole chat table in memory because its being accessed quite often
 			chatCache = db.Table<Chat>().ToList();
 
 		}
@@ -41,7 +43,8 @@ namespace den0bot.DB
 				{
 					Id = chatID,
 					Banlist = string.Empty,
-					DisableAnnouncements = false
+					DisableAnnouncements = false,
+					Locale = "ru"
 				};
 				db.Insert(chat);
 				chatCache.Add(chat);
@@ -49,7 +52,14 @@ namespace den0bot.DB
 				Log.Info("Database", string.Format("Added chat '{0}' to the chat list", chatID));
             }
         }
-
+		public static void RemoveChat(long chatID)
+		{
+			Chat chat = db.Table<Chat>().Where(x => x.Id == chatID).FirstOrDefault();
+			if (chat != null)
+			{
+				db.Delete(chat);
+			}
+		}
         public static void ToggleAnnouncements(long chatID, bool enable)
         {
             Chat chat = db.Table<Chat>().Where(x => x.Id == chatID).FirstOrDefault();
@@ -59,11 +69,42 @@ namespace den0bot.DB
                 db.Update(chat);
             }
         }
+		public static string GetChatLocale(long chatID)
+		{
+			Chat chat = chatCache.Where(x => x.Id == chatID).FirstOrDefault();
+			if (chat != null)
+			{
+				if (string.IsNullOrEmpty(chat.Locale))
+				{
+					SetChatLocale(chatID, "ru");
+					return "ru";
+				}
+				else
+				{
+					return chat.Locale;
+				}
+			}
+			return "ru";
+		}
 
-        // ---
-        // Memes
-        // ---
-        public static int GetMemeCount(long chatID) => db.Table<Meme>().Where(x => x.ChatID == chatID).Count();
+		public static void SetChatLocale(long chatID, string locale)
+		{
+			Chat chat = db.Table<Chat>().Where(x => x.Id == chatID).FirstOrDefault();
+			if (chat != null)
+			{
+				chat.Locale = locale;
+				db.Update(chat);
+
+				// Update cache as well
+				var cachedChat = chatCache.Where(x => x.Id == chatID).FirstOrDefault();
+				if (cachedChat != null)
+					cachedChat.Locale = locale;
+			}
+		}
+		// ---
+		// Memes
+		// ---
+		public static int GetMemeCount(long chatID) => db.Table<Meme>().Where(x => x.ChatID == chatID).Count();
         public static void AddMeme(string link, long chatID)
         {
             if (db.Table<Meme>().Where(x => x.Link == link).FirstOrDefault() == null)
@@ -209,42 +250,6 @@ namespace den0bot.DB
                 return girl.Rating;
             }
             return int.MinValue;
-        }
-        public static void AddGirlVoter(int id, int userID)
-        {
-            Girl girl = db.Table<Girl>().Where(x => x.Id == id)?.FirstOrDefault();
-            if (girl != null)
-            {
-                girl.Voters += $"{userID};";
-                db.Update(girl);
-            }
-        }
-        public static List<int> GetGirlVoters(int id)
-        {
-            Girl girl = db.Table<Girl>().Where(x => x.Id == id)?.FirstOrDefault();
-            if (girl != null && girl.Voters != null)
-            {
-                List<int> result = new List<int>();
-                foreach (var voter in girl.Voters?.Split(';'))
-                {
-                    int voterID = 0;
-                    if (int.TryParse(voter, out voterID))
-                    {
-                        result.Add(voterID);
-                    }
-                }
-                return result;
-            }
-            return null;
-        }
-        public static void ResetGirlVoters(int id)
-        {
-            Girl girl = db.Table<Girl>().Where(x => x.Id == id)?.FirstOrDefault();
-            if (girl != null)
-            {
-                girl.Voters = string.Empty;
-                db.Update(girl);
-            }
         }
         public static List<Girl> GetTopGirls(long chatID)
         {

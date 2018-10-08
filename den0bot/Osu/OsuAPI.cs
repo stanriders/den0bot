@@ -1,10 +1,11 @@
-﻿// den0bot (c) StanR 2017 - MIT License
+﻿// den0bot (c) StanR 2018 - MIT License
 using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Linq;
-using Newtonsoft.Json;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
+using den0bot.Util;
 
 namespace den0bot.Osu
 {

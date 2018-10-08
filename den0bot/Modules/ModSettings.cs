@@ -1,65 +1,71 @@
-﻿// den0bot (c) StanR 2017 - MIT License
+﻿// den0bot (c) StanR 2018 - MIT License
 using System;
 using System.Collections.Generic;
 using den0bot.DB;
+using den0bot.Util;
 
 namespace den0bot.Modules
 {
-    class ModSettings : IModule
+    class ModSettings : IModule, IReceivePhotos
     {
-        public override bool NeedsPhotos => true;
         public ModSettings()
         {
-            AddCommands(new Command[]
-            {
-                new Command()
-                {
-                    Name = "disableannouncements",
-                    IsAdminOnly = true,
-                    Action = (msg) => { Database.ToggleAnnouncements(msg.Chat.Id, false); return "Понял, вырубаю"; }
-                },
-                new Command()
-                {
-                    Name = "enableannouncements",
-                    IsAdminOnly = true,
-                    Action = (msg) => { Database.ToggleAnnouncements(msg.Chat.Id, true); return "Понял, врубаю"; }
-                },
-                new Command()
-                {
-                    Name = "addmeme",
-                    IsAdminOnly = true,
-                    Action = (msg) => AddMeme(msg)
-                },
-                new Command()
-                {
-                    Name = "addplayer",
-                    IsAdminOnly = true,
-                    Action = (msg) => AddPlayer(msg)
-                },
-                new Command()
-                {
-                    Name = "removeplayer",
-                    IsAdminOnly = true,
-                    Action = (msg) => RemovePlayer(msg)
-                },
-                new Command()
-                {
-                    Name = "updateplayer",
-                    IsAdminOnly = true,
-                    Action = (msg) => UpdatePlayer(msg)
-                },
-                new Command()
-                {
-                    Name = "playerlist",
-                    IsAdminOnly = true,
-                    Action = (msg) => GetPlayerList(msg)
-                },
+			AddCommands(new Command[]
+			{
+				new Command()
+				{
+					Name = "disableannouncements",
+					IsAdminOnly = true,
+					Action = (msg) => { Database.ToggleAnnouncements(msg.Chat.Id, false); return "Понял, вырубаю"; }
+				},
+				new Command()
+				{
+					Name = "enableannouncements",
+					IsAdminOnly = true,
+					Action = (msg) => { Database.ToggleAnnouncements(msg.Chat.Id, true); return "Понял, врубаю"; }
+				},
+				new Command()
+				{
+					Name = "addmeme",
+					IsAdminOnly = true,
+					Action = (msg) => AddMeme(msg)
+				},
+				new Command()
+				{
+					Name = "addplayer",
+					IsAdminOnly = true,
+					Action = (msg) => AddPlayer(msg)
+				},
+				new Command()
+				{
+					Name = "removeplayer",
+					IsAdminOnly = true,
+					Action = (msg) => RemovePlayer(msg)
+				},
+				new Command()
+				{
+					Name = "updateplayer",
+					IsAdminOnly = true,
+					Action = (msg) => UpdatePlayer(msg)
+				},
+				new Command()
+				{
+					Name = "playerlist",
+					IsAdminOnly = true,
+					Action = (msg) => GetPlayerList(msg)
+				},
 				new Command()
 				{
 					Name = "shutdownnow",
 					IsOwnerOnly = true,
 					Action = (msg) => { Bot.Shutdown(); return string.Empty; }
 				},
+				new Command()
+				{
+					Name = "setlocale",
+					IsAdminOnly = true,
+					Action = (msg) => SetLocale(msg)
+				}
 			});
             Log.Info(this, "Enabled");
         }
@@ -163,5 +169,19 @@ namespace den0bot.Modules
             }
             return result;
         }
+
+		private string SetLocale(Telegram.Bot.Types.Message message)
+		{
+			var locale = message.Text.Substring(11);
+			if (Localization.GetAvailableLocales().Contains(locale))
+			{
+				Database.SetChatLocale(message.Chat.Id, locale);
+				return "👌";
+			}
+			else
+			{
+				return "😡";
+			}
+		}
     }
 }

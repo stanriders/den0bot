@@ -1,26 +1,19 @@
-﻿// den0bot (c) StanR 2017 - MIT License
+﻿// den0bot (c) StanR 2018 - MIT License
 using System;
 using System.Collections.Generic;
 using System.Threading;
+using Telegram.Bot.Args;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
-using den0bot.Modules;
 using den0bot.DB;
-using Telegram.Bot.Args;
+using den0bot.Modules;
+using den0bot.Util;
 
 namespace den0bot
 {
 	public class Bot
 	{
 		private List<IModule> modules;
-		private string GreetNewfag(string username, long userID) => $"Дороу, <a href=\"tg://user?id={userID}\">{username}</a>" + Environment.NewLine +
-																	 "Хорошим тоном является:" + Environment.NewLine +
-																	 "<b>1.</b> Кинуть профиль." + Environment.NewLine +
-																	 "<b>2.</b> Не инактивить." + Environment.NewLine +
-																	 "<b>3.</b> Словить бан при входе." + Environment.NewLine +
-																	 "<b>4.</b> Панду бить только ногами, иначе зашкваришься." + Environment.NewLine +
-																	 "Ден - аниме, но аниме запрещено. В мульти не играть - мужиков не уважать." + Environment.NewLine +
-																	 "<i>inb4 - бан</i>";
 
 		public static bool IsOwner(string username) => (username == Config.owner_username);
 		public static bool IsAdmin(long chatID, string username) => IsOwner(username) || (API.GetAdmins(chatID).Exists(x => x.User.Username == username));
@@ -31,8 +24,9 @@ namespace den0bot
 		public Bot()
         {
             Database.Init();
+			Localization.Init();
 
-            modules = new List<IModule>()
+			modules = new List<IModule>()
             {
                 new ModThread(),
                 new ModYoutube(),
@@ -90,12 +84,18 @@ namespace den0bot
 
             Chat senderChat = msg.Chat;
 
-            if (msg.Chat.Type != ChatType.Private)
-                Database.AddChat(senderChat.Id);
+			if (msg.Chat.Type != ChatType.Private)
+				Database.AddChat(senderChat.Id);
 
             if (msg.NewChatMembers != null && msg.NewChatMembers.Length > 0)
             {
-                API.SendMessage(GreetNewfag(msg.NewChatMembers[0].FirstName, msg.NewChatMembers[0].Id), senderChat, ParseMode.Html);
+				string greeting;
+				if (msg.NewChatMembers[0].Id == API.BotUser.Id)
+					greeting = Localization.Get("generic_added_to_chat", senderChat.Id);
+				else
+					greeting = Localization.NewMemberGreeting(senderChat.Id, msg.NewChatMembers[0].FirstName, msg.NewChatMembers[0].Id);
+
+				API.SendMessage(greeting, senderChat, ParseMode.Html);
                 return;
             }
             if (msg.Type != MessageType.Text &&
@@ -120,7 +120,7 @@ namespace den0bot
             {
                 if (msg.Type == MessageType.Photo)
                 {
-                    if (!m.NeedsPhotos)
+                    if (!(m is IReceivePhotos))
                         continue;
 
                     msg.Text = msg.Caption + " photo" + msg.Photo[0].FileId; //kinda hack
@@ -131,8 +131,8 @@ namespace den0bot
                     continue;
 
                 // send all messages to modules that need them
-                if (m is IProcessAllMessages)
-                    (m as IProcessAllMessages).ReceiveMessage(msg);
+                if (m is IReceiveAllMessages)
+                    (m as IReceiveAllMessages).ReceiveMessage(msg);
 
                 // not a command
                 if (msg.Text[0] != '/')
@@ -149,12 +149,14 @@ namespace den0bot
                         break;
                     }
 
-                    string res = string.Empty;
+					// fire command's action
+					string res = string.Empty;
                     if (c.Action != null)
-                        res = c.Action(msg);
+                        res = c.Action(msg); 
                     else if (c.ActionAsync != null)
                         res = await c.ActionAsync(msg);
                     
+					// send result if we got any
                     if (!string.IsNullOrEmpty(res))
                     {
                         parseMode = c.ParseMode;

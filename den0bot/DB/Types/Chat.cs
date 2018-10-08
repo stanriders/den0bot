@@ -14,6 +14,7 @@ namespace den0bot.DB.Types
 
         public string Banlist { get; set; }
 
-        //public 
+		public string Locale { get; set; }
+        
     }
 }

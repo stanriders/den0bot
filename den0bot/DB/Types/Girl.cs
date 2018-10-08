@@ -16,6 +16,6 @@ namespace den0bot.DB.Types
 
         public int Rating { get; set; }
 
-        public string Voters { get; set; }
+        //public string Voters { get; set; }
     }
 }

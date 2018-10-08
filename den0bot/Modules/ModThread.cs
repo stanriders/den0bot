@@ -1,4 +1,4 @@
-﻿// den0bot (c) StanR 2017 - MIT License
+﻿// den0bot (c) StanR 2018 - MIT License
 #define ENDLESSTHREAD
 
 using System;
@@ -7,6 +7,7 @@ using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
+using den0bot.Util;
 
 namespace den0bot.Modules
 {

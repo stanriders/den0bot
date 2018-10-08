@@ -2,7 +2,7 @@
 using System;
 using System.IO;
 
-namespace den0bot
+namespace den0bot.Util
 {
     public static class Log
     {

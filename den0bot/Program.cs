@@ -1,5 +1,5 @@
-﻿// den0bot (c) StanR 2017 - MIT License
-using System;
+﻿// den0bot (c) StanR 2018 - MIT License
+using den0bot.Util;
 
 namespace den0bot
 {

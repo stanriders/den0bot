@@ -1,8 +1,9 @@
-﻿// den0bot (c) StanR 2017 - MIT License
+﻿// den0bot (c) StanR 2018 - MIT License
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using Meebey.SmartIrc4net;
+using den0bot.Util;
 
 namespace den0bot.Osu
 {

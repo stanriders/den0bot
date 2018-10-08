@@ -124,11 +124,16 @@
     <Compile Include="DB\Types\Misc.cs" />
     <Compile Include="DB\Types\Player.cs" />
     <Compile Include="DB\Types\Tournament.cs" />
-    <Compile Include="Extensions.cs" />
+    <Compile Include="Util\Extensions.cs" />
+    <Compile Include="IReceivePhotos.cs" />
+    <Compile Include="Locales\ILocale.cs" />
     <Compile Include="IModule.cs" />
-    <Compile Include="IProcessAllMessages.cs" />
+    <Compile Include="IReceiveAllMessages.cs" />
     <Compile Include="IReceiveCallback.cs" />
-    <Compile Include="Log.cs" />
+    <Compile Include="Locales\EN.cs" />
+    <Compile Include="Locales\RU.cs" />
+    <Compile Include="Localization.cs" />
+    <Compile Include="Util\Log.cs" />
     <Compile Include="Events.cs" />
     <Compile Include="Modules\ModAutohost.cs" />
     <Compile Include="Modules\ModBasicCommands.cs" />
@@ -160,7 +165,7 @@
     <Compile Include="Osu\Score.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="RNG.cs" />
+    <Compile Include="Util\RNG.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

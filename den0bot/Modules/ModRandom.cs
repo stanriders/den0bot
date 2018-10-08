@@ -1,10 +1,11 @@
-﻿// den0bot (c) StanR 2017 - MIT License
+﻿// den0bot (c) StanR 2018 - MIT License
 using System;
 using System.Linq;
 using System.Collections.Generic;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.InputFiles;
 using den0bot.DB;
+using den0bot.Util;
 
 namespace den0bot.Modules
 {
@@ -18,7 +19,7 @@ namespace den0bot.Modules
                 {
                     Name = "roll",
                     Reply = true,
-                    Action = (msg) => Roll(msg.Text)
+                    Action = (msg) => Roll(msg.Text, msg.Chat.Id)
                 },
                 new Command
                 {
@@ -42,14 +43,14 @@ namespace den0bot.Modules
         private string GetRandomShitposter(Chat sender)
         {
             if (Database.GetPlayerCount(sender.Id) <= 0)
-                return "Ты щитпостер";
+				return Localization.Get("random_no_shitposter", sender.Id);
 
             int num = RNG.Next(Database.GetPlayerCount(sender.Id));
 
             if (Database.GetPlayerChatID(num) != sender.Id)
                 return GetRandomShitposter(sender);
 
-            return Database.GetPlayerFriendlyName(num) + " - щитпостер"; 
+			return Database.GetPlayerFriendlyName(num) + Localization.Get("random_shitposter", sender.Id);
         }
 
         private string GetRandomDinosaur(Chat sender)
@@ -63,7 +64,7 @@ namespace den0bot.Modules
             return string.Empty;
         }
 
-        private string Roll(string msg)
+        private string Roll(string msg, long chatID)
         {
             int max = 101;
 
@@ -77,17 +78,17 @@ namespace den0bot.Modules
                 catch (Exception e)
                 {
                     if (e is OverflowException)
-                        return "Нихуя ты загнул";
+                        return Localization.Get("random_roll_overflow", chatID);
                 }
             }
-            return "Нароллил " + RNG.Next(1, max).ToString();
+            return Localization.Get("random_roll", chatID) + RNG.Next(1, max).ToString();
         }
 
         private string GetRandomMeme(Chat sender)
         {
             int memeCount = Database.GetMemeCount(sender.Id);
             if (memeCount <= 0)
-                return "А мемов-то нет";
+                return Localization.Get("random_no_memes", sender.Id);
 
             string photo = Database.GetMeme(sender.Id);
             if (photo != null && photo != string.Empty)
@@ -96,7 +97,7 @@ namespace den0bot.Modules
                 return string.Empty;
             }
 
-            return "Чет не получилось";
+            return Localization.Get("generic_fail", sender.Id);
         }
 
     }

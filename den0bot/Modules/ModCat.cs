@@ -1,4 +1,4 @@
-﻿// den0bot (c) StanR 2017 - MIT License
+﻿// den0bot (c) StanR 2018 - MIT License
 using System;
 using System.Net;
 using System.Linq;
@@ -7,11 +7,12 @@ using Newtonsoft.Json.Linq;
 
 namespace den0bot.Modules
 {
-	class ModCat : IModule, IProcessAllMessages
+	class ModCat : IModule, IReceiveAllMessages
 	{
 		private readonly string api_link = "https://api.thecatapi.com/v1/images/search?size=med&type=jpg,png&api_key=" + Config.cat_token;
 
 		private DateTime nextPost = DateTime.Now;
+		private readonly int cooldown = 5; 
 
 		public void ReceiveMessage(Message message)
 		{
@@ -20,11 +21,12 @@ namespace den0bot.Modules
 
 			if (nextPost < DateTime.Now)
 			{
+				var trigger = Localization.Get("cat_trigger", message.Chat.Id);
 				string cat = message.Text.ToLower()
 					.Split(' ')
-					.Where(x => (x.Contains("кот") && !x.Contains("котор")))
+					.Where(x => (x.Contains(trigger) && !x.Contains("котор"))) // fixme: add exceptions to database as well?
 					.FirstOrDefault()
-					?.Replace("кот", "КОТ");
+					?.Replace(trigger, trigger.ToUpperInvariant());
 
 				if (cat != null)
 				{
@@ -38,12 +40,12 @@ namespace den0bot.Modules
 					if (!string.IsNullOrEmpty(json))
 					{
 						JArray obj = JArray.Parse(json);
-						API.SendPhoto(obj[0]["url"].ToString(), message.Chat, string.Format("Кто-то сказал {0}?", cat));
+						API.SendPhoto(obj[0]["url"].ToString(), message.Chat, string.Format(Localization.Get("cat_reply", message.Chat.Id), cat));
 					}
 					else
-						API.SendMessage("КОТа сегодня не будет...", message.Chat);
+						API.SendMessage(Localization.Get("cat_fail", message.Chat.Id), message.Chat);
 
-                    nextPost = DateTime.Now.AddMinutes(5);
+                    nextPost = DateTime.Now.AddMinutes(cooldown);
                 }
             }
         }

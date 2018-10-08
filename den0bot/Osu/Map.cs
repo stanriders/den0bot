@@ -1,8 +1,9 @@
-﻿// den0bot (c) StanR 2017 - MIT License
+﻿// den0bot (c) StanR 2018 - MIT License
 using System;
 using System.Net;
 using System.Text;
 using Newtonsoft.Json;
+using den0bot.Util;
 
 namespace den0bot.Osu
 {

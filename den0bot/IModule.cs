@@ -35,8 +35,6 @@ namespace den0bot
             public Action<Message> ActionResult;
         }
 
-        public virtual bool NeedsPhotos => false;
-
         protected List<Command> Commands = new List<Command>();
 
         protected void AddCommand(Command command)

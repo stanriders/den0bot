@@ -1,5 +1,4 @@
 ﻿// den0bot (c) StanR 2018 - MIT License
-using den0bot.DB;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -7,6 +6,8 @@ using System.Runtime.Caching;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.ReplyMarkups;
+using den0bot.DB;
+using den0bot.Util;
 
 #pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.
 namespace den0bot.Modules
@@ -17,10 +18,8 @@ namespace den0bot.Modules
 		public int Rating { get; set; }
 		public List<int> Voters { get; set; }
 	}
-    public class ModGirls : IModule, IProcessAllMessages, IReceiveCallback
+    public class ModGirls : IModule, IReceiveAllMessages, IReceiveCallback, IReceivePhotos
 	{
-        public override bool NeedsPhotos => true;
-
         private MemoryCache sentGirlsCache = MemoryCache.Default; // messageID, girlID
 
 		private InlineKeyboardMarkup buttons = new InlineKeyboardMarkup(
@@ -64,6 +63,7 @@ namespace den0bot.Modules
 				{
 					Name = "delet",
 					IsAdminOnly = true,
+					Reply = true,
 					Action = (msg) => DeleteGirl(msg)
 				}
             });
@@ -71,7 +71,7 @@ namespace den0bot.Modules
         }
         public void ReceiveMessage(Message message)
         {
-            if (message.Type == MessageType.Photo && message.Caption == "#девки")
+            if (message.Type == MessageType.Photo && message.Caption == Localization.Get("girls_tag", message.Chat.Id))
             {
                 Database.AddGirl(message.Photo[0].FileId, message.Chat.Id);
             }
@@ -81,7 +81,7 @@ namespace den0bot.Modules
         {
             int girlCount = Database.GetGirlCount(sender.Id);
             if (girlCount <= 0)
-                return "А девок-то нет";
+                return Localization.Get("girls_not_found", sender.Id);
 
             DB.Types.Girl picture = Database.GetGirl(sender.Id);
             if (picture != null && picture.Link != string.Empty)
@@ -98,8 +98,9 @@ namespace den0bot.Modules
                 return string.Empty;
             }
 
-            return "Чет не получилось";
-        }
+            return Localization.Get("generic_fail", sender.Id); 
+
+		}
         private async Task<string> GetRandomPlatinumGirl(Chat sender)
         {
             DB.Types.Girl picture = Database.GetPlatinumGirl(sender.Id);
@@ -109,7 +110,7 @@ namespace den0bot.Modules
                 return string.Empty;
             }
 
-            return "Нет девки";
+            return Localization.Get("girls_not_found", sender.Id);
         }
         private string TopGirls(long chatID, bool reverse = false)
         {
@@ -138,11 +139,12 @@ namespace den0bot.Modules
 
 		public void ReceiveCallback(CallbackQuery callback)
 		{
-			if (sentGirlsCache.Contains(callback.Message.MessageId.ToString()))
+			if (callback.Data == "+" || callback.Data == "-")
 			{
-				var girl = sentGirlsCache.Get(callback.Message.MessageId.ToString()) as ChachedGirl;
-				if (callback.Data == "+")
+				if (sentGirlsCache.Contains(callback.Message.MessageId.ToString()))
 				{
+					long chatId = callback.Message.Chat.Id;
+					var girl = sentGirlsCache.Get(callback.Message.MessageId.ToString()) as ChachedGirl;
 					if (girl.Voters != null && girl.Voters.Contains(callback.From.Id))
 					{
 						// they already voted
@@ -150,46 +152,40 @@ namespace den0bot.Modules
 					}
 					else
 					{
-						Database.ChangeGirlRating(girl.ID, 1);
-						girl.Voters.Add(callback.From.Id);
-						girl.Rating++;
+						if (callback.Data == "+")
+						{
+							Database.ChangeGirlRating(girl.ID, 1);
+							girl.Voters.Add(callback.From.Id);
+							girl.Rating++;
 
-						API.EditMediaCaption(callback.Message.Chat.Id, callback.Message.MessageId, girl.Rating.ToString(), buttons);
-						API.AnswerCallbackQuery(callback.Id, $"Рейтинг девки повышен ({girl.Rating})");
+							API.EditMediaCaption(chatId, callback.Message.MessageId, girl.Rating.ToString(), buttons);
+							API.AnswerCallbackQuery(callback.Id, string.Format(Localization.Get("girls_rating_up", chatId), girl.Rating));//$"Рейтинг девки повышен ({girl.Rating})");
+						}
+						else if (callback.Data == "-")
+						{
+							Database.ChangeGirlRating(girl.ID, -1);
+							girl.Voters.Add(callback.From.Id);
+							girl.Rating--;
+							if (girl.Rating >= -10)
+							{
+								API.EditMediaCaption(chatId, callback.Message.MessageId, girl.Rating.ToString(), buttons);
+								API.AnswerCallbackQuery(callback.Id, string.Format(Localization.Get("girls_rating_down", chatId), girl.Rating));// $"Рейтинг девки понижен ({})");
+							}
+							else
+							{
+								sentGirlsCache.Remove(callback.Message.MessageId.ToString());
+								Database.RemoveGirl(girl.ID);
+								API.RemoveMessage(chatId, callback.Message.MessageId);
+								API.AnswerCallbackQuery(callback.Id, Localization.Get("girls_rating_delete_lowrating", chatId));// "Девка удалена (рейтинг ниже -10)");
+							}
+						}
 					}
-
 				}
-				else if (callback.Data == "-")
+				else
 				{
-					if (girl.Voters != null && girl.Voters.Contains(callback.From.Id))
-					{
-						// they already voted
-						API.AnswerCallbackQuery(callback.Id, Events.RatingRepeat());
-					}
-					else
-					{
-						Database.ChangeGirlRating(girl.ID, -1);
-						girl.Voters.Add(callback.From.Id);
-						girl.Rating--;
-						if (girl.Rating >= -10)
-						{
-							API.EditMediaCaption(callback.Message.Chat.Id, callback.Message.MessageId, girl.Rating.ToString(), buttons);
-							API.AnswerCallbackQuery(callback.Id, $"Рейтинг девки понижен ({girl.Rating})");
-						}
-						else
-						{
-							sentGirlsCache.Remove(callback.Message.MessageId.ToString());
-							Database.RemoveGirl(girl.ID);
-							API.RemoveMessage(callback.Message.Chat.Id, callback.Message.MessageId);
-							API.AnswerCallbackQuery(callback.Id, "Девка удалена (рейтинг ниже -10)");
-						}
-					}
+					// remove buttons from outdated messages
+					API.EditMediaCaption(callback.Message.Chat.Id, callback.Message.MessageId, callback.Message.Caption);
 				}
-			}
-			else if (callback.Data == "+" || callback.Data == "-")
-			{
-				// remove buttons from outdated messages
-				API.EditMediaCaption(callback.Message.Chat.Id, callback.Message.MessageId, callback.Message.Caption);
 			}
 		}
 
@@ -202,7 +198,7 @@ namespace den0bot.Modules
 
 				Database.RemoveGirl(girl.ID);
 				API.RemoveMessage(message.Chat.Id, message.ReplyToMessage.MessageId);
-				return "Девка удалена";
+				return Localization.Get("girls_rating_delete_manual", message.Chat.Id);
 			}
 			return string.Empty;
 		}

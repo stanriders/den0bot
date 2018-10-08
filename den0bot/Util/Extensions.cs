@@ -1,13 +1,13 @@
-﻿// den0bot (c) StanR 2017 - MIT License
+﻿// den0bot (c) StanR 2018 - MIT License
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 
-namespace den0bot
+namespace den0bot.Util
 {
-    public static class Extensions // todo: remove
+    public static class Extensions
     {
         public static string FilterHTML(this string value)
         {
