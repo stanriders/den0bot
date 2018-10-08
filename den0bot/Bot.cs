@@ -104,7 +104,7 @@ namespace den0bot
 
             if (msg.Text != null && msg.Text.StartsWith("/"))
             {
-                string e = Events.Event();
+                string e = Events.Event(senderChat.Id);
                 if (e != string.Empty)
                 {
                     API.SendMessage(e, senderChat);
@@ -145,7 +145,7 @@ namespace den0bot
 						(c.IsOwnerOnly && !IsOwner(msg.From.Username)))
 					{
                         // ignore admin commands from non-admins
-                        result = Events.Annoy();
+                        result = Events.Annoy(senderChat.Id);
                         break;
                     }
 

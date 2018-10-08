@@ -148,7 +148,7 @@ namespace den0bot.Modules
 					if (girl.Voters != null && girl.Voters.Contains(callback.From.Id))
 					{
 						// they already voted
-						API.AnswerCallbackQuery(callback.Id, Events.RatingRepeat());
+						API.AnswerCallbackQuery(callback.Id, Events.RatingRepeat(chatId));
 					}
 					else
 					{
