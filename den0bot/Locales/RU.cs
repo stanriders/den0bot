@@ -75,14 +75,14 @@ namespace den0bot.Locales
 			["rating_repeat_9"] = "Ты уже голосовал",
 
 			["basiccommands_help"] = "Дарова. Короче помимо того, что в списке команд я могу ещё:" + Environment.NewLine + Environment.NewLine +
-					"/addplayer <юзернейм> <имя> <osu!айди> - добавить игрока в базу. Бот будет следить за новыми топскорами и сообщать их в чат. Также имя используется в базе щитпостеров." + Environment.NewLine +
-					"/removeplayer <имя, указанное при добавлении> - убрать игрока из базы." + Environment.NewLine +
-					"/addmeme - добавить мемес базу, можно как ссылку на картинку из интернета, так и загрузить её самому, а команду прописать в подпись." + Environment.NewLine +
-					"/disableannouncements - отключить оповещения о новых скорах кукизи." + Environment.NewLine +
-					"/enableannouncements - включить их обратно." + Environment.NewLine +
-					"/setlocale <en/ru> - сменить язык" + Environment.NewLine +
-					"/delet в ответ на девку - удалить девку из базы." + Environment.NewLine + Environment.NewLine +
-					"Все эти команды доступны только админам конфы. По вопросам насчет бота писать @StanRiders, но лучше не писать.",
+									"/addplayer <юзернейм> <имя> <osu!айди> - добавить игрока в базу. Имя используется в базе щитпостеров, osu!id для получения скоров." + Environment.NewLine +
+									"/removeplayer <имя, указанное при добавлении> - убрать игрока из базы." + Environment.NewLine +
+									"/addmeme - добавить мемес базу, можно как ссылку на картинку из интернета, так и загрузить её самому, а команду прописать в подпись." + Environment.NewLine +
+									"/disableannouncements - отключить оповещения о новых скорах кукизи." + Environment.NewLine +
+									"/enableannouncements - включить их обратно." + Environment.NewLine +
+									"/setlocale <en/ru> - сменить язык" + Environment.NewLine +
+									"/delet в ответ на девку - удалить девку из базы." + Environment.NewLine + Environment.NewLine +
+									"Все эти команды доступны только админам конфы. По вопросам насчет бота писать @StanRiders, но лучше не писать.",
 		};
 	}
 }

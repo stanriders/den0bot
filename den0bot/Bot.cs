@@ -28,6 +28,7 @@ namespace den0bot
 
 			modules = new List<IModule>()
             {
+				new ModBasicCommands(),
                 new ModThread(),
                 new ModYoutube(),
                 new ModRandom(),
