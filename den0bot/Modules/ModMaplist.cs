@@ -78,7 +78,20 @@ namespace den0bot.Modules
                 {
                     return Maplist[num][0] + Environment.NewLine + Maplist[num][1];
                 }
-                API.SendPhoto(map?.Thumbnail, message.Chat, $"{Maplist[num][1]}{Environment.NewLine}{Maplist[num][0]} {ModBeatmap.FormatMapInfo(map, string.Empty, message.Chat.Id)}", ParseMode.Html);
+				if (map != null)
+				{
+					string format = ModBeatmap.FormatMapInfo(map, string.Empty, message.Chat.Id);
+					string caption = $"{Maplist[num][0]} {format}";
+					if (caption.Length > 265) // 200 regular character limit + HTML
+					{
+						if (caption.Length - Maplist[num][0].Length > 265)
+							caption = $"<a href=\"{Maplist[num][1]}\">{Maplist[num][0]}</a>"; // shouldn't happen really, but who knows
+						else
+							caption = $"{format}";
+					}
+					API.SendPhoto(map?.Thumbnail, message.Chat, caption, ParseMode.Html);
+				}
+
                 return string.Empty;
             }
             else
