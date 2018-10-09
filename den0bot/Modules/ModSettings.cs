@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using den0bot.DB;
 using den0bot.Util;
+using Telegram.Bot.Types.Enums;
 
 namespace den0bot.Modules
 {
@@ -80,9 +81,9 @@ namespace den0bot.Modules
                 Database.AddMeme(link, chatId);
                 return "Мемес добавлен!";
             }
-            else if (link.StartsWith("photo"))
+            else if (message.Type == MessageType.Photo)
             {
-                Database.AddMeme(link.Substring(5), chatId);
+                Database.AddMeme(message.Photo[0].FileId, chatId);
                 return "Мемес добавлен!";
             }
             return "Ты че деб? /addmeme <ссылка>";

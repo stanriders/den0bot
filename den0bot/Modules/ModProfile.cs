@@ -11,7 +11,7 @@ namespace den0bot.Modules
 {
     class ModProfile : IModule, IReceiveAllMessages
     {
-        private Regex regex = new Regex(@"(?>https?:\/\/)?osu\.ppy\.sh\/u(?>sers)?\/(\d+|\S+)", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+        private Regex regex = new Regex(@"(?>https?:\/\/)?(?>osu|old)\.ppy\.sh\/u(?>sers)?\/(\d+|\S+)", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 		private readonly int topscores_to_show = 3;
         public ModProfile() { Log.Info(this, "Enabled"); }
 

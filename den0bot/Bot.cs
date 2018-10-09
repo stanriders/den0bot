@@ -124,7 +124,7 @@ namespace den0bot
                     if (!(m is IReceivePhotos))
                         continue;
 
-                    msg.Text = msg.Caption + " photo" + msg.Photo[0].FileId; //kinda hack
+                    msg.Text = msg.Caption; // for consistency
                 }
 
                 // FIXME: move to trigger check?
