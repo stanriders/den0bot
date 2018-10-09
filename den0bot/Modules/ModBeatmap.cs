@@ -11,7 +11,7 @@ namespace den0bot.Modules
 {
     class ModBeatmap : IModule, IReceiveAllMessages
 	{
-        private Regex regex = new Regex(@"(?>https?:\/\/)?(?>osu|old)\.ppy\.sh\/([b,s]|(?>beatmapsets))\/(\d+\/?\#osu\/)?(\d+)?\/?(?>[&,?].=\d)?\h?(?>\+(\w+))?", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+        private Regex regex = new Regex(@"(?>https?:\/\/)?(?>osu|old)\.ppy\.sh\/([b,s]|(?>beatmapsets))\/(\d+\/?\#osu\/)?(\d+)?\/?(?>[&,?].=\d)?\s?(?>\+(\w+))?", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
         public async void ReceiveMessage(Message message)
         {
