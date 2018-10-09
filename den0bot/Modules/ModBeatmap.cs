@@ -11,7 +11,7 @@ namespace den0bot.Modules
 {
     class ModBeatmap : IModule, IReceiveAllMessages
 	{
-        private Regex regex = new Regex(@"(?>https?:\/\/)?osu\.ppy\.sh\/([b,s]|(?>beatmapsets))\/(\d+\/?\#osu\/)?(\d+)\/?$|(?>https?:\/\/)?osu\.ppy\.sh\/([b,s]|(?>beatmapsets))\/(\d+\/?\#osu\/)?(\d+)\/?(?>[&,?].=\d)?\s?\+(.+)?", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+        private Regex regex = new Regex(@"(?>https?:\/\/)?osu\.ppy\.sh\/([b,s]|(?>beatmapsets))\/(\d+\/?\#osu\/?)?(\d+)?\/?$|(?>https?:\/\/)?osu\.ppy\.sh\/([b,s]|(?>beatmapsets))\/(\d+\/?\#osu\/)?(\d+)?\/?(?>[&,?].=\d)?\s?\+(.+)?", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
         public async void ReceiveMessage(Message message)
         {
@@ -59,16 +59,13 @@ namespace den0bot.Modules
                 {
                     map = await OsuAPI.GetBeatmapAsync(beatmapId);
                 }
-
-                API.SendPhoto(map?.Thumbnail, message.Chat, FormatMapInfo(map, mods, message.Chat.Id), Telegram.Bot.Types.Enums.ParseMode.Html);
+				if (map != null)
+					API.SendPhoto(map?.Thumbnail, message.Chat, FormatMapInfo(map, mods, message.Chat.Id), Telegram.Bot.Types.Enums.ParseMode.Html);
             }
         }
 
         public static string FormatMapInfo(Map map, string mods, long chatID)
         {
-            if (map == null)
-                return string.Empty;
-
 			double starRating = map.StarRating;
 			string pp = string.Empty;
 

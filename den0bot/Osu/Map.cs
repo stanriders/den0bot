@@ -168,18 +168,23 @@ namespace den0bot.Osu
             }
             return TimeSpan.FromSeconds(drainLength);
         }
+
         public string Thumbnail
         {
             get { return "https://assets.ppy.sh/beatmaps/" + BeatmapSetID + "/covers/cover.jpg"; }
         }
 
+		private string fileString = null;
         public string File
         {
             get
             {
                 try
                 {
-                    return new WebClient().DownloadString("https://osu.ppy.sh/osu/" + BeatmapID);
+					if (string.IsNullOrEmpty(fileString))
+						fileString = new WebClient().DownloadString("https://osu.ppy.sh/osu/" + BeatmapID);
+
+					return fileString;
                 }
                 catch (Exception e)
                 {
@@ -188,16 +193,23 @@ namespace den0bot.Osu
                 }
             }
         }
+
+		private byte[] fileBytes = null;
         public byte[] FileBytes
         {
             get
             {
                 try
                 {
-                    var client = new WebClient();
-                    client.Encoding = Encoding.UTF8;
-                    return client.DownloadData("https://osu.ppy.sh/osu/" + BeatmapID);
-                }
+					if (fileBytes == null)
+					{
+						var client = new WebClient();
+						client.Encoding = Encoding.UTF8;
+						fileBytes = client.DownloadData("https://osu.ppy.sh/osu/" + BeatmapID);
+					}
+					return fileBytes;
+
+				}
                 catch (Exception e)
                 {
                     Log.Error(this, $"File - {e.InnerMessageIfAny()}");
@@ -205,6 +217,7 @@ namespace den0bot.Osu
                 }
             }
         }
+
         public string Link
         {
             get { return "https://osu.ppy.sh/b/" + BeatmapID; }
