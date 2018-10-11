@@ -8,6 +8,7 @@ using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.ReplyMarkups;
 using den0bot.DB;
 using den0bot.Util;
+using System.Threading;
 
 #pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.
 namespace den0bot.Modules
@@ -19,6 +20,7 @@ namespace den0bot.Modules
 		public List<int> Voters { get; set; }
 		public DateTime PostTime { get; set; }
 		public int MessageID { get; set; }
+		public int CommandMessageID { get; set; }
 	}
     public class ModGirls : IModule, IReceiveAllMessages, IReceiveCallback, IReceivePhotos
 	{
@@ -42,7 +44,7 @@ namespace den0bot.Modules
 				new Command
 				{
 					Name = "devka",
-					ActionAsync = (msg) => GetRandomGirl(msg.Chat),
+					ActionAsync = (msg) => GetRandomGirl(msg),
 				},
 				new Command
 				{
@@ -83,45 +85,50 @@ namespace den0bot.Modules
             }
         }
 
-        private async Task<string> GetRandomGirl(Chat sender)
+        private async Task<string> GetRandomGirl(Message msg)
         {
-            int girlCount = Database.GetGirlCount(sender.Id);
+			long chatID = msg.Chat.Id;
+
+			int girlCount = Database.GetGirlCount(chatID);
             if (girlCount <= 0)
-                return Localization.Get("girls_not_found", sender.Id);
+                return Localization.Get("girls_not_found", chatID);
 
-			if (!lastThreeGirlsBuf.ContainsKey(sender.Id))
-				lastThreeGirlsBuf.Add(sender.Id, new Queue<ChachedGirl>(3));
+			if (!lastThreeGirlsBuf.ContainsKey(chatID))
+				lastThreeGirlsBuf.Add(chatID, new Queue<ChachedGirl>(3));
 
-			DB.Types.Girl picture = Database.GetGirl(sender.Id);
+			DB.Types.Girl picture = Database.GetGirl(chatID);
 			if (picture != null && picture.Link != string.Empty)
 			{
-				var message = await API.SendPhoto(picture.Link, sender.Id, picture.Rating.ToString(), ParseMode.Default, 0, buttons);
+				var sentMessage = await API.SendPhoto(picture.Link, chatID, picture.Rating.ToString(), ParseMode.Default, 0, buttons);
 				var girl = new ChachedGirl()
 				{
 					ID = picture.Id,
 					Rating = picture.Rating == int.MinValue ? 0 : picture.Rating,
 					Voters = new List<int>(),
 					PostTime = DateTime.Now,
-					MessageID = message.MessageId
+					MessageID = sentMessage.MessageId,
+					CommandMessageID = msg.MessageId
 				};
-				sentGirlsCache.Add(message.MessageId.ToString(), girl, DateTimeOffset.Now.AddDays(days_to_keep_messages));
-				lastThreeGirlsBuf[sender.Id].Enqueue(girl);
+				sentGirlsCache.Add(sentMessage.MessageId.ToString(), girl, DateTimeOffset.Now.AddDays(days_to_keep_messages));
+				lastThreeGirlsBuf[chatID].Enqueue(girl);
 
-				if (lastThreeGirlsBuf[sender.Id].Count == 3)
+				if (lastThreeGirlsBuf[chatID].Count == 3)
 				{
 					// check if third girl in a queue was posted less than 15 seconds ago and remove it
-					var oldestGirl = lastThreeGirlsBuf[sender.Id].Dequeue();
+					var oldestGirl = lastThreeGirlsBuf[chatID].Dequeue();
 					var cd = oldestGirl.PostTime.AddSeconds(cooldown);
 					if (cd > DateTime.Now)
 					{
 						sentGirlsCache.Remove(oldestGirl.MessageID.ToString());
-						API.RemoveMessage(sender.Id, oldestGirl.MessageID);
+						API.RemoveMessage(chatID, oldestGirl.MessageID);
+						Thread.Sleep(50); // going too fast breaks api
+						API.RemoveMessage(chatID, oldestGirl.CommandMessageID);
 					}
 				}
 				return string.Empty;
 			}
 
-			return Localization.Get("generic_fail", sender.Id);
+			return Localization.Get("generic_fail", chatID);
 		}
         private async Task<string> GetRandomPlatinumGirl(Chat sender)
         {
