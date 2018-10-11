@@ -4,6 +4,7 @@ using System.Net;
 using System.Linq;
 using Telegram.Bot.Types;
 using Newtonsoft.Json.Linq;
+using System.Collections.Generic;
 
 namespace den0bot.Modules
 {
@@ -11,15 +12,18 @@ namespace den0bot.Modules
 	{
 		private readonly string api_link = "https://api.thecatapi.com/v1/images/search?size=med&type=jpg,png&api_key=" + Config.cat_token;
 
-		private DateTime nextPost = DateTime.Now;
-		private readonly int cooldown = 5; 
+		private Dictionary<long, DateTime> nextPost = new Dictionary<long, DateTime>(); // chatID, time
+		private readonly int cooldown = 5; // minutes
 
 		public void ReceiveMessage(Message message)
 		{
 			if (string.IsNullOrEmpty(Config.cat_token))
 				return;
 
-			if (nextPost < DateTime.Now)
+			if (!nextPost.ContainsKey(message.Chat.Id))
+				nextPost.Add(message.Chat.Id, DateTime.Now);
+
+			if (nextPost[message.Chat.Id] < DateTime.Now)
 			{
 				var trigger = Localization.Get("cat_trigger", message.Chat.Id);
 				string cat = message.Text.ToLower()
@@ -45,7 +49,7 @@ namespace den0bot.Modules
 					else
 						API.SendMessage(Localization.Get("cat_fail", message.Chat.Id), message.Chat);
 
-                    nextPost = DateTime.Now.AddMinutes(cooldown);
+                    nextPost[message.Chat.Id] = DateTime.Now.AddMinutes(cooldown);
                 }
             }
         }

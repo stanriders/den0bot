@@ -105,7 +105,7 @@ namespace den0bot
         {
             foreach (DB.Types.Chat receiver in Database.GetAllChats())
             {
-				if (api.GetChatAsync(receiver.Id) == null)
+				if (api.GetChatAsync(receiver.Id).Result == null)
 				{
 					Database.RemoveChat(receiver.Id);
 					Log.Info("API", $"Chat {receiver.Id} removed");
