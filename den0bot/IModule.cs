@@ -11,18 +11,23 @@ namespace den0bot
     {
         public class Command
         {
-            private string name;
-            public string Name
+            private List<string> names = new List<string>();
+            public List<string> Names
             {
-                get
-                {
-                    return "/" + name;
-                }
-                set
-                {
-                    name = value;
-                }
+                get{ return names; }
+                set{ names = value; }
             }
+			public string Name
+			{
+				set{ names.Add(value); }
+			}
+			public bool ContainsName(string name)
+			{
+				if (names.Contains(name.Substring(1)))
+					return true;
+
+				return false;
+			}
 
             public ParseMode ParseMode;
 
@@ -59,7 +64,7 @@ namespace den0bot
             if (name.EndsWith("@den0bot"))
                 name = name.Replace("@den0bot", "");
 
-            return Commands.Find(x => name == x.Name);
+            return Commands.Find(x => x.ContainsName(name));
         }
 
         public virtual void Think() {}

@@ -43,22 +43,22 @@ namespace den0bot.Modules
 			{
 				new Command
 				{
-					Name = "devka",
+					Names = { "devka", "tyanochku", "girl" },
 					ActionAsync = (msg) => GetRandomGirl(msg),
 				},
 				new Command
 				{
-					Name = "bestdevka",
+					Names = {"bestdevka", "bestgirl"},
 					ActionAsync = (msg) => GetRandomPlatinumGirl(msg.Chat),
 				},
 				new Command
 				{
-					Name = "topdevok",
+					Names = {"topdevok", "topgirls" },
 					Action = (msg) => TopGirls(msg.Chat.Id)
 				},
 				new Command
 				{
-					Name = "antitopdevok",
+					Names = {"antitopdevok", "antitopgirls" },
 					Action = (msg) => TopGirls(msg.Chat.Id, true)
 				},
 				new Command

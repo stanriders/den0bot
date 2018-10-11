@@ -111,7 +111,7 @@ namespace den0bot
 					Log.Info("API", $"Chat {receiver.Id} removed");
 					return;
 				}
-				if (!receiver.DisableAnnouncements)
+				else if (!receiver.DisableAnnouncements)
                 {
                     if (!string.IsNullOrEmpty(image))
                         SendPhoto(image, receiver.Id, msg, mode);
