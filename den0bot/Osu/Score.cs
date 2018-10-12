@@ -8,7 +8,7 @@ namespace den0bot.Osu
     {
         [JsonProperty("beatmap_id")]
         public uint BeatmapID;
-        [JsonProperty("score")]
+        [JsonProperty("score_id")]
         public uint ScoreID;
         [JsonProperty("user_id")]
         public uint UserID;
@@ -22,7 +22,9 @@ namespace den0bot.Osu
         [JsonProperty("perfect")]
         public short Perfect;
 
-        [JsonProperty("count300")]
+		[JsonProperty("score")]
+		public uint ScorePoints;
+		[JsonProperty("count300")]
         public uint Count300;
         [JsonProperty("count100")]
         public uint Count100;
@@ -48,7 +50,7 @@ namespace den0bot.Osu
         [JsonProperty("team")]
         public uint Team; // FIXME: make it into enum
         [JsonProperty("pass")]
-        public bool IsPass;
+        public short IsPass;
 
         public double Accuracy
         {

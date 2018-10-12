@@ -40,8 +40,9 @@ namespace den0bot
                 new ModSettings(),
                 //new ModAutohost(),
                 new ModRecentScores(),
-                new ModGirls()
-            };
+                new ModGirls(),
+				new ModMatchFollow()
+			};
 
             //Osu.IRC.Connect();
 

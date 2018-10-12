@@ -104,7 +104,7 @@ namespace den0bot.Osu
             return null;
         }
 
-        public static async Task<MultiplayerMatch> GetMatch(uint mpId)
+        public static async Task<MultiplayerMatch> GetMatch(ulong mpId)
         {
             if (mpId > 0)
             {
