@@ -9,6 +9,7 @@ using Telegram.Bot.Types.ReplyMarkups;
 using den0bot.DB;
 using den0bot.Util;
 using System.Threading;
+using System.Linq;
 
 #pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.
 namespace den0bot.Modules
@@ -34,8 +35,10 @@ namespace den0bot.Modules
 			}
 		);
 
-		private Dictionary<long, Queue<ChachedGirl>> lastThreeGirlsBuf = new Dictionary<long, Queue<ChachedGirl>>(); // chatID, queue
-		private readonly int cooldown = 10; //seconds
+		private Dictionary<long, Queue<ChachedGirl>> antispamBuffer = new Dictionary<long, Queue<ChachedGirl>>(); // chatID, queue
+		private readonly int antispam_cooldown = 10; //seconds
+
+		private readonly int top_girls_amount = 9;
 
 		public ModGirls()
         {
@@ -93,8 +96,8 @@ namespace den0bot.Modules
             if (girlCount <= 0)
                 return Localization.Get("girls_not_found", chatID);
 
-			if (!lastThreeGirlsBuf.ContainsKey(chatID))
-				lastThreeGirlsBuf.Add(chatID, new Queue<ChachedGirl>(3));
+			if (!antispamBuffer.ContainsKey(chatID))
+				antispamBuffer.Add(chatID, new Queue<ChachedGirl>(3));
 
 			DB.Types.Girl picture = Database.GetGirl(chatID);
 			if (picture != null && picture.Link != string.Empty)
@@ -110,13 +113,13 @@ namespace den0bot.Modules
 					CommandMessageID = msg.MessageId
 				};
 				sentGirlsCache.Add(sentMessage.MessageId.ToString(), girl, DateTimeOffset.Now.AddDays(days_to_keep_messages));
-				lastThreeGirlsBuf[chatID].Enqueue(girl);
+				antispamBuffer[chatID].Enqueue(girl);
 
-				if (lastThreeGirlsBuf[chatID].Count == 3)
+				if (antispamBuffer[chatID].Count == 3)
 				{
-					// check if third girl in a queue was posted less than 15 seconds ago and remove it
-					var oldestGirl = lastThreeGirlsBuf[chatID].Dequeue();
-					var cd = oldestGirl.PostTime.AddSeconds(cooldown);
+					// check if third girl in a queue was posted less than antispam_cooldown seconds ago and remove it
+					var oldestGirl = antispamBuffer[chatID].Dequeue();
+					var cd = oldestGirl.PostTime.AddSeconds(antispam_cooldown);
 					if (cd > DateTime.Now)
 					{
 						sentGirlsCache.Remove(oldestGirl.MessageID.ToString());
@@ -148,12 +151,11 @@ namespace den0bot.Modules
             {
                 List<InputMediaPhoto> photos = new List<InputMediaPhoto>();
 
+				// if we want the worst rated ones
                 if (reverse)
                     topGirls.Reverse();
 
-                if (topGirls.Count > 9)
-                    topGirls.RemoveRange(9, topGirls.Count - 9); // keep only top10 
-
+				topGirls = topGirls.Take(top_girls_amount).ToList();
                 foreach (var girl in topGirls)
                 {
                     if (girl.Rating < -10)

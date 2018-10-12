@@ -18,20 +18,20 @@ namespace den0bot.Modules
             Match regexMatch = regex.Match(message.Text);
             if (regexMatch.Groups.Count > 1)
             {
-                List<Group> listGroups = regexMatch.Groups.OfType<Group>().Where(x => (x != null) && (x.Length > 0)).ToList();
+                List<Group> regexGroups = regexMatch.Groups.OfType<Group>().Where(x => (x != null) && (x.Length > 0)).ToList();
 
-                bool isNew = listGroups[1].Value == "beatmapsets"; // are we using new website or not
+                bool isNew = regexGroups[1].Value == "beatmapsets"; // are we using new website or not
                 bool isSet = false;
                 uint beatmapId = 0;
                 string mods = string.Empty;
 
                 if (isNew)
                 {
-                    if (listGroups[2].Value.Contains("#osu/"))
+                    if (regexGroups[2].Value.Contains("#osu/"))
                     {
-                        beatmapId = uint.Parse(listGroups[3].Value);
-                        if (listGroups.Count > 4)
-                            mods = listGroups[4].Value;
+                        beatmapId = uint.Parse(regexGroups[3].Value);
+                        if (regexGroups.Count > 4)
+                            mods = regexGroups[4].Value;
                     }
                     else
                     {
@@ -40,12 +40,12 @@ namespace den0bot.Modules
                 }
                 else
                 { 
-                    if(listGroups[1].Value == "s")
+                    if(regexGroups[1].Value == "s")
                         isSet = true;
 
-                    beatmapId = uint.Parse(listGroups[2].Value);
-                    if (listGroups.Count > 3)
-                        mods = listGroups[3].Value;
+                    beatmapId = uint.Parse(regexGroups[2].Value);
+                    if (regexGroups.Count > 3)
+                        mods = regexGroups[3].Value;
                 }
 
                 Map map = null;
@@ -60,7 +60,7 @@ namespace den0bot.Modules
                     map = await OsuAPI.GetBeatmapAsync(beatmapId);
                 }
 				if (map != null)
-					API.SendPhoto(map?.Thumbnail, message.Chat, FormatMapInfo(map, mods, message.Chat.Id), Telegram.Bot.Types.Enums.ParseMode.Html);
+					API.SendPhoto(map.Thumbnail, message.Chat, FormatMapInfo(map, mods, message.Chat.Id), Telegram.Bot.Types.Enums.ParseMode.Html);
             }
         }
 
@@ -76,16 +76,16 @@ namespace den0bot.Modules
 				OppaiInfo info100 = Oppai.GetBeatmapOppaiInfo(map.FileBytes, modsEnum, 100);
 				if (info100 != null && info100.pp > 0)
 				{
-					pp = string.Format("\n100% - {0}pp", info100.pp.FN2());
+					pp = $"\n100% - {info100.pp.FN2()}pp";
 					starRating = info100.stars;
 
 					double info98 = Oppai.GetBeatmapPP(map.FileBytes, modsEnum, 98);
 					if (info98 != -1)
-						pp += string.Format(" | 98% - {0}pp", info98.FN2());
+						pp += $" | 98% - {info98.FN2()}pp";
 
 					double info95 = Oppai.GetBeatmapPP(map.FileBytes, modsEnum, 95);
 					if (info95 != -1)
-						pp += string.Format(" | 95% - {0}pp", info95.FN2());
+						pp += $" | 95% - {info95.FN2()}pp";
 					
 				}
             }

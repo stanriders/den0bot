@@ -48,7 +48,7 @@ namespace den0bot.Util
 		public static Osu.Mods ConvertToMods(this string mods)
 		{
 			Osu.Mods result = Osu.Mods.None;
-			if (Enum.TryParse(mods, true, out result) || string.IsNullOrEmpty(mods))
+			if (Enum.TryParse(mods, true, out result) || string.IsNullOrEmpty(mods) || mods.Length > 36 ) // every mod combination possible
 				return result;
 			else
 			{
@@ -69,5 +69,5 @@ namespace den0bot.Util
 				return result;
 			}
 		}
-    }
+	}
 }

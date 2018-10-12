@@ -18,7 +18,7 @@ namespace den0bot.Locales
 			["beatmap_download"] = "Download",
 
 			["cat_trigger"] = "cat",
-			["cat_reply"] = "Did somebody say {0}?",
+			["cat_reply"] = "Did someone say {0}?",
 			["cat_fail"] = "No CATs this time",
 
 			["random_no_shitposter"] = "You're shitposter",

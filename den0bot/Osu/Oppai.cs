@@ -11,7 +11,7 @@ namespace den0bot.Osu
     {
 		public static double GetBeatmapPP(byte[] beatmap, Mods mods, double acc)
 		{
-			return GetBeatmapOppaiInfo(beatmap, mods, acc).pp;
+			return GetBeatmapOppaiInfo(beatmap, mods, acc)?.pp ?? -1;
 		}
 
 		public static OppaiInfo GetBeatmapOppaiInfo(Map map, Score score = null)
@@ -57,14 +57,10 @@ namespace den0bot.Osu
                     pp = pp.Total
                 };
             }
-            catch (Exception)
-            {
-                return new OppaiInfo()
-                {
-                    pp = -1
-                };
-            }
-        }
+            catch (Exception){ }
+
+			return null;
+		}
 
 		private static void AccuracyToHits(double acc, int objCount, int misses, out int count300, out int count100, out int count50)
 		{
