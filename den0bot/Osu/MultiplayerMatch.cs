@@ -20,7 +20,9 @@ namespace den0bot.Osu
             public string Name;
             [JsonProperty("start_time")]
             public DateTime StartTime;
-        }
+			[JsonProperty("end_time")]
+			public DateTime? EndTime;
+		}
         public class Game
         {
             [JsonProperty("game_id")]
@@ -30,7 +32,7 @@ namespace den0bot.Osu
             public DateTime StartTime;
 
             [JsonProperty("end_time")]
-            public DateTime EndTime;
+            public DateTime? EndTime;
 
             [JsonProperty("beatmap_id")]
             public uint BeatmapID;

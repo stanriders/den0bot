@@ -37,6 +37,8 @@ namespace den0bot.Locales
 			["girls_rating_delete_manual"] = "Girl has been deleted",
 			["girls_not_found"] = "No girls found",
 
+			["matchfollow_added"] = "Added",
+
 			["event_1"] = "idke can't ror hr",
 			["event_2"] = "ye xD",
 			["event_3"] = "727",

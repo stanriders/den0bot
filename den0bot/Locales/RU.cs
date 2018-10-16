@@ -44,6 +44,8 @@ namespace den0bot.Locales
 			["girls_rating_delete_manual"] = "Девка удалена",
 			["girls_not_found"] = "А девок-то нет",
 
+			["matchfollow_added"] = "Добавил",
+
 			["event_1"] = "Егорыч, бросай наркотики",
 			["event_2"] = "Панда - щитпостер",
 			["event_3"] = "Не хочу",

@@ -6,7 +6,6 @@ using den0bot.DB;
 using den0bot.Osu;
 using den0bot.Util;
 
-#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.
 namespace den0bot.Modules
 {
     class ModTopscores : IModule
@@ -150,7 +149,7 @@ namespace den0bot.Modules
                         string formattedMessage = string.Format("Там <b>{0}</b> фарманул новый скор: \n<i>{1}</i>{2} ({3}, {4}%) | <b>{5} пп</b>! Поздравим сраного фармера!",
                             Database.GetPlayerFriendlyName(currentUser), mapInfo, mods, score.Rank, score.Accuracy.FN2(), score.Pp);
 
-                        API.SendMessage(formattedMessage, Database.GetPlayerChatID(currentUser), Telegram.Bot.Types.Enums.ParseMode.Html);
+                        API.SendMessage(formattedMessage, Database.GetPlayerChatID(currentUser), Telegram.Bot.Types.Enums.ParseMode.Html).NoAwait();
 
                         needDBUpdate = true;
                         break;
@@ -166,4 +165,3 @@ namespace den0bot.Modules
         }
     }
 }
-#pragma warning restore CS4014

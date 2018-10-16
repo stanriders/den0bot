@@ -132,13 +132,15 @@ namespace den0bot
                 if (msg.Text == null)
                     continue;
 
-                // send all messages to modules that need them
-                if (m is IReceiveAllMessages)
-                    (m as IReceiveAllMessages).ReceiveMessage(msg);
+				// not a command
+				if (msg.Text[0] != '/')
+				{
+					// send all messages to modules that need them
+					if (m is IReceiveAllMessages)
+						(m as IReceiveAllMessages).ReceiveMessage(msg);
 
-                // not a command
-                if (msg.Text[0] != '/')
-                    continue;
+					continue;
+				}
 
                 IModule.Command c = m.GetCommand(msg.Text);
                 if (c != null)

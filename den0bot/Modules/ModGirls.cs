@@ -11,7 +11,6 @@ using den0bot.Util;
 using System.Threading;
 using System.Linq;
 
-#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.
 namespace den0bot.Modules
 {
 	class ChachedGirl
@@ -163,7 +162,7 @@ namespace den0bot.Modules
 
                     photos.Add(new InputMediaPhoto(girl.Link) { Caption = girl.Rating.ToString() });
                 }
-                API.SendMultiplePhotos(photos, chatID);
+                API.SendMultiplePhotos(photos, chatID).NoAwait();
             }
             return string.Empty;
         }
@@ -235,5 +234,3 @@ namespace den0bot.Modules
 		}
 	}
 }
-
-#pragma warning restore CS4014

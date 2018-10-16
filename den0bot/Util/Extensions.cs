@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 
 namespace den0bot.Util
 {
@@ -69,5 +70,7 @@ namespace den0bot.Util
 				return result;
 			}
 		}
+
+		public static void NoAwait(this Task task) { }
 	}
 }
