@@ -75,19 +75,22 @@ namespace den0bot.Modules
 				currentMatch = 0;
 
 			var match = await OsuAPI.GetMatch(followList[currentMatch].MatchID);
-			if (match.Info.EndTime != null)
-				followList.RemoveAt(currentMatch);
-			else
+			if (match.Games.Count > 0)
 			{
-				// match still running
-				if (match.Games.Last().ID != followList[currentMatch].CurrentGameID &&
-					match.Games.Last().EndTime != null)
+				if (match.Info.EndTime != null)
+					followList.RemoveAt(currentMatch);
+				else
 				{
-					// current game isnt the one we have stored and it ended already
-					if (followList[currentMatch].CurrentGameID != 0)
-						API.SendMessage(await formatMatchInfo(match), followList[currentMatch].ChatID, Telegram.Bot.Types.Enums.ParseMode.Html).NoAwait();
+					// match still running
+					if (match.Games.Last().ID != followList[currentMatch].CurrentGameID &&
+						match.Games.Last().EndTime != null)
+					{
+						// current game isnt the one we have stored and it ended already
+						if (followList[currentMatch].CurrentGameID != 0)
+							API.SendMessage(await formatMatchInfo(match), followList[currentMatch].ChatID, Telegram.Bot.Types.Enums.ParseMode.Html).NoAwait();
 
-					followList[currentMatch].CurrentGameID = match.Games.Last().ID;
+						followList[currentMatch].CurrentGameID = match.Games.Last().ID;
+					}
 				}
 			}
 			currentMatch++;
@@ -106,7 +109,8 @@ namespace den0bot.Modules
 				ulong matchID = ulong.Parse(regexGroups[1].Value);
 				var match = await OsuAPI.GetMatch(matchID);
 
-				API.SendMessage(await formatMatchInfo(match), message.Chat, Telegram.Bot.Types.Enums.ParseMode.Html);
+				if (match.Games.Count > 0)
+					API.SendMessage(await formatMatchInfo(match), message.Chat, Telegram.Bot.Types.Enums.ParseMode.Html);
 			}
 		}
 
@@ -115,50 +119,52 @@ namespace den0bot.Modules
 			string gamesString = string.Empty;
 
 			List<MultiplayerMatch.Game> games = match.Games;
-			var game = games.Last();
-			var map = await OsuAPI.GetBeatmapAsync(game.BeatmapID);
-			if (game.TeamMode >= MultiplayerMatch.TeamMode.Team)
+			var game = games.Last(x => x.EndTime != null);
+			if (game != null)
 			{
-				List<Score> allScores = new List<Score>();
-
-				allScores = game.Scores;
-				allScores = allScores.OrderByDescending(x => x.ScorePoints).ToList();
-				allScores = allScores.OrderByDescending(x => x.Team).ToList();
-
-				gamesString += $"<b>{map.Artist} - {map.Title}[{map.Difficulty}]{Environment.NewLine}</b>";
-				foreach (var score in allScores)
+				var map = await OsuAPI.GetBeatmapAsync(game.BeatmapID);
+				if (game.TeamMode >= MultiplayerMatch.TeamMode.Team)
 				{
-					if (score.ScorePoints != 0)
+					List<Score> allScores = new List<Score>();
+
+					allScores = game.Scores;
+					allScores = allScores.OrderByDescending(x => x.ScorePoints).ToList();
+					allScores = allScores.OrderByDescending(x => x.Team).ToList();
+
+					gamesString += $"<b>{map.Artist} - {map.Title}[{map.Difficulty}]{Environment.NewLine}</b>";
+					foreach (var score in allScores)
 					{
-						var player = await OsuAPI.GetPlayerAsync(score.UserID.ToString());
-						string teamSymbol = score.Team > 1 ? "🔴" : "🔵";
-						string pass = score.IsPass == 1 ? "" : ", failed";
-						gamesString += $" {teamSymbol} <b>{player.Username}</b>: {score.ScorePoints} ({score.Combo}x, {score.Accuracy.FN2()}%{pass}){Environment.NewLine}";
+						if (score.ScorePoints != 0)
+						{
+							var player = await OsuAPI.GetPlayerAsync(score.UserID.ToString());
+							string teamSymbol = score.Team > 1 ? "🔴" : "🔵";
+							string pass = score.IsPass == 1 ? "" : ", failed";
+							gamesString += $" {teamSymbol} <b>{player.Username}</b>: {score.ScorePoints} ({score.Combo}x, {score.Accuracy.FN2()}%{pass}){Environment.NewLine}";
+						}
 					}
+					var redScore = allScores.Sum(x => (x.Team == 2) ? x.ScorePoints : 0);
+					var blueScore = allScores.Sum(x => (x.Team == 1) ? x.ScorePoints : 0);
+					if (redScore > blueScore)
+						gamesString += "Red team wins!";
+					else
+						gamesString += "Blue team wins!";
 				}
-				var redScore = allScores.Sum(x => (x.Team == 2) ? x.ScorePoints : 0);
-				var blueScore = allScores.Sum(x => (x.Team == 1) ? x.ScorePoints : 0);
-				if (redScore > blueScore)
-					gamesString += "Red team wins!";
 				else
-					gamesString += "Blue team wins!";
-			}
-			else
-			{
-				game.Scores = game.Scores.OrderByDescending(x => x.ScorePoints).ToList();
-				gamesString += $"{map.Artist} - {map.Title}[{map.Difficulty}]{Environment.NewLine}";
-				for (int i = 0; i < game.Scores.Count(); i++)
 				{
-					if (game.Scores[i].ScorePoints != 0)
+					game.Scores = game.Scores.OrderByDescending(x => x.ScorePoints).ToList();
+					gamesString += $"{map.Artist} - {map.Title}[{map.Difficulty}]{Environment.NewLine}";
+					for (int i = 0; i < game.Scores.Count(); i++)
 					{
-						var player = await OsuAPI.GetPlayerAsync(game.Scores[i].UserID.ToString());
-						string pass = game.Scores[i].IsPass==1 ? "" : ", failed";
-						gamesString += $"{i + 1}. <b>{player.Username}</b>: {game.Scores[i].ScorePoints} ({game.Scores[i].Combo}x, {game.Scores[i].Accuracy.FN2()}%{pass}){Environment.NewLine}";
+						if (game.Scores[i].ScorePoints != 0)
+						{
+							var player = await OsuAPI.GetPlayerAsync(game.Scores[i].UserID.ToString());
+							string pass = game.Scores[i].IsPass == 1 ? "" : ", failed";
+							gamesString += $"{i + 1}. <b>{player.Username}</b>: {game.Scores[i].ScorePoints} ({game.Scores[i].Combo}x, {game.Scores[i].Accuracy.FN2()}%{pass}){Environment.NewLine}";
+						}
 					}
 				}
 			}
-
-			return $"{match.Info.Name} - {match.Info.StartTime}{Environment.NewLine}{Environment.NewLine}{gamesString}";
+			return $"<a href=\"https://osu.ppy.sh/community/matches/{match.Info.ID}\">{match.Info.Name}</a>{Environment.NewLine}{Environment.NewLine}{gamesString}";
 		}
 	}
 }
