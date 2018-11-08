@@ -1,4 +1,4 @@
-﻿// den0bot (c) StanR 2017 - MIT License
+﻿// den0bot (c) StanR 2018 - MIT License
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,10 +16,10 @@ namespace den0bot.Modules
 		public long ChatID { get; set; }
 		public uint CurrentGameID { get; set; }
 	}
-    class ModMatchFollow : IModule, IReceiveAllMessages
-    {
-        private List<FollowedMatch> followList = new List<FollowedMatch>();
-        private DateTime nextCheck = DateTime.Now;
+	class ModMatchFollow : IModule, IReceiveAllMessages
+	{
+		private List<FollowedMatch> followList = new List<FollowedMatch>();
+		private DateTime nextCheck = DateTime.Now;
 
 		private int currentMatch = 0;
 		private bool updating = false;
@@ -29,18 +29,18 @@ namespace den0bot.Modules
 		private readonly int update_time = 5; //seconds
 	
 		public ModMatchFollow()
-        {
-            AddCommands(new Command[] 
-            {
+		{
+			AddCommands(new Command[] 
+			{
 				new Command()
 				{
 					Name = "followmatch",
 					Action = (msg) => StartFollowing(msg)
 				}
-            });
-        }
-        private string StartFollowing(Message msg)
-        {
+			});
+		}
+		private string StartFollowing(Message msg)
+		{
 			Match regexMatch = regex.Match(msg.Text);
 			if (regexMatch.Groups.Count > 1)
 			{
@@ -57,18 +57,18 @@ namespace den0bot.Modules
 				return Localization.Get("matchfollow_added", msg.Chat.Id);
 			}
 			return string.Empty;
-        }
+		}
 
-        public override void Think()
-        {
-            if (followList.Count > 0 && nextCheck < DateTime.Now && !updating)
-            {
-                Update();
-            }
-        }
+		public override void Think()
+		{
+			if (followList.Count > 0 && nextCheck < DateTime.Now && !updating)
+			{
+				Update();
+			}
+		}
 
-        private async void Update()
-        {
+		private async void Update()
+		{
 			updating = true; // thread racing :(
 
 			if (currentMatch >= followList.Count)

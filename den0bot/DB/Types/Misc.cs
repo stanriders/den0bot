@@ -3,11 +3,11 @@ using SQLite;
 
 namespace den0bot.DB.Types
 {
-    class Misc
-    {
-        [PrimaryKey]
-        public bool Hi { get; set; }
+	class Misc
+	{
+		[PrimaryKey]
+		public bool Hi { get; set; }
 
-        public int CurrentMPLobby { get; set; }
-    }
+		public int CurrentMPLobby { get; set; }
+	}
 }

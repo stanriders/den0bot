@@ -49,9 +49,9 @@ namespace den0bot.Modules
 					else
 						API.SendMessage(Localization.Get("cat_fail", message.Chat.Id), message.Chat);
 
-                    nextPost[message.Chat.Id] = DateTime.Now.AddMinutes(cooldown);
-                }
-            }
-        }
-    }
+					nextPost[message.Chat.Id] = DateTime.Now.AddMinutes(cooldown);
+				}
+			}
+		}
+	}
 }

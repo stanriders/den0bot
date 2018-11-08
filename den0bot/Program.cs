@@ -3,13 +3,13 @@ using den0bot.Util;
 
 namespace den0bot
 {
-    class Program
-    {
-        static void Main(string[] args)
-        {
-            Log.Info("", "________________");
-            new Bot();
-            Log.Info("", "Exiting...");
-        }
-    }
+	class Program
+	{
+		static void Main(string[] args)
+		{
+			Log.Info("", "________________");
+			new Bot();
+			Log.Info("", "Exiting...");
+		}
+	}
 }

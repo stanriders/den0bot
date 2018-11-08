@@ -7,200 +7,200 @@ using den0bot.Util;
 
 namespace den0bot.Osu
 {
-//#pragma warning disable CS0649 // Field is never assigned to, and will always have its default value 0
+	//#pragma warning disable CS0649 // Field is never assigned to, and will always have its default value 0
 
-    public class Map
-    {
-        [JsonProperty("beatmap_id")]
-        public uint BeatmapID;
-        [JsonProperty("beatmapset_id")]
-        public uint BeatmapSetID;
+	public class Map
+	{
+		[JsonProperty("beatmap_id")]
+		public uint BeatmapID;
+		[JsonProperty("beatmapset_id")]
+		public uint BeatmapSetID;
 
-        [JsonProperty("last_update")]
-        public DateTime? UpdatedDate;
-        [JsonProperty("approved_date")]
-        public DateTime? RankedDate;
-        [JsonProperty("approved")]
-        public RankedStatus Status;
+		[JsonProperty("last_update")]
+		public DateTime? UpdatedDate;
+		[JsonProperty("approved_date")]
+		public DateTime? RankedDate;
+		[JsonProperty("approved")]
+		public RankedStatus Status;
 
-        [JsonProperty("artist")]
-        public string Artist;
-        [JsonProperty("title")]
-        public string Title;
-        [JsonProperty("version")]
-        public string Difficulty;
-        [JsonProperty("creator")]
-        public string Creator;
-        [JsonProperty("mode")]
-        public Mode Mode;
+		[JsonProperty("artist")]
+		public string Artist;
+		[JsonProperty("title")]
+		public string Title;
+		[JsonProperty("version")]
+		public string Difficulty;
+		[JsonProperty("creator")]
+		public string Creator;
+		[JsonProperty("mode")]
+		public Mode Mode;
 
-        [JsonProperty("difficultyrating")]
-        public double StarRating;
-        [JsonProperty("diff_size")]
-        private double cs { get; set; }
-        [JsonProperty("diff_approach")]
-        private double ar { get; set; }
-        [JsonProperty("diff_overall")]
-        private double od { get; set; }
-        [JsonProperty("diff_drain")]
-        private double hp { get; set; }
+		[JsonProperty("difficultyrating")]
+		public double StarRating;
+		[JsonProperty("diff_size")]
+		private double cs { get; set; }
+		[JsonProperty("diff_approach")]
+		private double ar { get; set; }
+		[JsonProperty("diff_overall")]
+		private double od { get; set; }
+		[JsonProperty("diff_drain")]
+		private double hp { get; set; }
 
-        [JsonProperty("max_combo")]
-        public uint? MaxCombo;
-        [JsonProperty("hit_length")]
-        private uint drainLength { get; set; }
-        [JsonProperty("total_length")]
-        public uint TotalLength;
+		[JsonProperty("max_combo")]
+		public uint? MaxCombo;
+		[JsonProperty("hit_length")]
+		private uint drainLength { get; set; }
+		[JsonProperty("total_length")]
+		public uint TotalLength;
 
-        [JsonProperty("bpm")]
-        private double bpm { get; set; }
+		[JsonProperty("bpm")]
+		private double bpm { get; set; }
 
-        public double BPM(string mods = default(string))
-        {
-            if (mods.Contains("DT") || mods.Contains("NC"))
-            {
-                return bpm * 1.5;
-            }
-            else if (mods.Contains("HT"))
-            {
-                return bpm * 0.75;
-            }
-            else
-            {
-                return bpm;
-            }
-        }
+		public double BPM(string mods = default(string))
+		{
+			if (mods.Contains("DT") || mods.Contains("NC"))
+			{
+				return bpm * 1.5;
+			}
+			else if (mods.Contains("HT"))
+			{
+				return bpm * 0.75;
+			}
+			else
+			{
+				return bpm;
+			}
+		}
 
-        public double CS(string mods = default(string))
-        {
-            if (mods.Contains("HR"))
-            {
-                return cs * 1.3;
-            }
-            else if (mods.Contains("EZ"))
-            {
-                return cs * 0.5;
-            }
-            else
-            {
-                return cs;
-            }
-        }
+		public double CS(string mods = default(string))
+		{
+			if (mods.Contains("HR"))
+			{
+				return cs * 1.3;
+			}
+			else if (mods.Contains("EZ"))
+			{
+				return cs * 0.5;
+			}
+			else
+			{
+				return cs;
+			}
+		}
 
-        public double AR(string mods = default(string))
-        {
-            double finalAR = ar;
+		public double AR(string mods = default(string))
+		{
+			double finalAR = ar;
 
-            if (mods.Contains("HR"))
-            {
-                finalAR = Math.Min(finalAR * 1.4, 10);
-            }
-            else if (mods.Contains("EZ"))
-            {
-                finalAR *= 0.5;
-            }
+			if (mods.Contains("HR"))
+			{
+				finalAR = Math.Min(finalAR * 1.4, 10);
+			}
+			else if (mods.Contains("EZ"))
+			{
+				finalAR *= 0.5;
+			}
 
-            double ms = (11700.0 - 900 * finalAR) / 6.0;
-            if (mods.Contains("DT") || mods.Contains("NC"))
-            {
-                ms /= 1.5;
-                finalAR = (11700.0 - 6 * ms) / 900.0;
-            }
-            else if (mods.Contains("HT"))
-            {
-                ms /= 0.75;
-                finalAR = (11700.0 - 6 * ms) / 900.0;
-            }
+			double ms = (11700.0 - 900 * finalAR) / 6.0;
+			if (mods.Contains("DT") || mods.Contains("NC"))
+			{
+				ms /= 1.5;
+				finalAR = (11700.0 - 6 * ms) / 900.0;
+			}
+			else if (mods.Contains("HT"))
+			{
+				ms /= 0.75;
+				finalAR = (11700.0 - 6 * ms) / 900.0;
+			}
 
-            return finalAR;
-        }
+			return finalAR;
+		}
 
-        public double OD(string mods = default(string))
-        {
-            double finalOD = od;
+		public double OD(string mods = default(string))
+		{
+			double finalOD = od;
 
-            if (mods.Contains("HR"))
-            {
-                finalOD = Math.Min(finalOD * 1.4, 10);
-            }
-            else if (mods.Contains("EZ"))
-            {
-                finalOD *= 0.5;
-            }
+			if (mods.Contains("HR"))
+			{
+				finalOD = Math.Min(finalOD * 1.4, 10);
+			}
+			else if (mods.Contains("EZ"))
+			{
+				finalOD *= 0.5;
+			}
 
-            double ms = (79.5 - 6 * finalOD);
-            if (mods.Contains("DT") || mods.Contains("NC"))
-            {
-                finalOD = (79.5 - ms / 1.5) / 6;
-            }
-            else if (mods.Contains("HT"))
-            {
-                finalOD = (79.5 - ms / 0.75) / 6;
-            }
-            return finalOD;
-        }
+			double ms = (79.5 - 6 * finalOD);
+			if (mods.Contains("DT") || mods.Contains("NC"))
+			{
+				finalOD = (79.5 - ms / 1.5) / 6;
+			}
+			else if (mods.Contains("HT"))
+			{
+				finalOD = (79.5 - ms / 0.75) / 6;
+			}
+			return finalOD;
+		}
 
-        public double HP(string mods = default(string))
-        {
-            if (mods.Contains("HR"))
-            {
-                return hp * 1.4;
-            }
-            else if (mods.Contains("EZ"))
-            {
-                return hp * 0.5;
-            }
-            else
-            {
-                return hp;
-            }
-        }
+		public double HP(string mods = default(string))
+		{
+			if (mods.Contains("HR"))
+			{
+				return hp * 1.4;
+			}
+			else if (mods.Contains("EZ"))
+			{
+				return hp * 0.5;
+			}
+			else
+			{
+				return hp;
+			}
+		}
 
-        public TimeSpan DrainLength(string mods = default(string))
-        {
-            if (mods.Contains("DT") || mods.Contains("NC"))
-            {
-                return TimeSpan.FromSeconds((long)(drainLength * 0.6666666));
-            }
-            else if (mods.Contains("HT"))
-            {
-                return TimeSpan.FromSeconds((long)(drainLength * 1.333333));
-            }
-            return TimeSpan.FromSeconds(drainLength);
-        }
+		public TimeSpan DrainLength(string mods = default(string))
+		{
+			if (mods.Contains("DT") || mods.Contains("NC"))
+			{
+				return TimeSpan.FromSeconds((long)(drainLength * 0.6666666));
+			}
+			else if (mods.Contains("HT"))
+			{
+				return TimeSpan.FromSeconds((long)(drainLength * 1.333333));
+			}
+			return TimeSpan.FromSeconds(drainLength);
+		}
 
-        public string Thumbnail
-        {
-            get { return "https://assets.ppy.sh/beatmaps/" + BeatmapSetID + "/covers/cover.jpg"; }
-        }
+		public string Thumbnail
+		{
+			get { return "https://assets.ppy.sh/beatmaps/" + BeatmapSetID + "/covers/cover.jpg"; }
+		}
 
 		private string fileString = null;
-        public string File
-        {
-            get
-            {
-                try
-                {
+		public string File
+		{
+			get
+			{
+				try
+				{
 					if (string.IsNullOrEmpty(fileString))
 						fileString = new WebClient().DownloadString("https://osu.ppy.sh/osu/" + BeatmapID);
 
 					return fileString;
-                }
-                catch (Exception e)
-                {
-                    Log.Error(this, $"File - {e.InnerMessageIfAny()}");
-                    return string.Empty;
-                }
-            }
-        }
+				}
+				catch (Exception e)
+				{
+					Log.Error(this, $"File - {e.InnerMessageIfAny()}");
+					return string.Empty;
+				}
+			}
+		}
 
 		private byte[] fileBytes = null;
-        public byte[] FileBytes
-        {
-            get
-            {
-                try
-                {
+		public byte[] FileBytes
+		{
+			get
+			{
+				try
+				{
 					if (fileBytes == null)
 					{
 						var client = new WebClient();
@@ -210,19 +210,19 @@ namespace den0bot.Osu
 					return fileBytes;
 
 				}
-                catch (Exception e)
-                {
-                    Log.Error(this, $"File - {e.InnerMessageIfAny()}");
-                    return null;
-                }
-            }
-        }
+				catch (Exception e)
+				{
+					Log.Error(this, $"File - {e.InnerMessageIfAny()}");
+					return null;
+				}
+			}
+		}
 
-        public string Link
-        {
-            get { return "https://osu.ppy.sh/b/" + BeatmapID; }
-        }
-    }
+		public string Link
+		{
+			get { return "https://osu.ppy.sh/b/" + BeatmapID; }
+		}
+	}
 
-//#pragma warning restore CS0649
+	//#pragma warning restore CS0649
 }

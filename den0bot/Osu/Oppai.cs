@@ -7,8 +7,8 @@ using OppaiSharp;
 
 namespace den0bot.Osu
 {
-    static class Oppai
-    {
+	static class Oppai
+	{
 		public static double GetBeatmapPP(byte[] beatmap, Mods mods, double acc)
 		{
 			return GetBeatmapOppaiInfo(beatmap, mods, acc)?.pp ?? -1;
@@ -23,15 +23,15 @@ namespace den0bot.Osu
 		}
 
 		public static OppaiInfo GetBeatmapOppaiInfo(byte[] beatmap, Mods mods = Mods.None, double acc = -1, int c300 = -1, int c100 = 0, int c50 = 0, int combo = -1, int misses = 0)
-        {
-            try
-            {
-                var stream = new MemoryStream(beatmap, false);
-                var reader = new StreamReader(stream, true);
+		{
+			try
+			{
+				var stream = new MemoryStream(beatmap, false);
+				var reader = new StreamReader(stream, true);
 
-                Thread.CurrentThread.CurrentCulture = CultureInfo.InvariantCulture;
-                Beatmap map = Beatmap.Read(reader);
-                DiffCalc diff = new DiffCalc().Calc(map, (OppaiSharp.Mods)mods);
+				Thread.CurrentThread.CurrentCulture = CultureInfo.InvariantCulture;
+				Beatmap map = Beatmap.Read(reader);
+				DiffCalc diff = new DiffCalc().Calc(map, (OppaiSharp.Mods)mods);
 
 				if (acc != -1)
 				{
@@ -39,25 +39,25 @@ namespace den0bot.Osu
 					AccuracyToHits(acc, objectCount, misses, out c300, out c100, out c50);
 				}
 
-                PPv2 pp = new PPv2(new PPv2Parameters(map, diff,
-                    c300: c300,
-                    c100: c100,
-                    c50: c50,
-                    cMiss: misses,
-                    combo: combo,
-                    mods: (OppaiSharp.Mods)mods)
-                    );
+				PPv2 pp = new PPv2(new PPv2Parameters(map, diff,
+					c300: c300,
+					c100: c100,
+					c50: c50,
+					cMiss: misses,
+					combo: combo,
+					mods: (OppaiSharp.Mods)mods)
+					);
 
-                return new OppaiInfo()
-                {
-                    version = map.Version,
-                    stars = diff.Total,
-                    aim = pp.Aim,
-                    speed = pp.Speed,
-                    pp = pp.Total
-                };
-            }
-            catch (Exception){ }
+				return new OppaiInfo()
+				{
+					version = map.Version,
+					stars = diff.Total,
+					aim = pp.Aim,
+					speed = pp.Speed,
+					pp = pp.Total
+				};
+			}
+			catch (Exception) { }
 
 			return null;
 		}
@@ -96,5 +96,5 @@ namespace den0bot.Osu
 			count100 = c100;
 			count50 = c50;
 		}
-    }
+	}
 }

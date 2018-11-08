@@ -7,10 +7,10 @@ using Telegram.Bot.Types.Enums;
 
 namespace den0bot.Modules
 {
-    class ModSettings : IModule, IReceivePhotos
-    {
-        public ModSettings()
-        {
+	class ModSettings : IModule, IReceivePhotos
+	{
+		public ModSettings()
+		{
 			AddCommands(new Command[]
 			{
 				new Command()
@@ -68,108 +68,108 @@ namespace den0bot.Modules
 					Action = (msg) => SetLocale(msg)
 				}
 			});
-            Log.Info(this, "Enabled");
-        }
+			Log.Info(this, "Enabled");
+		}
 
-        private string AddMeme(Telegram.Bot.Types.Message message)
-        {
-            long chatId = message.Chat.Id;
-            string link = message.Text.Substring(7);
+		private string AddMeme(Telegram.Bot.Types.Message message)
+		{
+			long chatId = message.Chat.Id;
+			string link = message.Text.Substring(7);
 
-            if (link.StartsWith("http") && (link.EndsWith(".jpg") || link.EndsWith(".png")))
-            {
-                Database.AddMeme(link, chatId);
-                return "Мемес добавлен!";
-            }
-            else if (message.Type == MessageType.Photo)
-            {
-                Database.AddMeme(message.Photo[0].FileId, chatId);
-                return "Мемес добавлен!";
-            }
-            return "Ты че деб? /addmeme <ссылка>";
-        }
+			if (link.StartsWith("http") && (link.EndsWith(".jpg") || link.EndsWith(".png")))
+			{
+				Database.AddMeme(link, chatId);
+				return "Мемес добавлен!";
+			}
+			else if (message.Type == MessageType.Photo)
+			{
+				Database.AddMeme(message.Photo[0].FileId, chatId);
+				return "Мемес добавлен!";
+			}
+			return "Ты че деб? /addmeme <ссылка>";
+		}
 
-        private string AddPlayer(Telegram.Bot.Types.Message message)
-        {
-            string[] msg = message.Text.Split(' ');
-            if (msg.Length == 4)
-            {
-                string username = msg[1];
-                string name = msg[2];
-                string id = msg[3];
+		private string AddPlayer(Telegram.Bot.Types.Message message)
+		{
+			string[] msg = message.Text.Split(' ');
+			if (msg.Length == 4)
+			{
+				string username = msg[1];
+				string name = msg[2];
+				string id = msg[3];
 
-                if (!string.IsNullOrEmpty(username) && !string.IsNullOrEmpty(name))
-                {
-                    uint osuID = 0;
-                    if (id != null && id != string.Empty)
-                    {
-                        try { osuID = uint.Parse(id); } catch (Exception) { }
-                    }
+				if (!string.IsNullOrEmpty(username) && !string.IsNullOrEmpty(name))
+				{
+					uint osuID = 0;
+					if (id != null && id != string.Empty)
+					{
+						try { osuID = uint.Parse(id); } catch (Exception) { }
+					}
 
-                    if (username[0] == '@')
-                        username = username.Substring(1);
+					if (username[0] == '@')
+						username = username.Substring(1);
 
-                    if (Database.AddPlayer(username, name, osuID, message.Chat.Id))
-                        return $"{username} добавлен! Имя {name}, профиль {osuID}";
-                    else
-                        return "Че-т не вышло.";
-                }
-            }
-            return "Ты че деб? /addplayer <юзернейм-в-тг> <имя> <осу-айди>";
-        }
+					if (Database.AddPlayer(username, name, osuID, message.Chat.Id))
+						return $"{username} добавлен! Имя {name}, профиль {osuID}";
+					else
+						return "Че-т не вышло.";
+				}
+			}
+			return "Ты че деб? /addplayer <юзернейм-в-тг> <имя> <осу-айди>";
+		}
 
-        private string RemovePlayer(Telegram.Bot.Types.Message message)
-        {
-            string name = message.Text.Substring(14);
+		private string RemovePlayer(Telegram.Bot.Types.Message message)
+		{
+			string name = message.Text.Substring(14);
 
-            if (name != null && name != string.Empty)
-            {
-                if (Database.RemovePlayer(name, message.Chat.Id))
-                    return $"{name} удален.";
-                else
-                    return $"Че-т не вышло.";
-            }
-            return "Ты че деб? /removeplayer <имя>";
-        }
+			if (name != null && name != string.Empty)
+			{
+				if (Database.RemovePlayer(name, message.Chat.Id))
+					return $"{name} удален.";
+				else
+					return $"Че-т не вышло.";
+			}
+			return "Ты че деб? /removeplayer <имя>";
+		}
 
-        private string UpdatePlayer(Telegram.Bot.Types.Message message)
-        {
-            string[] msg = message.Text.Split(' ');
-            if (msg.Length == 4)
-            {
-                string name = msg[1];
-                string username = msg[2];
-                string id = msg[3];
+		private string UpdatePlayer(Telegram.Bot.Types.Message message)
+		{
+			string[] msg = message.Text.Split(' ');
+			if (msg.Length == 4)
+			{
+				string name = msg[1];
+				string username = msg[2];
+				string id = msg[3];
 
-                if (!string.IsNullOrEmpty(username) && !string.IsNullOrEmpty(name))
-                {
-                    uint osuID = 0;
-                    if (id != null && id != string.Empty)
-                    {
-                        try { osuID = uint.Parse(id); } catch (Exception) { }
-                    }
+				if (!string.IsNullOrEmpty(username) && !string.IsNullOrEmpty(name))
+				{
+					uint osuID = 0;
+					if (id != null && id != string.Empty)
+					{
+						try { osuID = uint.Parse(id); } catch (Exception) { }
+					}
 
-                    if (username[0] == '@')
-                        username = username.Substring(1);
+					if (username[0] == '@')
+						username = username.Substring(1);
 
-                    //if (Database.UpdatePlayer(username, name, osuID, message.Chat.Id))
-                    //    return $"{username} добавлен! Имя {name}, профиль {osuID}";
-                    //else
-                        return "Че-т не вышло.";
-                }
-            }
-            return "Ты че деб? /updateplayer <имя> <юзернейм-в-тг> <осу-айди>";
-        }
-        private string GetPlayerList(Telegram.Bot.Types.Message message)
-        {
-            string result = string.Empty;
-            List<DB.Types.Player> players = Database.GetAllPlayers(message.Chat.Id);
-            foreach (DB.Types.Player player in players)
-            {
-                result += $"{player.FriendlyName} - /u/{player.OsuID} - {player.Topscores}{Environment.NewLine}";
-            }
-            return result;
-        }
+					//if (Database.UpdatePlayer(username, name, osuID, message.Chat.Id))
+					//	return $"{username} добавлен! Имя {name}, профиль {osuID}";
+					//else
+						return "Че-т не вышло.";
+				}
+			}
+			return "Ты че деб? /updateplayer <имя> <юзернейм-в-тг> <осу-айди>";
+		}
+		private string GetPlayerList(Telegram.Bot.Types.Message message)
+		{
+			string result = string.Empty;
+			List<DB.Types.Player> players = Database.GetAllPlayers(message.Chat.Id);
+			foreach (DB.Types.Player player in players)
+			{
+				result += $"{player.FriendlyName} - /u/{player.OsuID} - {player.Topscores}{Environment.NewLine}";
+			}
+			return result;
+		}
 
 		private string SetLocale(Telegram.Bot.Types.Message message)
 		{
@@ -184,5 +184,5 @@ namespace den0bot.Modules
 				return "😡";
 			}
 		}
-    }
+	}
 }

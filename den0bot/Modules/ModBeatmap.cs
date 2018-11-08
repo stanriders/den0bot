@@ -9,68 +9,68 @@ using Telegram.Bot.Types;
 
 namespace den0bot.Modules
 {
-    class ModBeatmap : IModule, IReceiveAllMessages
+	class ModBeatmap : IModule, IReceiveAllMessages
 	{
-        private Regex regex = new Regex(@"(?>https?:\/\/)?(?>osu|old)\.ppy\.sh\/([b,s]|(?>beatmapsets))\/(\d+\/?\#osu\/)?(\d+)?\/?(?>[&,?].=\d)?\s?(?>\+(\w+))?", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+		private Regex regex = new Regex(@"(?>https?:\/\/)?(?>osu|old)\.ppy\.sh\/([b,s]|(?>beatmapsets))\/(\d+\/?\#osu\/)?(\d+)?\/?(?>[&,?].=\d)?\s?(?>\+(\w+))?", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
-        public async void ReceiveMessage(Message message)
-        {
-            Match regexMatch = regex.Match(message.Text);
-            if (regexMatch.Groups.Count > 1)
-            {
-                List<Group> regexGroups = regexMatch.Groups.OfType<Group>().Where(x => (x != null) && (x.Length > 0)).ToList();
+		public async void ReceiveMessage(Message message)
+		{
+			Match regexMatch = regex.Match(message.Text);
+			if (regexMatch.Groups.Count > 1)
+			{
+				List<Group> regexGroups = regexMatch.Groups.OfType<Group>().Where(x => (x != null) && (x.Length > 0)).ToList();
 
-                bool isNew = regexGroups[1].Value == "beatmapsets"; // are we using new website or not
-                bool isSet = false;
-                uint beatmapId = 0;
-                string mods = string.Empty;
+				bool isNew = regexGroups[1].Value == "beatmapsets"; // are we using new website or not
+				bool isSet = false;
+				uint beatmapId = 0;
+				string mods = string.Empty;
 
-                if (isNew)
-                {
-                    if (regexGroups[2].Value.Contains("#osu/"))
-                    {
-                        beatmapId = uint.Parse(regexGroups[3].Value);
-                        if (regexGroups.Count > 4)
-                            mods = regexGroups[4].Value;
-                    }
-                    else
-                    {
-                        isSet = true;
-                    }
-                }
-                else
-                { 
-                    if(regexGroups[1].Value == "s")
-                        isSet = true;
+				if (isNew)
+				{
+					if (regexGroups[2].Value.Contains("#osu/"))
+					{
+						beatmapId = uint.Parse(regexGroups[3].Value);
+						if (regexGroups.Count > 4)
+							mods = regexGroups[4].Value;
+					}
+					else
+					{
+						isSet = true;
+					}
+				}
+				else
+				{ 
+					if(regexGroups[1].Value == "s")
+						isSet = true;
 
-                    beatmapId = uint.Parse(regexGroups[2].Value);
-                    if (regexGroups.Count > 3)
-                        mods = regexGroups[3].Value;
-                }
+					beatmapId = uint.Parse(regexGroups[2].Value);
+					if (regexGroups.Count > 3)
+						mods = regexGroups[3].Value;
+				}
 
-                Map map = null;
-                if (isSet)
-                {
-                    List<Map> set = await OsuAPI.GetBeatmapSetAsync(beatmapId);
-                    if (set?.Count > 0)
-                        map = set?.Last();
-                }
-                else
-                {
-                    map = await OsuAPI.GetBeatmapAsync(beatmapId);
-                }
+				Map map = null;
+				if (isSet)
+				{
+					List<Map> set = await OsuAPI.GetBeatmapSetAsync(beatmapId);
+					if (set?.Count > 0)
+						map = set?.Last();
+				}
+				else
+				{
+					map = await OsuAPI.GetBeatmapAsync(beatmapId);
+				}
 				if (map != null)
 					API.SendPhoto(map.Thumbnail, message.Chat, FormatMapInfo(map, mods, message.Chat.Id), Telegram.Bot.Types.Enums.ParseMode.Html);
-            }
-        }
+			}
+		}
 
-        public static string FormatMapInfo(Map map, string mods, long chatID)
-        {
+		public static string FormatMapInfo(Map map, string mods, long chatID)
+		{
 			double starRating = map.StarRating;
 			string pp = string.Empty;
 
 			try
-            {
+			{
 				Mods modsEnum = mods.ConvertToMods();
 
 				OppaiInfo info100 = Oppai.GetBeatmapOppaiInfo(map.FileBytes, modsEnum, 100);
@@ -88,9 +88,9 @@ namespace den0bot.Modules
 						pp += $" | 95% - {info95.FN2()}pp";
 					
 				}
-            }
-            catch (Exception)
-            { }
+			}
+			catch (Exception)
+			{ }
 
 			string result = string.Format("[{0}] - {1}* - {2}{3} - {4}\nCS: {5} | AR: {6} | OD: {7} | BPM: {8}",
 				map.Difficulty, starRating.FN2(), map.DrainLength(mods).ToString("mm':'ss"), $" - {map.Creator}", map.Status.ToString(),
@@ -100,7 +100,7 @@ namespace den0bot.Modules
 			result += pp;
 			result += $"\n[<a href=\"https://osu.ppy.sh/beatmapsets/{map.BeatmapSetID}/download\">{Localization.Get("beatmap_download", chatID)}</a>]";
 
-            return result;
-        }
-    }
+			return result;
+		}
+	}
 }

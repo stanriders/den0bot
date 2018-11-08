@@ -8,48 +8,48 @@ using System.Threading.Tasks;
 
 namespace den0bot.Util
 {
-    public static class Extensions
-    {
-        public static string FilterHTML(this string value)
-        {
-            var step1 = value.Replace("<br>", Environment.NewLine);
+	public static class Extensions
+	{
+		public static string FilterHTML(this string value)
+		{
+			var step1 = value.Replace("<br>", Environment.NewLine);
 
-            var step2 = Regex.Replace(step1, @"<[^>]+>", "").Trim();
+			var step2 = Regex.Replace(step1, @"<[^>]+>", "").Trim();
 
-            return Regex.Replace(step2, @"\s{2,}", " ")
-                        .Replace("&gt;", ">")
-                        .Replace("&nbsp;", " ")
-                        .Replace("&quot;", "\"")
-                        .Replace("&#47;", "/");
-        }
+			return Regex.Replace(step2, @"\s{2,}", " ")
+						.Replace("&gt;", ">")
+						.Replace("&nbsp;", " ")
+						.Replace("&quot;", "\"")
+						.Replace("&#47;", "/");
+		}
 
-        public static string FilterToHTML(this string value)
-        {
-            return value.Replace("&", "&amp;")
-                        .Replace("<", "&lt;")
-                        .Replace(">", "&gt;")
-                        .Replace("\"", "&quot;");
-        }
+		public static string FilterToHTML(this string value)
+		{
+			return value.Replace("&", "&amp;")
+						.Replace("<", "&lt;")
+						.Replace(">", "&gt;")
+						.Replace("\"", "&quot;");
+		}
 
-        public static string InnerMessageIfAny(this Exception value)
-        {
-            return value.InnerException?.Message ?? value.Message;
-        }
+		public static string InnerMessageIfAny(this Exception value)
+		{
+			return value.InnerException?.Message ?? value.Message;
+		}
 
-        public static TKey GetKeyByValue<TKey,TValue>(this Dictionary<TKey, TValue> dic, TValue value) where TValue : class
-        {
-            return dic.FirstOrDefault(x => x.Value == value).Key;
-        }
+		public static TKey GetKeyByValue<TKey, TValue>(this Dictionary<TKey, TValue> dic, TValue value) where TValue : class
+		{
+			return dic.FirstOrDefault(x => x.Value == value).Key;
+		}
 
-        public static string FN2 (this double value)
-        {
-            return value.ToString("N2");
-        }
+		public static string FN2(this double value)
+		{
+			return value.ToString("N2");
+		}
 
 		public static Osu.Mods ConvertToMods(this string mods)
 		{
 			Osu.Mods result = Osu.Mods.None;
-			if (Enum.TryParse(mods, true, out result) || string.IsNullOrEmpty(mods) || mods.Length > 36 ) // every mod combination possible
+			if (Enum.TryParse(mods, true, out result) || string.IsNullOrEmpty(mods) || mods.Length > 36) // every mod combination possible
 				return result;
 			else
 			{

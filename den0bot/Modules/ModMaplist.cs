@@ -32,10 +32,10 @@ namespace den0bot.Modules
 
         private bool Start()
         {
-			if (string.IsNullOrEmpty(Config.googleapi_token))
-				return false;
+            if (string.IsNullOrEmpty(Config.googleapi_token))
+                return false;
 
-			Log.Info(this, "Loading...");
+            Log.Info(this, "Loading...");
             try
             {
                 string request = "https://sheets.googleapis.com/v4/spreadsheets/" + spreadsheet + "/values/A2:B999?key=" + Config.googleapi_token;
@@ -78,19 +78,19 @@ namespace den0bot.Modules
                 {
                     return Maplist[num][0] + Environment.NewLine + Maplist[num][1];
                 }
-				if (map != null)
-				{
-					string format = ModBeatmap.FormatMapInfo(map, string.Empty, message.Chat.Id);
-					string caption = $"{Maplist[num][0]} {format}";
-					if (caption.Length > 265) // 200 regular character limit + HTML
-					{
-						if (caption.Length - Maplist[num][0].Length > 265)
-							caption = $"<a href=\"{Maplist[num][1]}\">{Maplist[num][0]}</a>"; // shouldn't happen really, but who knows
-						else
-							caption = $"{format}";
-					}
-					API.SendPhoto(map?.Thumbnail, message.Chat, caption, ParseMode.Html);
-				}
+                if (map != null)
+                {
+                    string format = ModBeatmap.FormatMapInfo(map, string.Empty, message.Chat.Id);
+                    string caption = $"{Maplist[num][0]} {format}";
+                    if (caption.Length > 265) // 200 regular character limit + HTML
+                    {
+                        if (caption.Length - Maplist[num][0].Length > 265)
+                            caption = $"<a href=\"{Maplist[num][1]}\">{Maplist[num][0]}</a>"; // shouldn't happen really, but who knows
+                        else
+                            caption = $"{format}";
+                    }
+                    API.SendPhoto(map?.Thumbnail, message.Chat, caption, ParseMode.Html);
+                }
 
                 return string.Empty;
             }

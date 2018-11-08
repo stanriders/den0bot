@@ -22,9 +22,9 @@ namespace den0bot.Modules
 		public int MessageID { get; set; }
 		public int CommandMessageID { get; set; }
 	}
-    public class ModGirls : IModule, IReceiveAllMessages, IReceiveCallback, IReceivePhotos
+	public class ModGirls : IModule, IReceiveAllMessages, IReceiveCallback, IReceivePhotos
 	{
-        private MemoryCache sentGirlsCache = MemoryCache.Default;
+		private MemoryCache sentGirlsCache = MemoryCache.Default;
 		private readonly int days_to_keep_messages = 1; // how long do we keep girls in cache
 
 		private InlineKeyboardMarkup buttons = new InlineKeyboardMarkup(
@@ -40,7 +40,7 @@ namespace den0bot.Modules
 		private readonly int top_girls_amount = 9;
 
 		public ModGirls()
-        {
+		{
 			AddCommands(new Command[]
 			{
 				new Command
@@ -76,24 +76,24 @@ namespace den0bot.Modules
 					Reply = true,
 					Action = (msg) => DeleteGirl(msg)
 				}
-            });
-            Log.Info(this, "Enabled");
-        }
-        public void ReceiveMessage(Message message)
-        {
-            if (message.Type == MessageType.Photo && message.Caption == Localization.Get("girls_tag", message.Chat.Id))
-            {
-                Database.AddGirl(message.Photo[0].FileId, message.Chat.Id);
-            }
-        }
+			});
+			Log.Info(this, "Enabled");
+		}
+		public void ReceiveMessage(Message message)
+		{
+			if (message.Type == MessageType.Photo && message.Caption == Localization.Get("girls_tag", message.Chat.Id))
+			{
+				Database.AddGirl(message.Photo[0].FileId, message.Chat.Id);
+			}
+		}
 
-        private async Task<string> GetRandomGirl(Message msg)
-        {
+		private async Task<string> GetRandomGirl(Message msg)
+		{
 			long chatID = msg.Chat.Id;
 
 			int girlCount = Database.GetGirlCount(chatID);
-            if (girlCount <= 0)
-                return Localization.Get("girls_not_found", chatID);
+			if (girlCount <= 0)
+				return Localization.Get("girls_not_found", chatID);
 
 			if (!antispamBuffer.ContainsKey(chatID))
 				antispamBuffer.Add(chatID, new Queue<ChachedGirl>(3));
@@ -132,40 +132,40 @@ namespace den0bot.Modules
 
 			return Localization.Get("generic_fail", chatID);
 		}
-        private async Task<string> GetRandomPlatinumGirl(Chat sender)
-        {
-            DB.Types.Girl picture = Database.GetPlatinumGirl(sender.Id);
-            if (picture != null && picture.Link != string.Empty)
-            {
-                await API.SendPhoto(picture.Link, sender.Id);
-                return string.Empty;
-            }
+		private async Task<string> GetRandomPlatinumGirl(Chat sender)
+		{
+			DB.Types.Girl picture = Database.GetPlatinumGirl(sender.Id);
+			if (picture != null && picture.Link != string.Empty)
+			{
+				await API.SendPhoto(picture.Link, sender.Id);
+				return string.Empty;
+			}
 
-            return Localization.Get("girls_not_found", sender.Id);
-        }
-        private string TopGirls(long chatID, bool reverse = false)
-        {
-            var topGirls = Database.GetTopGirls(chatID);
-            if (topGirls != null)
-            {
-                List<InputMediaPhoto> photos = new List<InputMediaPhoto>();
+			return Localization.Get("girls_not_found", sender.Id);
+		}
+		private string TopGirls(long chatID, bool reverse = false)
+		{
+			var topGirls = Database.GetTopGirls(chatID);
+			if (topGirls != null)
+			{
+				List<InputMediaPhoto> photos = new List<InputMediaPhoto>();
 
 				// if we want the worst rated ones
-                if (reverse)
-                    topGirls.Reverse();
+				if (reverse)
+					topGirls.Reverse();
 
 				topGirls = topGirls.Take(top_girls_amount).ToList();
-                foreach (var girl in topGirls)
-                {
-                    if (girl.Rating < -10)
-                        Database.RemoveGirl(girl.Id); // just in case
+				foreach (var girl in topGirls)
+				{
+					if (girl.Rating < -10)
+						Database.RemoveGirl(girl.Id); // just in case
 
-                    photos.Add(new InputMediaPhoto(girl.Link) { Caption = girl.Rating.ToString() });
-                }
-                API.SendMultiplePhotos(photos, chatID).NoAwait();
-            }
-            return string.Empty;
-        }
+					photos.Add(new InputMediaPhoto(girl.Link) { Caption = girl.Rating.ToString() });
+				}
+				API.SendMultiplePhotos(photos, chatID).NoAwait();
+			}
+			return string.Empty;
+		}
 
 		public void ReceiveCallback(CallbackQuery callback)
 		{
