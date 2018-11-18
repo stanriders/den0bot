@@ -13,7 +13,7 @@ namespace den0bot.DB
 	public static class Database
 	{
 		private static SQLiteConnection db;
-		private static string databasePath = Path.Combine(Environment.CurrentDirectory, "data.db");
+		private static string databasePath = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) + Path.DirectorySeparatorChar + "data.db";
 		private static List<Chat> chatCache;
 
 		public static void Init()
