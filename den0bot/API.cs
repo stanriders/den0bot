@@ -73,7 +73,7 @@ namespace den0bot
 		/// <param name="mode">ParseMode to use (None/Markdown/HTML)</param>
 		/// <param name="replyID">Message ID to reply to</param>
 		public static void SendMessage(string message, Chat receiver, ParseMode mode = ParseMode.Default, int replyID = 0, IReplyMarkup replyMarkup = null, bool disablePreview = true) =>
-			SendMessage(message, receiver.Id, mode, replyID, replyMarkup, disablePreview);
+			SendMessage(message, receiver.Id, mode, replyID, replyMarkup, disablePreview).NoAwait();
 
 		/// <summary>
 		/// Send message
@@ -113,9 +113,9 @@ namespace den0bot
 				else if (!receiver.DisableAnnouncements)
 				{
 					if (!string.IsNullOrEmpty(image))
-						SendPhoto(image, receiver.Id, msg, mode);
+						SendPhoto(image, receiver.Id, msg, mode).NoAwait();
 					else
-						SendMessage(msg, receiver.Id, mode);
+						SendMessage(msg, receiver.Id, mode).NoAwait();
 				}
 			}
 		}
@@ -127,7 +127,7 @@ namespace den0bot
 		/// <param name="receiver">Chat to send photo to</param>
 		/// <param name="message">Photo caption if any</param>
 		public static void SendPhoto(string photo, Chat receiver, string message = "", ParseMode mode = ParseMode.Default, int replyID = 0, IReplyMarkup replyMarkup = null) =>
-			SendPhoto(photo, receiver.Id, message, mode, replyID, replyMarkup);
+			SendPhoto(photo, receiver.Id, message, mode, replyID, replyMarkup).NoAwait();
 
 		/// <summary>
 		/// Send photo

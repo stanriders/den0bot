@@ -15,6 +15,7 @@ namespace den0bot.DB
 		private static SQLiteConnection db;
 		private static string databasePath = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) + Path.DirectorySeparatorChar + "data.db";
 		private static List<Chat> chatCache;
+		private static List<User> userCache;
 
 		public static void Init()
 		{
@@ -24,13 +25,86 @@ namespace den0bot.DB
 			db.CreateTable<Player>();
 			db.CreateTable<Misc>();
 			db.CreateTable<Girl>();
+			db.CreateTable<User>();
 
-			// we keep whole chat table in memory because its being accessed quite often
+			db.CreateTable<Santa>();
+
+			// we keep whole chat and user tables in memory because they're being accessed quite often
 			chatCache = db.Table<Chat>().ToList();
-
+			userCache = db.Table<User>().ToList();
 		}
 		public static void Close() => db.Close();
 
+		// ---
+		// Users
+		// ---
+		public static void AddUser(int id, string username)
+		{
+			if (userCache.Where(x => x.Username == username).FirstOrDefault() == null)
+			{
+				var user = new User
+				{
+					Username = username,
+					TelegramID = id
+				};
+				db.Insert(user);
+				userCache.Add(user);
+			}
+		}
+		public static int GetUserID(string username)
+		{
+			if (!string.IsNullOrEmpty(username))
+			{
+				User user = userCache.Where(x => x.Username == username)?.FirstOrDefault();
+				if (user != null)
+				{
+					return user.TelegramID;
+				}
+			}
+			return 0;
+		}
+		public static string GetUsername(int id)
+		{
+			User user = userCache.Where(x => x.TelegramID == id)?.FirstOrDefault();
+			if (user != null)
+			{
+				return user.Username;
+			}
+			return null;
+		}
+
+		// ---
+		// Santa
+		// ---
+		public static void AddSanta(string sender, string receiver)
+		{
+			if (db.Table<Santa>().Where(x => x.Sender == sender).FirstOrDefault() == null)
+			{
+				db.Insert(new Santa
+				{
+					Sender = sender,
+					Receiver = receiver
+				});
+			}
+		}
+		public static string GetSantaReceiver(string sender)
+		{
+			Santa santa = db.Table<Santa>().Where(x => x.Sender == sender)?.FirstOrDefault();
+			if (santa != null)
+			{
+				return santa.Receiver;
+			}
+			return null;
+		}
+		public static string GetSantaSender(string receiver)
+		{
+			Santa santa = db.Table<Santa>().Where(x => x.Receiver == receiver)?.FirstOrDefault();
+			if (santa != null)
+			{
+				return santa.Sender;
+			}
+			return null;
+		}
 		// ---
 		// Chats
 		// ---
@@ -267,36 +341,33 @@ namespace den0bot.DB
 		// ---
 		// Users
 		// ---
-		public static List<Player> GetAllPlayers(long chatID) => db.Table<Player>().Where(x => x.ChatID == chatID)?.ToList();
+		//public static List<Player> GetAllPlayers(long chatID) => db.Table<Player>().Where(x => x.ChatID == chatID)?.ToList();
 		public static int GetPlayerCount() => db.Table<Player>().Count();
-		public static int GetPlayerCount(long chatID) => (int)db.Table<Player>().Where(x => x.ChatID == chatID)?.Count();
+		//public static int GetPlayerCount(long chatID) => (int)db.Table<Player>().Where(x => x.ChatID == chatID)?.Count();
 
-		private static Player GetPlayer(int ID) => db.Table<Player>().Where(x => x.Id == ID)?.FirstOrDefault();
-		private static Player GetPlayer(string username) => db.Table<Player>().Where(x => x.Username.ToLower() == username.ToLower())?.FirstOrDefault();
-		public static string GetPlayerFriendlyName(int ID) => GetPlayer(ID)?.FriendlyName;
+		private static Player GetPlayer(int ID) => db.Table<Player>().Where(x => x.TelegramID == ID)?.FirstOrDefault();
+		//private static Player GetPlayer(string username) => db.Table<Player>().Where(x => x.Username.ToLower() == username.ToLower())?.FirstOrDefault();
+		//public static string GetPlayerFriendlyName(int ID) => GetPlayer(ID)?.FriendlyName;
 		public static uint GetPlayerOsuID(int ID) => GetPlayer(ID)?.OsuID ?? 0;
-		public static uint GetPlayerOsuID(string username) => GetPlayer(username)?.OsuID ?? 0;
-		public static long GetPlayerChatID(int ID) => GetPlayer(ID)?.ChatID ?? 0;
+		//public static uint GetPlayerOsuID(string username) => GetPlayer(username)?.OsuID ?? 0;
+		//public static long GetPlayerChatID(int ID) => GetPlayer(ID)?.ChatID ?? 0;
 
-		public static bool AddPlayer(string username, string name, uint osuID, long chatID)
+		public static bool AddPlayer(int tgID, uint osuID)
 		{
-			if (db.Table<Player>().Where(x => x.FriendlyName == name).FirstOrDefault() == null)
+			if (db.Table<Player>().Where(x => x.TelegramID == tgID).FirstOrDefault() == null)
 			{
 				db.Insert(new Player
 				{
-					FriendlyName = name,
+					TelegramID = tgID,
 					OsuID = osuID,
-					Topscores = string.Empty,
-					ChatID = chatID,
-					Username = username
 				});
 				return true;
 			}
 			return false;
 		}
-		public static bool RemovePlayer(string name, long chatID)
+		public static bool RemovePlayer(int tgID)
 		{
-			Player player = db.Table<Player>().Where(x => x.FriendlyName.ToLower() == name.ToLower() && x.ChatID == chatID).FirstOrDefault();
+			Player player = db.Table<Player>().Where(x => x.TelegramID == tgID).FirstOrDefault();
 			if (player != null)
 			{
 				db.Delete(player);
@@ -304,9 +375,9 @@ namespace den0bot.DB
 			}
 			return false;
 		}
-		public static List<Osu.Score> GetPlayerTopscores(int ID)
+		public static List<Osu.Score> GetPlayerTopscores(int tgID)
 		{
-			string storedTopscores = db.Table<Player>().Where(x => x.Id == ID)?.First().Topscores;
+			string storedTopscores = db.Table<Player>().Where(x => x.TelegramID == tgID)?.First().Topscores;
 			if (storedTopscores != null && storedTopscores != string.Empty)
 			{
 				List<Osu.Score> result = new List<Osu.Score>();
@@ -327,9 +398,9 @@ namespace den0bot.DB
 			}
 			return null;
 		}
-		public static void SetPlayerTopscores(List<Osu.Score> scores, int ID)
+		public static void SetPlayerTopscores(List<Osu.Score> scores, int tgID)
 		{
-			Player player = db.Table<Player>().Where(x => x.Id == ID).FirstOrDefault();
+			Player player = db.Table<Player>().Where(x => x.TelegramID == tgID).FirstOrDefault();
 			if (player != null)
 			{
 				string result = string.Empty;

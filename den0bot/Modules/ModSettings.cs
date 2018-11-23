@@ -1,6 +1,6 @@
 ﻿// den0bot (c) StanR 2018 - MIT License
 using System;
-using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using den0bot.DB;
 using den0bot.Util;
 using Telegram.Bot.Types.Enums;
@@ -9,6 +9,8 @@ namespace den0bot.Modules
 {
 	class ModSettings : IModule, IReceivePhotos
 	{
+		private Regex profileRegex = new Regex(@"(?>https?:\/\/)?(?>osu|old)\.ppy\.sh\/u(?>sers)?\/(\d+|\S+)", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+
 		public ModSettings()
 		{
 			AddCommands(new Command[]
@@ -33,6 +35,16 @@ namespace den0bot.Modules
 				},
 				new Command()
 				{
+					Name = "addme",
+					Action = (msg) => AddMe(msg)
+				},
+				new Command()
+				{
+					Name = "removeme",
+					Action = (msg) => RemoveMe(msg)
+				},
+				/*new Command()
+				{
 					Name = "addplayer",
 					IsAdminOnly = true,
 					Action = (msg) => AddPlayer(msg)
@@ -54,7 +66,7 @@ namespace den0bot.Modules
 					Name = "playerlist",
 					IsAdminOnly = true,
 					Action = (msg) => GetPlayerList(msg)
-				},
+				},*/
 				new Command()
 				{
 					Name = "shutdownnow",
@@ -89,47 +101,80 @@ namespace den0bot.Modules
 			return "Ты че деб? /addmeme <ссылка>";
 		}
 
+		private string AddMe(Telegram.Bot.Types.Message message)
+		{
+			Match regexMatch = profileRegex.Match(message.Text);
+			if (regexMatch.Groups.Count > 1)
+			{
+				string player = regexMatch.Groups[1]?.Value;
+				if (!string.IsNullOrEmpty(player))
+				{
+					uint osuID = 0;
+					if (!uint.TryParse(player, out osuID))
+					{
+						// if they used /u/cookiezi instead of /u/124493 we ask osu API for an ID
+						Osu.Player info = Osu.OsuAPI.GetPlayerAsync(player).Result;
+						if (info == null)
+							return "Ты че деб? /addme <ссылка на профиль>";
+						else
+							osuID = info.ID;
+					}
+					if (osuID != 0)
+					{
+						Database.AddPlayer(message.From.Id, osuID);
+						return "Добавил!";
+					}
+				}
+			}
+			return "Ты че деб? /addme <ссылка на профиль>";
+		}
 		private string AddPlayer(Telegram.Bot.Types.Message message)
 		{
 			string[] msg = message.Text.Split(' ');
-			if (msg.Length == 4)
+			if (msg.Length == 3)
 			{
 				string username = msg[1];
-				string name = msg[2];
-				string id = msg[3];
+				string id = msg[2];
 
-				if (!string.IsNullOrEmpty(username) && !string.IsNullOrEmpty(name))
+				if (!string.IsNullOrEmpty(username))
 				{
 					uint osuID = 0;
 					if (id != null && id != string.Empty)
 					{
-						try { osuID = uint.Parse(id); } catch (Exception) { }
+						uint.TryParse(id, out osuID);
 					}
 
 					if (username[0] == '@')
 						username = username.Substring(1);
 
-					if (Database.AddPlayer(username, name, osuID, message.Chat.Id))
-						return $"{username} добавлен! Имя {name}, профиль {osuID}";
+					var tgID = Database.GetUserID(username);
+					if (tgID != 0 && Database.AddPlayer(tgID, osuID))
+						return $"{username} добавлен!";
 					else
 						return "Че-т не вышло.";
 				}
 			}
-			return "Ты че деб? /addplayer <юзернейм-в-тг> <имя> <осу-айди>";
+			return "Ты че деб? /addplayer <юзернейм-в-тг> <осу-айди>";
 		}
-
+		private string RemoveMe(Telegram.Bot.Types.Message message)
+		{
+			if (Database.RemovePlayer(message.From.Id))
+				return $"Удалил.";
+			else
+				return $"Че-т не вышло.";
+		}
 		private string RemovePlayer(Telegram.Bot.Types.Message message)
 		{
 			string name = message.Text.Substring(14);
 
 			if (name != null && name != string.Empty)
 			{
-				if (Database.RemovePlayer(name, message.Chat.Id))
+				if (Database.RemovePlayer(Database.GetUserID(name)/*, message.Chat.Id*/))
 					return $"{name} удален.";
 				else
 					return $"Че-т не вышло.";
 			}
-			return "Ты че деб? /removeplayer <имя>";
+			return "Ты че деб? /removeplayer <юзернейм>";
 		}
 
 		private string UpdatePlayer(Telegram.Bot.Types.Message message)
@@ -162,6 +207,7 @@ namespace den0bot.Modules
 		}
 		private string GetPlayerList(Telegram.Bot.Types.Message message)
 		{
+			/*
 			string result = string.Empty;
 			List<DB.Types.Player> players = Database.GetAllPlayers(message.Chat.Id);
 			foreach (DB.Types.Player player in players)
@@ -169,6 +215,8 @@ namespace den0bot.Modules
 				result += $"{player.FriendlyName} - /u/{player.OsuID} - {player.Topscores}{Environment.NewLine}";
 			}
 			return result;
+			*/
+			return string.Empty;
 		}
 
 		private string SetLocale(Telegram.Bot.Types.Message message)

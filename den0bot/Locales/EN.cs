@@ -27,7 +27,7 @@ namespace den0bot.Locales
 			["random_roll"] = "Rolled ",
 			["random_roll_overflow"] = "T-there's no way that could f-fit!!~",
 
-			["recentscores_unknown_player"] = "I don't know you",
+			["recentscores_unknown_player"] = "I don't know you.\nAdd yourself /addme &lt;osu!profile&gt;",
 			["recentscores_no_scores"] = "No scores",
 
 			["girls_tag"] = "#girls",

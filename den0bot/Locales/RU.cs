@@ -34,7 +34,7 @@ namespace den0bot.Locales
 			["random_roll"] = "Нароллил ",
 			["random_roll_overflow"] = "Нихуя ты загнул",
 
-			["recentscores_unknown_player"] = "ты кто",
+			["recentscores_unknown_player"] = "ты кто\nДобавь себя: /addme &lt;профиль&gt;",
 			["recentscores_no_scores"] = "Нет скоров",
 
 			["girls_tag"] = "#девки",

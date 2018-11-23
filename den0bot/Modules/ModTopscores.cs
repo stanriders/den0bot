@@ -147,9 +147,9 @@ namespace den0bot.Modules
 						string mapInfo = string.Format("{0} - {1} [{2}]", map.Artist, map.Title, map.Difficulty).FilterToHTML();
 
 						string formattedMessage = string.Format("Там <b>{0}</b> фарманул новый скор: \n<i>{1}</i>{2} ({3}, {4}%) | <b>{5} пп</b>! Поздравим сраного фармера!",
-							Database.GetPlayerFriendlyName(currentUser), mapInfo, mods, score.Rank, score.Accuracy.FN2(), score.Pp);
+							""/*Database.GetPlayerFriendlyName(currentUser)*/, mapInfo, mods, score.Rank, score.Accuracy.FN2(), score.Pp);
 
-						API.SendMessage(formattedMessage, Database.GetPlayerChatID(currentUser), Telegram.Bot.Types.Enums.ParseMode.Html).NoAwait();
+						API.SendMessage(formattedMessage, 0/*Database.GetPlayerChatID(currentUser)*/, Telegram.Bot.Types.Enums.ParseMode.Html).NoAwait();
 
 						needDBUpdate = true;
 						break;

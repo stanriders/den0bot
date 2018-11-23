@@ -9,18 +9,17 @@ namespace den0bot
 	public static class Localization
 	{
 		public static List<string> GetAvailableLocales() => locales.Keys.ToList();
-		private static Dictionary<string, ILocale> locales = new Dictionary<string, ILocale>();
-
-		private static bool isInit = false;
-		public static void Init()
+		private static Dictionary<string, ILocale> locales = new Dictionary<string, ILocale>
 		{
-			if (!isInit)
-			{
-				locales["ru"] = new RU();
-				locales["en"] = new EN();
-				isInit = true;
-			}
+			["ru"] = new RU(),
+			["en"] = new EN(),
+		};
+
+		public static string FormatGet(string key, object arg, long chatID)
+		{
+			return string.Format(Get(key, chatID), arg);
 		}
+
 		public static string Get(string key, long chatID)
 		{
 			string locale = Database.GetChatLocale(chatID);

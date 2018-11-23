@@ -24,7 +24,6 @@ namespace den0bot
 		public Bot()
 		{
 			Database.Init();
-			Localization.Init();
 
 			modules = new List<IModule>()
 			{
@@ -41,7 +40,8 @@ namespace den0bot
 				//new ModAutohost(),
 				new ModRecentScores(),
 				new ModGirls(),
-				new ModMatchFollow()
+				new ModMatchFollow(),
+				new ModSanta()
 			};
 
 			//Osu.IRC.Connect();
@@ -88,6 +88,8 @@ namespace den0bot
 
 			if (msg.Chat.Type != ChatType.Private)
 				Database.AddChat(senderChat.Id);
+
+			Database.AddUser(msg.From.Id, msg.From.Username);
 
 			if (msg.NewChatMembers != null && msg.NewChatMembers.Length > 0)
 			{

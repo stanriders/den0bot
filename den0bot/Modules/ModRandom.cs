@@ -41,7 +41,7 @@ namespace den0bot.Modules
 		}
 
 		private string GetRandomShitposter(Chat sender)
-		{
+		{ /*
 			if (Database.GetPlayerCount(sender.Id) <= 0)
 				return Localization.Get("random_no_shitposter", sender.Id);
 
@@ -51,6 +51,8 @@ namespace den0bot.Modules
 				return GetRandomShitposter(sender);
 
 			return Database.GetPlayerFriendlyName(num) + Localization.Get("random_shitposter", sender.Id);
+			*/
+			return string.Empty;
 		}
 
 		private string GetRandomDinosaur(Chat sender)

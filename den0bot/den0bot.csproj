@@ -123,7 +123,10 @@
     <Compile Include="DB\Types\Meme.cs" />
     <Compile Include="DB\Types\Misc.cs" />
     <Compile Include="DB\Types\Player.cs" />
+    <Compile Include="DB\Types\Santa.cs" />
     <Compile Include="DB\Types\Tournament.cs" />
+    <Compile Include="DB\Types\User.cs" />
+    <Compile Include="Modules\ModSanta.cs" />
     <Compile Include="Util\Extensions.cs" />
     <Compile Include="IReceivePhotos.cs" />
     <Compile Include="Locales\ILocale.cs" />

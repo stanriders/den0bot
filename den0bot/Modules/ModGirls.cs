@@ -169,7 +169,7 @@ namespace den0bot.Modules
 
 		public void ReceiveCallback(CallbackQuery callback)
 		{
-			if (callback.Data == "+" || callback.Data == "-")
+			if (callback.Data == "+" || callback.Data == "-") // sanity check
 			{
 				if (sentGirlsCache.Contains(callback.Message.MessageId.ToString()))
 				{
@@ -189,7 +189,7 @@ namespace den0bot.Modules
 							girl.Rating++;
 
 							API.EditMediaCaption(chatId, callback.Message.MessageId, girl.Rating.ToString(), buttons);
-							API.AnswerCallbackQuery(callback.Id, string.Format(Localization.Get("girls_rating_up", chatId), girl.Rating));//$"Рейтинг девки повышен ({girl.Rating})");
+							API.AnswerCallbackQuery(callback.Id, Localization.FormatGet("girls_rating_up", girl.Rating, chatId));
 						}
 						else if (callback.Data == "-")
 						{
@@ -199,14 +199,14 @@ namespace den0bot.Modules
 							if (girl.Rating >= -10)
 							{
 								API.EditMediaCaption(chatId, callback.Message.MessageId, girl.Rating.ToString(), buttons);
-								API.AnswerCallbackQuery(callback.Id, string.Format(Localization.Get("girls_rating_down", chatId), girl.Rating));// $"Рейтинг девки понижен ({})");
+								API.AnswerCallbackQuery(callback.Id, Localization.FormatGet("girls_rating_down", girl.Rating, chatId));
 							}
 							else
 							{
 								sentGirlsCache.Remove(callback.Message.MessageId.ToString());
 								Database.RemoveGirl(girl.ID);
 								API.RemoveMessage(chatId, callback.Message.MessageId);
-								API.AnswerCallbackQuery(callback.Id, Localization.Get("girls_rating_delete_lowrating", chatId));// "Девка удалена (рейтинг ниже -10)");
+								API.AnswerCallbackQuery(callback.Id, Localization.Get("girls_rating_delete_lowrating", chatId));
 							}
 						}
 					}

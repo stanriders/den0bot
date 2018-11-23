@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using den0bot.DB;
 using den0bot.Osu;
 using den0bot.Util;
@@ -18,15 +19,14 @@ namespace den0bot.Modules
 			AddCommand(new Command
 			{
 				Name = "last",
-				//IsAsync = true,
 				Reply = true,
-				Action/*Async*/ = (msg) => GetScores(msg),
+				ActionAsync = (msg) => GetScores(msg),
 				ParseMode = ParseMode.Html
 			});
 			Log.Info(this, "Enabled");
 		}
 
-		private /*async Task<*/string/*>*/ GetScores(Telegram.Bot.Types.Message message)
+		private async Task<string> GetScores(Telegram.Bot.Types.Message message)
 		{
 			string playerID = string.Empty;
 			int amount = 1;
@@ -34,14 +34,15 @@ namespace den0bot.Modules
 			List<string> msgSplit = message.Text.Split(' ').ToList();
 			msgSplit.RemoveAt(0);
 
-			try
+			if (msgSplit.Count > 0)
 			{
-				amount = int.Parse(msgSplit.Last());
-				if (amount > score_amount)
-					amount = score_amount;
+				if (int.TryParse(msgSplit.Last(), out amount))
+				{
+					if (amount > score_amount)
+						amount = score_amount;
+				}
 				msgSplit.Remove(msgSplit.Last());
 			}
-			catch { }
 
 			if (msgSplit.Count > 0)
 			{
@@ -49,12 +50,13 @@ namespace den0bot.Modules
 			}
 			else
 			{
-				playerID = Database.GetPlayerOsuID(message.From.Username).ToString();
+				var userID = Database.GetUserID(message.From.Username);
+				playerID = Database.GetPlayerOsuID(userID).ToString();
 				if (playerID == "0")
 					return Localization.Get("recentscores_unknown_player", message.Chat.Id);
 			}
 
-			List<Score> lastScores =/* await*/ OsuAPI.GetRecentScoresAsync(playerID, amount).Result;
+			List<Score> lastScores = await OsuAPI.GetRecentScoresAsync(playerID, amount);
 			if (lastScores != null)
 			{
 				if (lastScores.Count == 0)
@@ -68,10 +70,10 @@ namespace den0bot.Modules
 					if (enabledMods > 0)
 						mods = " +" + enabledMods.ToString().Replace(", ", "");
 
-					TimeSpan ago = DateTime.Now.ToUniversalTime().AddHours(8) - score.Date; // osu is UTC+8
+					TimeSpan ago = DateTime.Now.ToUniversalTime() - score.Date;
 					string date = ago.ToString(@"hh\:mm\:ss") + " ago";
 
-					Map map =/* await*/ OsuAPI.GetBeatmapAsync(score.BeatmapID).Result;
+					Map map = await OsuAPI.GetBeatmapAsync(score.BeatmapID);
 					if (map != null)
 					{
 						string mapInfo = $"{map.Artist} - {map.Title} [{map.Difficulty}]".FilterToHTML();
