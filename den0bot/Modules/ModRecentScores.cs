@@ -50,8 +50,7 @@ namespace den0bot.Modules
 			}
 			else
 			{
-				var userID = Database.GetUserID(message.From.Username);
-				playerID = Database.GetPlayerOsuID(userID).ToString();
+				playerID = Database.GetPlayerOsuID(message.From.Id).ToString();
 				if (playerID == "0")
 					return Localization.Get("recentscores_unknown_player", message.Chat.Id);
 			}
