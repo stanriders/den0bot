@@ -8,9 +8,9 @@ namespace den0bot.Modules
 	{
 		public ModBasicCommands()
 		{
-			AddCommands(new Command[]
+			AddCommands(new[]
 			{
-				new Command()
+				new Command
 				{
 					Name = "me",
 					ParseMode = ParseMode.Markdown,
@@ -20,15 +20,19 @@ namespace den0bot.Modules
 						return $"_{msg.From.FirstName}{msg.Text.Substring(3)}_";
 					}
 				},
-				new Command()
+				new Command
 				{
 					Name = "start",
-					Action = (msg) => { if (msg.Chat.Type == ChatType.Private) return Localization.Get("basiccommands_help", msg.Chat.Id); else return string.Empty; }
+					Action = (msg) => msg.Chat.Type == ChatType.Private
+						? Localization.Get("basiccommands_help", msg.Chat.Id)
+						: string.Empty
 				},
-				new Command()
+				new Command
 				{
 					Name = "help",
-					Action = (msg) => { if (msg.Chat.Type == ChatType.Private) return Localization.Get("basiccommands_help", msg.Chat.Id); else return string.Empty; }
+					Action = (msg) => msg.Chat.Type == ChatType.Private 
+						? Localization.Get("basiccommands_help", msg.Chat.Id) 
+						: string.Empty
 				},
 
 			});

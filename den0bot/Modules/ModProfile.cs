@@ -11,7 +11,7 @@ namespace den0bot.Modules
 {
 	class ModProfile : IModule, IReceiveAllMessages
 	{
-		private Regex regex = new Regex(@"(?>https?:\/\/)?(?>osu|old)\.ppy\.sh\/u(?>sers)?\/(\d+|\S+)", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+		private readonly Regex regex = new Regex(@"(?>https?:\/\/)?(?>osu|old)\.ppy\.sh\/u(?>sers)?\/(\d+|\S+)", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 		private readonly int topscores_to_show = 3;
 		public ModProfile() { Log.Info(this, "Enabled"); }
 
@@ -51,7 +51,8 @@ namespace den0bot.Modules
 				// 1. Artist - Title [Diffname] +Mods (Rank, Accuracy%) - 123pp
 				string mapName = $"{map.Artist} - {map.Title} [{map.Difficulty}]".FilterToHTML();
 
-				formatedTopscores += string.Format("<b>{0}</b>. {1}{2} (<b>{3}</b>, {4}%) - <b>{5}</b>pp\n", (i+1), mapName, mods, score.Rank, score.Accuracy.FN2(), score.Pp);
+				formatedTopscores +=
+					$"<b>{(i + 1)}</b>. {mapName}{mods} (<b>{score.Rank}</b>, {score.Accuracy.FN2()}%) - <b>{score.Pp}</b>pp\n";
 				
 			}
 

@@ -10,7 +10,7 @@ namespace den0bot.Osu
 	static class IRC
 	{
 		private static bool isConnected = false;
-		private static IrcClient irc = new IrcClient()
+		private static readonly IrcClient irc = new IrcClient()
 		{
 			AutoRejoin = true,
 			AutoRelogin = true,
@@ -19,13 +19,13 @@ namespace den0bot.Osu
 		};
 		public static void Connect()
 		{
-			new Thread(new ThreadStart(delegate ()
-			{
-				irc.Connect("irc.ppy.sh", 6667);
-				irc.Login(Config.osu_irc_username, "den0bot", 0, Config.osu_irc_username, Config.osu_irc_password);
-				isConnected = irc.IsConnected;
-				irc.Listen();
-			}))
+			new Thread(delegate ()
+				{
+					irc.Connect("irc.ppy.sh", 6667);
+					irc.Login(Config.osu_irc_username, "den0bot", 0, Config.osu_irc_username, Config.osu_irc_password);
+					isConnected = irc.IsConnected;
+					irc.Listen();
+				})
 			{ Name = "IRCThread" }.Start();
 
 			if (isConnected)

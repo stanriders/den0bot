@@ -10,15 +10,15 @@ namespace den0bot.Modules
 		private Lobby lobby;
 		private ModTournament()
 		{
-			AddCommands(new Command[]
+			AddCommands(new[]
 			{
-				new Command()
+				new Command
 				{
 					Name = "startmatch",
 					IsAdminOnly = true,
 					Action = (msg) => StartMatch(msg.Text)
 				},
-				new Command()
+				new Command
 				{
 					Name = "starttourney",
 					IsAdminOnly = true,

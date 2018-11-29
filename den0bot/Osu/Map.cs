@@ -169,10 +169,9 @@ namespace den0bot.Osu
 			return TimeSpan.FromSeconds(drainLength);
 		}
 
-		public string Thumbnail
-		{
-			get { return "https://assets.ppy.sh/beatmaps/" + BeatmapSetID + "/covers/cover.jpg"; }
-		}
+		public string Thumbnail => "https://assets.ppy.sh/beatmaps/" + BeatmapSetID + "/covers/cover.jpg";
+
+		public string Link => "https://osu.ppy.sh/b/" + BeatmapID;
 
 		private string fileString = null;
 		public string File
@@ -203,8 +202,7 @@ namespace den0bot.Osu
 				{
 					if (fileBytes == null)
 					{
-						var client = new WebClient();
-						client.Encoding = Encoding.UTF8;
+						var client = new WebClient {Encoding = Encoding.UTF8};
 						fileBytes = client.DownloadData("https://osu.ppy.sh/osu/" + BeatmapID);
 					}
 					return fileBytes;
@@ -216,11 +214,6 @@ namespace den0bot.Osu
 					return null;
 				}
 			}
-		}
-
-		public string Link
-		{
-			get { return "https://osu.ppy.sh/b/" + BeatmapID; }
 		}
 	}
 

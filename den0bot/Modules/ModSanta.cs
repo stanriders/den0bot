@@ -11,7 +11,7 @@ namespace den0bot.Modules
 	// 2018 secret santa event
 	class ModSanta : IModule
 	{
-		public List<string> senders = new List<string>()
+		public readonly List<string> senders = new List<string>()
 		{
 			"StanRiders",
 			"Nufirdy",
@@ -24,23 +24,23 @@ namespace den0bot.Modules
 		};
 		public ModSanta()
 		{
-			AddCommands(new Command[]
+			AddCommands(new[]
 			{
 				new Command
 				{
 					Name = "santago",
 					IsOwnerOnly = true,
-					Action = (msg) => Go(msg)
+					Action = Go
 				},
 				new Command
 				{
 					Name = "santahelp",
-					Action = (msg) => Help(msg)
+					Action = Help
 				},
 				new Command
 				{
 					Name = "santagift",
-					Action = (msg) => Gift(msg)
+					Action = Gift
 				}
 			});
 		}

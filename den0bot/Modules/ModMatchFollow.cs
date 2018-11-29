@@ -18,24 +18,24 @@ namespace den0bot.Modules
 	}
 	class ModMatchFollow : IModule, IReceiveAllMessages
 	{
-		private List<FollowedMatch> followList = new List<FollowedMatch>();
+		private readonly List<FollowedMatch> followList = new List<FollowedMatch>();
 		private DateTime nextCheck = DateTime.Now;
 
 		private int currentMatch = 0;
 		private bool updating = false;
 
-		private Regex regex = new Regex(@"(?>https?:\/\/)?osu\.ppy\.sh\/community\/matches\/(\d+)", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+		private readonly Regex regex = new Regex(@"(?>https?:\/\/)?osu\.ppy\.sh\/community\/matches\/(\d+)", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
 		private readonly int update_time = 5; //seconds
 	
 		public ModMatchFollow()
 		{
-			AddCommands(new Command[] 
+			AddCommands(new [] 
 			{
 				new Command()
 				{
 					Name = "followmatch",
-					Action = (msg) => StartFollowing(msg)
+					Action = StartFollowing
 				}
 			});
 		}
@@ -125,9 +125,7 @@ namespace den0bot.Modules
 				var map = await OsuAPI.GetBeatmapAsync(game.BeatmapID);
 				if (game.TeamMode >= MultiplayerMatch.TeamMode.Team)
 				{
-					List<Score> allScores = new List<Score>();
-
-					allScores = game.Scores;
+					List<Score> allScores = game.Scores;
 					allScores = allScores.OrderByDescending(x => x.ScorePoints).ToList();
 					allScores = allScores.OrderByDescending(x => x.Team).ToList();
 

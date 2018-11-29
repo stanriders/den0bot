@@ -10,7 +10,7 @@ namespace den0bot.Modules
 {
 	class ModTopscores : IModule
 	{
-		private Dictionary<int, List<Score>> storedTopscores;
+		private readonly Dictionary<int, List<Score>> storedTopscores;
 
 		private int currentUser = 1;
 
@@ -126,7 +126,7 @@ namespace den0bot.Modules
 
 			List<Score> oldTopscores = storedTopscores[currentUser];
 			List<Score> currentTopscores = await OsuAPI.GetTopscoresAsync(userID, scores_num);
-			if (currentTopscores != null || currentTopscores.Count > 0)
+			if (currentTopscores != null && currentTopscores.Count > 0)
 			{
 				bool needDBUpdate = false;
 				foreach (Score score in currentTopscores)

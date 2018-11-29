@@ -75,10 +75,7 @@ namespace den0bot.Osu
 					return accuracy;
 				}
 			}
-			set
-			{
-				accuracy = value;
-			}
+			set => accuracy = value;
 		}
 		private double accuracy = 0.0;
 

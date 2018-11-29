@@ -13,12 +13,12 @@ namespace den0bot
 {
 	public class Bot
 	{
-		private List<IModule> modules;
+		private readonly List<IModule> modules;
 
-		public static bool IsOwner(string username) => (username == Config.owner_username);
-		public static bool IsAdmin(long chatID, string username) => IsOwner(username) || (API.GetAdmins(chatID).Exists(x => x.User.Username == username));
+		private static bool IsOwner(string username) => (username == Config.owner_username);
+		private static bool IsAdmin(long chatID, string username) => IsOwner(username) || (API.GetAdmins(chatID).Exists(x => x.User.Username == username));
 
-		private static bool shouldShutdown = false;
+		private static bool shouldShutdown;
 		public static void Shutdown() { shouldShutdown = true; }
 
 		public Bot()
@@ -74,7 +74,7 @@ namespace den0bot
 			API.Disconnect();
 		}
 
-		public async void ProcessMessage(object sender, MessageEventArgs messageEventArgs)
+		private async void ProcessMessage(object sender, MessageEventArgs messageEventArgs)
 		{
 			Message msg = messageEventArgs.Message;
 
@@ -138,7 +138,7 @@ namespace den0bot
 				if (msg.Text[0] != '/')
 				{
 					// send all messages to modules that need them
-					if (m is IReceiveAllMessages)
+					if (m is IReceiveAllMessages )
 						(m as IReceiveAllMessages).ReceiveMessage(msg);
 
 					continue;
@@ -189,13 +189,12 @@ namespace den0bot
 			API.SendMessage(result, senderChat, parseMode, replyID);
 		}
 
-		public void ProcessCallback(object sender, CallbackQueryEventArgs callbackEventArgs)
+		private void ProcessCallback(object sender, CallbackQueryEventArgs callbackEventArgs)
 		{
 			foreach (IModule m in modules)
 			{
-				if (m is IReceiveCallback)
+				if (m is IReceiveCallback module)
 				{
-					var module = m as IReceiveCallback;
 					//if (callbackEventArgs.CallbackQuery.Data == m.ToString())
 					{
 						module.ReceiveCallback(callbackEventArgs.CallbackQuery);

@@ -14,16 +14,16 @@ namespace den0bot.Modules
 		private DateTime nextCheck;
 		private bool isEnabled = false;
 
-		private readonly string api_key = Config.googleapi_token;
-		private readonly string channel_id = "UCt1GKXk_zkcBUEwAeXZ43RA";  // circle people again
-		private readonly double check_interval = 1.0; // minutes
-		private readonly int default_score_amount = 3;
+		private const string api_key = Config.googleapi_token;
+		private const string channel_id = "UCt1GKXk_zkcBUEwAeXZ43RA";  // circle people again
+		private const double check_interval = 1.0; // minutes
+		private const int default_score_amount = 3;
 
 		public ModYoutube()
 		{
 			nextCheck = DateTime.Now;
 
-			AddCommand(new Command()
+			AddCommand(new Command
 			{
 				Name = "newscores",
 				ActionAsync = (msg) =>

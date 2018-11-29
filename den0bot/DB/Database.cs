@@ -13,13 +13,13 @@ namespace den0bot.DB
 	public static class Database
 	{
 		private static SQLiteConnection db;
-		private static string databasePath = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) + Path.DirectorySeparatorChar + "data.db";
+		private static readonly string database_path = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) + Path.DirectorySeparatorChar + "data.db";
 		private static List<Chat> chatCache;
 		private static List<User> userCache;
 
 		public static void Init()
 		{
-			db = new SQLiteConnection(databasePath);
+			db = new SQLiteConnection(database_path);
 			db.CreateTable<Chat>();
 			db.CreateTable<Meme>();
 			db.CreateTable<Player>();
@@ -40,7 +40,7 @@ namespace den0bot.DB
 		// ---
 		public static void AddUser(int id, string username)
 		{
-			if (userCache.Where(x => x.Username == username).FirstOrDefault() == null)
+			if (userCache.FirstOrDefault(x => x.Username == username) == null)
 			{
 				var user = new User
 				{
@@ -55,7 +55,7 @@ namespace den0bot.DB
 		{
 			if (!string.IsNullOrEmpty(username))
 			{
-				User user = userCache.Where(x => x.Username == username)?.FirstOrDefault();
+				User user = userCache.FirstOrDefault(x => x.Username == username);
 				if (user != null)
 				{
 					return user.TelegramID;
@@ -65,7 +65,7 @@ namespace den0bot.DB
 		}
 		public static string GetUsername(int id)
 		{
-			User user = userCache.Where(x => x.TelegramID == id)?.FirstOrDefault();
+			User user = userCache.FirstOrDefault(x => x.TelegramID == id);
 			if (user != null)
 			{
 				return user.Username;
@@ -78,7 +78,7 @@ namespace den0bot.DB
 		// ---
 		public static void AddSanta(string sender, string receiver)
 		{
-			if (db.Table<Santa>().Where(x => x.Sender == sender).FirstOrDefault() == null)
+			if (db.Table<Santa>().FirstOrDefault(x => x.Sender == sender) == null)
 			{
 				db.Insert(new Santa
 				{
@@ -89,7 +89,7 @@ namespace den0bot.DB
 		}
 		public static string GetSantaReceiver(string sender)
 		{
-			Santa santa = db.Table<Santa>().Where(x => x.Sender == sender)?.FirstOrDefault();
+			Santa santa = db.Table<Santa>().FirstOrDefault(x => x.Sender == sender);
 			if (santa != null)
 			{
 				return santa.Receiver;
@@ -98,7 +98,7 @@ namespace den0bot.DB
 		}
 		public static string GetSantaSender(string receiver)
 		{
-			Santa santa = db.Table<Santa>().Where(x => x.Receiver == receiver)?.FirstOrDefault();
+			Santa santa = db.Table<Santa>().FirstOrDefault(x => x.Receiver == receiver);
 			if (santa != null)
 			{
 				return santa.Sender;
@@ -111,7 +111,7 @@ namespace den0bot.DB
 		public static List<Chat> GetAllChats() => chatCache;
 		public static void AddChat(long chatID)
 		{
-			if (chatCache.Where(x => x.Id == chatID).FirstOrDefault() == null)
+			if (chatCache.FirstOrDefault(x => x.Id == chatID) == null)
 			{
 				var chat = new Chat
 				{
@@ -128,7 +128,7 @@ namespace den0bot.DB
 		}
 		public static void RemoveChat(long chatID)
 		{
-			Chat chat = db.Table<Chat>().Where(x => x.Id == chatID).FirstOrDefault();
+			Chat chat = db.Table<Chat>().FirstOrDefault(x => x.Id == chatID);
 			if (chat != null)
 			{
 				db.Delete(chat);
@@ -136,7 +136,7 @@ namespace den0bot.DB
 		}
 		public static void ToggleAnnouncements(long chatID, bool enable)
 		{
-			Chat chat = db.Table<Chat>().Where(x => x.Id == chatID).FirstOrDefault();
+			Chat chat = db.Table<Chat>().FirstOrDefault(x => x.Id == chatID);
 			if (chat != null)
 			{
 				chat.DisableAnnouncements = !enable;
@@ -145,7 +145,7 @@ namespace den0bot.DB
 		}
 		public static string GetChatLocale(long chatID)
 		{
-			Chat chat = chatCache.Where(x => x.Id == chatID).FirstOrDefault();
+			Chat chat = chatCache.FirstOrDefault(x => x.Id == chatID);
 			if (chat != null)
 			{
 				if (string.IsNullOrEmpty(chat.Locale))
@@ -163,14 +163,14 @@ namespace den0bot.DB
 
 		public static void SetChatLocale(long chatID, string locale)
 		{
-			Chat chat = db.Table<Chat>().Where(x => x.Id == chatID).FirstOrDefault();
+			Chat chat = db.Table<Chat>().FirstOrDefault(x => x.Id == chatID);
 			if (chat != null)
 			{
 				chat.Locale = locale;
 				db.Update(chat);
 
 				// Update cache as well
-				var cachedChat = chatCache.Where(x => x.Id == chatID).FirstOrDefault();
+				var cachedChat = chatCache.FirstOrDefault(x => x.Id == chatID);
 				if (cachedChat != null)
 					cachedChat.Locale = locale;
 			}
@@ -178,10 +178,10 @@ namespace den0bot.DB
 		// ---
 		// Memes
 		// ---
-		public static int GetMemeCount(long chatID) => db.Table<Meme>().Where(x => x.ChatID == chatID).Count();
+		public static int GetMemeCount(long chatID) => db.Table<Meme>().Count(x => x.ChatID == chatID);
 		public static void AddMeme(string link, long chatID)
 		{
-			if (db.Table<Meme>().Where(x => x.Link == link).FirstOrDefault() == null)
+			if (db.Table<Meme>().FirstOrDefault(x => x.Link == link) == null)
 			{
 				db.Insert(new Meme
 				{
@@ -213,7 +213,7 @@ namespace den0bot.DB
 		}
 		public static void SetUsedMeme(int id)
 		{
-			Meme meme = db.Table<Meme>().Where(x => x.Id == id).First();
+			Meme meme = db.Table<Meme>().FirstOrDefault(x => x.Id == id);
 			if (meme != null)
 			{
 				meme.Used = true;
@@ -232,10 +232,10 @@ namespace den0bot.DB
 		// ---
 		// Girls
 		// ---
-		public static int GetGirlCount(long chatID) => db.Table<Girl>().Where(x => x.ChatID == chatID).Count();
+		public static int GetGirlCount(long chatID) => db.Table<Girl>().Count(x => x.ChatID == chatID);
 		public static void AddGirl(string link, long chatID)
 		{
-			if (db.Table<Girl>().Where(x => x.Link == link).FirstOrDefault() == null)
+			if (db.Table<Girl>().FirstOrDefault(x => x.Link == link) == null)
 			{
 				db.Insert(new Girl
 				{
@@ -247,7 +247,7 @@ namespace den0bot.DB
 		}
 		public static void RemoveGirl(int id)
 		{
-			Girl girl = db.Table<Girl>().Where(x => x.Id == id).FirstOrDefault();
+			Girl girl = db.Table<Girl>().FirstOrDefault(x => x.Id == id);
 			if (girl != null)
 				db.Delete(girl);
 		}
@@ -286,7 +286,7 @@ namespace den0bot.DB
 		}
 		public static void SetUsedGirl(int id)
 		{
-			Girl girl = db.Table<Girl>().Where(x => x.Id == id)?.First();
+			Girl girl = db.Table<Girl>().FirstOrDefault(x => x.Id == id);
 			if (girl != null)
 			{
 				girl.Used = true;
@@ -303,7 +303,7 @@ namespace den0bot.DB
 		}
 		public static void ChangeGirlRating(int id, int rating)
 		{
-			Girl girl = db.Table<Girl>().Where(x => x.Id == id)?.FirstOrDefault();
+			Girl girl = db.Table<Girl>().FirstOrDefault(x => x.Id == id);
 			if (girl != null)
 			{
 				girl.Rating += rating;
@@ -318,7 +318,7 @@ namespace den0bot.DB
 		}
 		public static int GetGirlRating(int id)
 		{
-			Girl girl = db.Table<Girl>().Where(x => x.Id == id)?.FirstOrDefault();
+			Girl girl = db.Table<Girl>().FirstOrDefault(x => x.Id == id);
 			if (girl != null)
 			{
 				return girl.Rating;
@@ -345,7 +345,7 @@ namespace den0bot.DB
 		public static int GetPlayerCount() => db.Table<Player>().Count();
 		//public static int GetPlayerCount(long chatID) => (int)db.Table<Player>().Where(x => x.ChatID == chatID)?.Count();
 
-		private static Player GetPlayer(int ID) => db.Table<Player>().Where(x => x.TelegramID == ID)?.FirstOrDefault();
+		private static Player GetPlayer(int ID) => db.Table<Player>().FirstOrDefault(x => x.TelegramID == ID);
 		//private static Player GetPlayer(string username) => db.Table<Player>().Where(x => x.Username.ToLower() == username.ToLower())?.FirstOrDefault();
 		//public static string GetPlayerFriendlyName(int ID) => GetPlayer(ID)?.FriendlyName;
 		public static uint GetPlayerOsuID(int ID) => GetPlayer(ID)?.OsuID ?? 0;
@@ -354,7 +354,7 @@ namespace den0bot.DB
 
 		public static bool AddPlayer(int tgID, uint osuID)
 		{
-			if (db.Table<Player>().Where(x => x.TelegramID == tgID).FirstOrDefault() == null)
+			if (db.Table<Player>().FirstOrDefault(x => x.TelegramID == tgID) == null)
 			{
 				db.Insert(new Player
 				{
@@ -367,7 +367,7 @@ namespace den0bot.DB
 		}
 		public static bool RemovePlayer(int tgID)
 		{
-			Player player = db.Table<Player>().Where(x => x.TelegramID == tgID).FirstOrDefault();
+			Player player = db.Table<Player>().FirstOrDefault(x => x.TelegramID == tgID);
 			if (player != null)
 			{
 				db.Delete(player);
@@ -378,7 +378,7 @@ namespace den0bot.DB
 		public static List<Osu.Score> GetPlayerTopscores(int tgID)
 		{
 			string storedTopscores = db.Table<Player>().Where(x => x.TelegramID == tgID)?.First().Topscores;
-			if (storedTopscores != null && storedTopscores != string.Empty)
+			if (!string.IsNullOrEmpty(storedTopscores))
 			{
 				List<Osu.Score> result = new List<Osu.Score>();
 				foreach (string score in storedTopscores.Split(';'))
@@ -400,7 +400,7 @@ namespace den0bot.DB
 		}
 		public static void SetPlayerTopscores(List<Osu.Score> scores, int tgID)
 		{
-			Player player = db.Table<Player>().Where(x => x.TelegramID == tgID).FirstOrDefault();
+			Player player = db.Table<Player>().FirstOrDefault(x => x.TelegramID == tgID);
 			if (player != null)
 			{
 				string result = string.Empty;

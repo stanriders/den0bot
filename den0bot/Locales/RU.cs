@@ -17,7 +17,7 @@ namespace den0bot.Locales
 																	 "Ден - аниме, но аниме запрещено. В мульти не играть - мужиков не уважать." + Environment.NewLine +
 																	 "<i>inb4 - бан</i>";
 
-		private Dictionary<string, string> locale = new Dictionary<string, string>
+		private readonly Dictionary<string, string> locale = new Dictionary<string, string>
 		{
 			["generic_added_to_chat"] = "Вечер в хату. Админские команды можно узнать с помощью /help мне в личку." + Environment.NewLine + "If you don't understand vodkish - /setlocale en",
 			["generic_fail"] = "Чет не получилось",

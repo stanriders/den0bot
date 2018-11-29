@@ -20,7 +20,7 @@ namespace den0bot.Modules
 			{
 				Name = "last",
 				Reply = true,
-				ActionAsync = (msg) => GetScores(msg),
+				ActionAsync = GetScores,
 				ParseMode = ParseMode.Html
 			});
 			Log.Info(this, "Enabled");

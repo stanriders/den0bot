@@ -9,25 +9,13 @@ namespace den0bot.Osu
 	public class Lobby
 	{
 		public uint ID { get; private set; }
-		public string Channel
-		{
-			get
-			{
-				return $"#mp_{ID}";
-			}
-		}
+		public string Channel => $"#mp_{ID}";
 
 		public string Name { get; set; }
 		public string Password { get; set; }
 		public int Size { get; set; } = 16;
 
-		public string Link
-		{
-			get
-			{
-				return $"https://osu.ppy.sh/community/matches/{ID}";
-			}
-		}
+		public string Link => $"https://osu.ppy.sh/community/matches/{ID}";
 
 		public int CurrentHost { get; private set; }
 		public Dictionary<int, string> UserList = new Dictionary<int, string>();

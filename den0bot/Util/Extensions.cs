@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using den0bot.Osu;
 
 namespace den0bot.Util
 {
@@ -48,8 +49,7 @@ namespace den0bot.Util
 
 		public static Osu.Mods ConvertToMods(this string mods)
 		{
-			Osu.Mods result = Osu.Mods.None;
-			if (Enum.TryParse(mods, true, out result) || string.IsNullOrEmpty(mods) || mods.Length > 36) // every mod combination possible
+			if (Enum.TryParse(mods, true, out Mods result) || string.IsNullOrEmpty(mods) || mods.Length > 36) // every mod combination possible
 				return result;
 			else
 			{

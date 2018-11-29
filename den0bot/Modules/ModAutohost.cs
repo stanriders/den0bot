@@ -23,7 +23,7 @@ namespace den0bot.Modules
 				new Command()
 				{
 					Name = "mplink",
-					Action = (msg) => { return $"{Config.osu_lobby_name} - {Config.osu_lobby_password} {Environment.NewLine}{lobby.Link}"; }
+					Action = msg => $"{Config.osu_lobby_name} - {Config.osu_lobby_password} {Environment.NewLine}{lobby.Link}"
 				},
 				new Command()
 				{

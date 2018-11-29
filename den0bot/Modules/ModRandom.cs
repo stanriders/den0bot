@@ -13,7 +13,7 @@ namespace den0bot.Modules
 	{
 		public ModRandom()
 		{
-			AddCommands(new Command[]
+			AddCommands(new[]
 			{
 				new Command
 				{
@@ -93,7 +93,7 @@ namespace den0bot.Modules
 				return Localization.Get("random_no_memes", sender.Id);
 
 			string photo = Database.GetMeme(sender.Id);
-			if (photo != null && photo != string.Empty)
+			if (!string.IsNullOrEmpty(photo))
 			{ 
 				API.SendPhoto(photo, sender);
 				return string.Empty;

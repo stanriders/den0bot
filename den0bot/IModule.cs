@@ -7,21 +7,18 @@ using Telegram.Bot.Types.Enums;
 
 namespace den0bot
 {
-	abstract public class IModule
+	public abstract class IModule
 	{
 		public class Command
 		{
 			public List<string> Names { get; set; } = new List<string>();
 			public string Name
 			{
-				set { Names.Add(value); }
+				set => Names.Add(value);
 			}
 			public bool ContainsName(string name)
 			{
-				if (Names.Contains(name.Substring(1)))
-					return true;
-
-				return false;
+				return Names.Contains(name.Substring(1));
 			}
 
 			public ParseMode ParseMode;
@@ -35,21 +32,21 @@ namespace den0bot
 			public Action<Message> ActionResult;
 		}
 
-		protected List<Command> Commands = new List<Command>();
+		private readonly List<Command> commands = new List<Command>();
 
 		protected void AddCommand(Command command)
 		{
-			Commands.Add(command);
+			commands.Add(command);
 		}
 
 		protected void AddCommands(ICollection<Command> coll)
 		{
-			Commands.AddRange(coll);
+			commands.AddRange(coll);
 		}
 
 		public Command GetCommand(string name)
 		{
-			if (Commands.Count <= 0)
+			if (commands.Count <= 0)
 				return null;
 
 			int nameEndIndex = name.IndexOf(' ');
@@ -59,7 +56,7 @@ namespace den0bot
 			if (name.EndsWith("@den0bot"))
 				name = name.Replace("@den0bot", "");
 
-			return Commands.Find(x => x.ContainsName(name));
+			return commands.Find(x => x.ContainsName(name));
 		}
 
 		public virtual void Think() { }

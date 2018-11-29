@@ -24,7 +24,7 @@ namespace den0bot.Modules
 	}
 	public class ModGirls : IModule, IReceiveAllMessages, IReceiveCallback, IReceivePhotos
 	{
-		private MemoryCache sentGirlsCache = MemoryCache.Default;
+		private readonly MemoryCache sentGirlsCache = MemoryCache.Default;
 		private readonly int days_to_keep_messages = 1; // how long do we keep girls in cache
 
 		private InlineKeyboardMarkup buttons = new InlineKeyboardMarkup(
@@ -34,19 +34,19 @@ namespace den0bot.Modules
 			}
 		);
 
-		private Dictionary<long, Queue<ChachedGirl>> antispamBuffer = new Dictionary<long, Queue<ChachedGirl>>(); // chatID, queue
-		private readonly int antispam_cooldown = 10; //seconds
+		private readonly Dictionary<long, Queue<ChachedGirl>> antispamBuffer = new Dictionary<long, Queue<ChachedGirl>>(); // chatID, queue
+		private const int antispam_cooldown = 10; //seconds
 
-		private readonly int top_girls_amount = 9;
+		private const int top_girls_amount = 9;
 
 		public ModGirls()
 		{
-			AddCommands(new Command[]
+			AddCommands(new[]
 			{
 				new Command
 				{
 					Names = { "devka", "tyanochku", "girl" },
-					ActionAsync = (msg) => GetRandomGirl(msg),
+					ActionAsync = GetRandomGirl,
 				},
 				new Command
 				{
@@ -74,7 +74,7 @@ namespace den0bot.Modules
 					Name = "delet",
 					IsAdminOnly = true,
 					Reply = true,
-					Action = (msg) => DeleteGirl(msg)
+					Action = DeleteGirl
 				}
 			});
 			Log.Info(this, "Enabled");

@@ -13,7 +13,7 @@ namespace den0bot.Modules
 {
 	class ModThread : IModule
 	{
-		private readonly int default_post_amount = 1;
+		private const int default_post_amount = 1;
 
 		public ModThread()
 		{
@@ -39,7 +39,7 @@ namespace den0bot.Modules
 			Log.Info(this, "Enabled");
 		}
 
-		public int FindThread()
+		private int FindThread()
 		{
 #if ENDLESSTHREAD
 			return 4011800;
@@ -66,7 +66,7 @@ namespace den0bot.Modules
 #endif
 		}
 
-		public async Task<string> GetLastPosts(int amount)
+		private async Task<string> GetLastPosts(int amount)
 		{
 			int threadID = FindThread();
 			if (threadID == 0)

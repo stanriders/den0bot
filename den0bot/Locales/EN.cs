@@ -10,7 +10,7 @@ namespace den0bot.Locales
 		public string GetLocalizedString(string key) => locale[key];
 		public string NewMemberGreeting(string name, long userID) => $"Welcome, <a href=\"tg://user?id={userID}\">{name}</a>!";
 
-		private Dictionary<string, string> locale = new Dictionary<string, string>
+		private readonly Dictionary<string, string> locale = new Dictionary<string, string>
 		{
 			["generic_added_to_chat"] = "Sup. You can learn admin commands by sending /help in my PMs." + Environment.NewLine + "Чегоооооо бляяя - /setlocale ru",
 			["generic_fail"] = "No can do",

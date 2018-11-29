@@ -9,11 +9,11 @@ namespace den0bot.Modules
 {
 	class ModSettings : IModule, IReceivePhotos
 	{
-		private Regex profileRegex = new Regex(@"(?>https?:\/\/)?(?>osu|old)\.ppy\.sh\/u(?>sers)?\/(\d+|\S+)", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+		private readonly Regex profileRegex = new Regex(@"(?>https?:\/\/)?(?>osu|old)\.ppy\.sh\/u(?>sers)?\/(\d+|\S+)", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
 		public ModSettings()
 		{
-			AddCommands(new Command[]
+			AddCommands(new[]
 			{
 				new Command()
 				{
@@ -31,17 +31,17 @@ namespace den0bot.Modules
 				{
 					Name = "addmeme",
 					IsAdminOnly = true,
-					Action = (msg) => AddMeme(msg)
+					Action = AddMeme
 				},
 				new Command()
 				{
 					Name = "addme",
-					Action = (msg) => AddMe(msg)
+					Action = AddMe
 				},
 				new Command()
 				{
 					Name = "removeme",
-					Action = (msg) => RemoveMe(msg)
+					Action = RemoveMe
 				},
 				/*new Command()
 				{
@@ -77,7 +77,7 @@ namespace den0bot.Modules
 				{
 					Name = "setlocale",
 					IsAdminOnly = true,
-					Action = (msg) => SetLocale(msg)
+					Action = SetLocale
 				}
 			});
 			Log.Info(this, "Enabled");
@@ -139,7 +139,7 @@ namespace den0bot.Modules
 				if (!string.IsNullOrEmpty(username))
 				{
 					uint osuID = 0;
-					if (id != null && id != string.Empty)
+					if (!string.IsNullOrEmpty(id))
 					{
 						uint.TryParse(id, out osuID);
 					}
@@ -167,7 +167,7 @@ namespace den0bot.Modules
 		{
 			string name = message.Text.Substring(14);
 
-			if (name != null && name != string.Empty)
+			if (!string.IsNullOrEmpty(name))
 			{
 				if (Database.RemovePlayer(Database.GetUserID(name)/*, message.Chat.Id*/))
 					return $"{name} удален.";
@@ -189,7 +189,7 @@ namespace den0bot.Modules
 				if (!string.IsNullOrEmpty(username) && !string.IsNullOrEmpty(name))
 				{
 					uint osuID = 0;
-					if (id != null && id != string.Empty)
+					if (!string.IsNullOrEmpty(id))
 					{
 						try { osuID = uint.Parse(id); } catch (Exception) { }
 					}

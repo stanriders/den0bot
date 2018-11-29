@@ -18,12 +18,9 @@ namespace den0bot
 	static class API
 	{
 		public static User BotUser;
-		private static TelegramBotClient api = new TelegramBotClient(Config.telegam_token);
+		private static readonly TelegramBotClient api = new TelegramBotClient(Config.telegam_token);
 
-		public static bool IsConnected
-		{
-			get { return api.IsReceiving; }
-		}
+		public static bool IsConnected => api.IsReceiving;
 
 		/// <summary>
 		/// Connect and start receiving messages. Returns false if failed to connect.

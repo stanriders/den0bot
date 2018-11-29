@@ -9,7 +9,7 @@ namespace den0bot
 	public static class Localization
 	{
 		public static List<string> GetAvailableLocales() => locales.Keys.ToList();
-		private static Dictionary<string, ILocale> locales = new Dictionary<string, ILocale>
+		private static readonly Dictionary<string, ILocale> locales = new Dictionary<string, ILocale>
 		{
 			["ru"] = new RU(),
 			["en"] = new EN(),
