@@ -3,7 +3,6 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
-using System.Linq;
 using den0bot.DB.Types;
 using den0bot.Util;
 using SQLite;
@@ -40,7 +39,7 @@ namespace den0bot.DB
 		// ---
 		public static void AddUser(int id, string username)
 		{
-			if (userCache.FirstOrDefault(x => x.Username == username) == null)
+			if (userCache.Find(x => x.Username == username) == null)
 			{
 				var user = new User
 				{
@@ -55,7 +54,7 @@ namespace den0bot.DB
 		{
 			if (!string.IsNullOrEmpty(username))
 			{
-				User user = userCache.FirstOrDefault(x => x.Username == username);
+				User user = userCache.Find(x => x.Username == username);
 				if (user != null)
 				{
 					return user.TelegramID;
@@ -65,7 +64,7 @@ namespace den0bot.DB
 		}
 		public static string GetUsername(int id)
 		{
-			User user = userCache.FirstOrDefault(x => x.TelegramID == id);
+			User user = userCache.Find(x => x.TelegramID == id);
 			if (user != null)
 			{
 				return user.Username;
@@ -111,7 +110,7 @@ namespace den0bot.DB
 		public static List<Chat> GetAllChats() => chatCache;
 		public static void AddChat(long chatID)
 		{
-			if (chatCache.FirstOrDefault(x => x.Id == chatID) == null)
+			if (chatCache.Find(x => x.Id == chatID) == null)
 			{
 				var chat = new Chat
 				{
@@ -145,7 +144,7 @@ namespace den0bot.DB
 		}
 		public static string GetChatLocale(long chatID)
 		{
-			Chat chat = chatCache.FirstOrDefault(x => x.Id == chatID);
+			Chat chat = chatCache.Find(x => x.Id == chatID);
 			if (chat != null)
 			{
 				if (string.IsNullOrEmpty(chat.Locale))
@@ -170,7 +169,7 @@ namespace den0bot.DB
 				db.Update(chat);
 
 				// Update cache as well
-				var cachedChat = chatCache.FirstOrDefault(x => x.Id == chatID);
+				var cachedChat = chatCache.Find(x => x.Id == chatID);
 				if (cachedChat != null)
 					cachedChat.Locale = locale;
 			}
