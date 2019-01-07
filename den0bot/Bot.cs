@@ -41,7 +41,7 @@ namespace den0bot
 				new ModRecentScores(),
 				new ModGirls(),
 				new ModMatchFollow(),
-				new ModSanta()
+				//new ModSanta()
 			};
 
 			//Osu.IRC.Connect();

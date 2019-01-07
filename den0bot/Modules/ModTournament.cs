@@ -7,7 +7,7 @@ namespace den0bot.Modules
 	class ModTournament : IModule
 	{
 		//private bool isMatchRunning = false;
-		private Lobby lobby;
+		//private Lobby lobby;
 		private ModTournament()
 		{
 			AddCommands(new[]

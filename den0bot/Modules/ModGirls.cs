@@ -13,17 +13,18 @@ using System.Linq;
 
 namespace den0bot.Modules
 {
-	class ChachedGirl
-	{
-		public int ID { get; set; }
-		public int Rating { get; set; }
-		public List<int> Voters { get; set; }
-		public DateTime PostTime { get; set; }
-		public int MessageID { get; set; }
-		public int CommandMessageID { get; set; }
-	}
 	public class ModGirls : IModule, IReceiveAllMessages, IReceiveCallback, IReceivePhotos
 	{
+		private class ChachedGirl
+		{
+			public int ID { get; set; }
+			public int Rating { get; set; }
+			public List<int> Voters { get; set; }
+			public DateTime PostTime { get; set; }
+			public int MessageID { get; set; }
+			public int CommandMessageID { get; set; }
+		}
+
 		private readonly MemoryCache sentGirlsCache = MemoryCache.Default;
 		private readonly int days_to_keep_messages = 1; // how long do we keep girls in cache
 
@@ -35,7 +36,7 @@ namespace den0bot.Modules
 		);
 
 		private readonly Dictionary<long, Queue<ChachedGirl>> antispamBuffer = new Dictionary<long, Queue<ChachedGirl>>(); // chatID, queue
-		private const int antispam_cooldown = 10; //seconds
+		private const int antispam_cooldown = 15; //seconds
 
 		private const int top_girls_amount = 9;
 
@@ -91,8 +92,7 @@ namespace den0bot.Modules
 		{
 			long chatID = msg.Chat.Id;
 
-			int girlCount = Database.GetGirlCount(chatID);
-			if (girlCount <= 0)
+			if (Database.GetGirlCount(chatID) <= 0)
 				return Localization.Get("girls_not_found", chatID);
 
 			if (!antispamBuffer.ContainsKey(chatID))
