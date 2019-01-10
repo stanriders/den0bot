@@ -29,7 +29,7 @@ namespace den0bot
 			{
 				new ModBasicCommands(),
 				new ModThread(),
-				new ModYoutube(),
+				//new ModYoutube(),
 				new ModRandom(),
 				//new ModTopscores(),
 				new ModProfile(),
