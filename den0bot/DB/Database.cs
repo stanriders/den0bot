@@ -1,8 +1,9 @@
-﻿// den0bot (c) StanR 2018 - MIT License
+﻿// den0bot (c) StanR 2019 - MIT License
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using den0bot.DB.Types;
 using den0bot.Util;
 using SQLite;
@@ -15,6 +16,7 @@ namespace den0bot.DB
 		private static readonly string database_path = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) + Path.DirectorySeparatorChar + "data.db";
 		private static List<Chat> chatCache;
 		private static List<User> userCache;
+		private static int girlSeason;
 
 		public static void Init()
 		{
@@ -31,7 +33,12 @@ namespace den0bot.DB
 			// we keep whole chat and user tables in memory because they're being accessed quite often
 			chatCache = db.Table<Chat>().ToList();
 			userCache = db.Table<User>().ToList();
+			
+			Misc miscTable = db.Table<Misc>().FirstOrDefault();
+			if (miscTable != null)
+				girlSeason = miscTable.GirlSeason;
 		}
+
 		public static void Close() => db.Close();
 
 		// ---
@@ -236,11 +243,19 @@ namespace den0bot.DB
 		{
 			if (db.Table<Girl>().FirstOrDefault(x => x.Link == link) == null)
 			{
+				var season = GirlSeason;
+				if (GirlSeasonStartDate == default(DateTime) || GirlSeasonStartDate.AddMonths(1) < DateTime.Today)
+				{
+					GirlSeason = ++season;
+				}
+
 				db.Insert(new Girl
 				{
 					Link = link,
 					ChatID = chatID,
-					Rating = 0
+					Rating = 0,
+					Season = season + 1, // next season
+					SeasonRating = 0
 				});
 			}
 		}
@@ -283,6 +298,47 @@ namespace den0bot.DB
 			}
 			return null;
 		}
+		public static Girl GetGirlSeasonal(long chatID)
+		{
+			var season = GirlSeason;
+			if (GirlSeasonStartDate == default(DateTime) || GirlSeasonStartDate.AddMonths(1) < DateTime.Today)
+			{
+				GirlSeason = ++season;
+			}
+
+			List<Girl> girls = db.Table<Girl>().Where(x => x.ChatID == chatID && x.Season == season)?.ToList();
+			if (girls != null)
+			{
+				if (girls.Count == 0 && GirlSeason == 1)
+				{
+					// populate first season with latest girls
+					List<Girl> allGirls = db.Table<Girl>().Where(x => x.ChatID == chatID)?.ToList();
+					allGirls.Reverse();
+					if (allGirls.Count > 100)
+						allGirls = allGirls.Take(100).ToList();
+
+					foreach (var girl in allGirls)
+						girl.Season = 1;
+
+					db.UpdateAll(allGirls);
+				}
+
+				girls.RemoveAll(x => x.SeasonUsed);
+				if (girls.Count == 0)
+				{
+					ResetUsedGirlSeasonal(chatID);
+					return GetGirlSeasonal(chatID);
+				}
+				else
+				{
+					int num = RNG.Next(girls.Count);
+
+					SetUsedGirlSeasonal(girls[num].Id);
+					return girls[num];
+				}
+			}
+			return null;
+		}
 		public static void SetUsedGirl(int id)
 		{
 			Girl girl = db.Table<Girl>().FirstOrDefault(x => x.Id == id);
@@ -300,33 +356,48 @@ namespace den0bot.DB
 
 			db.UpdateAll(girls);
 		}
+		public static void SetUsedGirlSeasonal(int id)
+		{
+			Girl girl = db.Table<Girl>().FirstOrDefault(x => x.Id == id);
+			if (girl != null)
+			{
+				girl.SeasonUsed = true;
+				db.Update(girl);
+			}
+		}
+		public static void ResetUsedGirlSeasonal(long chatID)
+		{
+			List<Girl> girls = db.Table<Girl>().Where(x => x.ChatID == chatID)?.ToList();
+			foreach (Girl girl in girls)
+				girl.SeasonUsed = false;
+
+			db.UpdateAll(girls);
+		}
 		public static void ChangeGirlRating(int id, int rating)
 		{
 			Girl girl = db.Table<Girl>().FirstOrDefault(x => x.Id == id);
 			if (girl != null)
 			{
 				girl.Rating += rating;
-				/*if (girl.Rating < -10)
-				{
-					db.Delete(girl);
-					return;
-				}*/
-
 				db.Update(girl);
 			}
 		}
-		public static int GetGirlRating(int id)
+		public static void ChangeGirlRatingSeasonal(int id, int rating)
 		{
 			Girl girl = db.Table<Girl>().FirstOrDefault(x => x.Id == id);
 			if (girl != null)
 			{
-				return girl.Rating;
+				girl.SeasonRating += rating;
+				db.Update(girl);
 			}
-			return int.MinValue;
 		}
 		public static List<Girl> GetTopGirls(long chatID)
 		{
 			return db.Table<Girl>().Where(x => x.ChatID == chatID).OrderByDescending(x => x.Rating)?.ToList();
+		}
+		public static List<Girl> GetTopGirlsSeasonal(long chatID, int season)
+		{
+			return db.Table<Girl>().Where(x => x.ChatID == chatID && x.Season == season).OrderByDescending(x => x.SeasonRating)?.ToList();
 		}
 		public static void RemoveRatings()
 		{
@@ -451,6 +522,38 @@ namespace den0bot.DB
 		public static string GetCurrentTounament()
 		{
 			return string.Empty;
+		}
+
+		public static int GirlSeason
+		{
+			get => girlSeason;
+			set
+			{
+				Misc table = db.Table<Misc>().FirstOrDefault();
+				if (table != null)
+				{
+					table.GirlSeason = value;
+					table.GirlSeasonStart = DateTime.Today;
+					db.Update(table);
+				}
+
+				girlSeason = value;
+			}
+		}
+		public static DateTime GirlSeasonStartDate
+		{
+			get
+			{
+				Misc table = db.Table<Misc>().FirstOrDefault();
+				if (table != null)
+				{
+					return table.GirlSeasonStart;
+				}
+				else
+				{
+					return default(DateTime);
+				}
+			}
 		}
 	}
 }

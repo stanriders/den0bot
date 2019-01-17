@@ -1,4 +1,4 @@
-﻿// den0bot (c) StanR 2018 - MIT License
+﻿// den0bot (c) StanR 2019 - MIT License
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -23,15 +23,16 @@ namespace den0bot.Modules
 			public DateTime PostTime { get; set; }
 			public int MessageID { get; set; }
 			public int CommandMessageID { get; set; }
+			public bool Seasonal { get; set; }
+			public int SeasonalRating { get; set; }
 		}
 
 		private readonly MemoryCache sentGirlsCache = MemoryCache.Default;
-		private readonly int days_to_keep_messages = 1; // how long do we keep girls in cache
+		private const int days_to_keep_messages = 1; // how long do we keep girls in cache
 
-		private InlineKeyboardMarkup buttons = new InlineKeyboardMarkup(
-			new InlineKeyboardButton[] {
-									new InlineKeyboardButton() {Text = "+", CallbackData = "+" },
-									new InlineKeyboardButton() {Text = "-", CallbackData = "-" },
+		private readonly InlineKeyboardMarkup buttons = new InlineKeyboardMarkup(
+			new [] { new InlineKeyboardButton {Text = "+", CallbackData = "+" },
+					 new InlineKeyboardButton {Text = "-", CallbackData = "-" },
 			}
 		);
 
@@ -47,7 +48,7 @@ namespace den0bot.Modules
 				new Command
 				{
 					Names = { "devka", "tyanochku", "girl" },
-					ActionAsync = GetRandomGirl,
+					ActionAsync = msg => GetRandomGirl(msg),
 				},
 				new Command
 				{
@@ -76,7 +77,17 @@ namespace den0bot.Modules
 					IsAdminOnly = true,
 					Reply = true,
 					Action = DeleteGirl
-				}
+				},
+				new Command
+				{
+					Names = { "seasonaldevka", "seasonaltyanochku", "seasonalgirl" },
+					ActionAsync = msg => GetRandomGirl(msg, true),
+				},
+				new Command
+				{
+					Names = { "seasonaltopdevok", "seasonaltopgirls" },
+					Action = msg => TopGirlsSeasonal(msg.Chat.Id)
+				},
 			});
 			Log.Info(this, "Enabled");
 		}
@@ -88,7 +99,7 @@ namespace den0bot.Modules
 			}
 		}
 
-		private async Task<string> GetRandomGirl(Message msg)
+		private async Task<string> GetRandomGirl(Message msg, bool seasonal = false)
 		{
 			long chatID = msg.Chat.Id;
 
@@ -98,35 +109,48 @@ namespace den0bot.Modules
 			if (!antispamBuffer.ContainsKey(chatID))
 				antispamBuffer.Add(chatID, new Queue<ChachedGirl>(3));
 
-			DB.Types.Girl picture = Database.GetGirl(chatID);
+			DB.Types.Girl picture = seasonal ? Database.GetGirlSeasonal(chatID) : Database.GetGirl(chatID);
 			if (picture != null && picture.Link != string.Empty)
 			{
-				var sentMessage = await API.SendPhoto(picture.Link, chatID, picture.Rating.ToString(), ParseMode.Default, 0, buttons);
-				var girl = new ChachedGirl()
-				{
-					ID = picture.Id,
-					Rating = picture.Rating == int.MinValue ? 0 : picture.Rating,
-					Voters = new List<int>(),
-					PostTime = DateTime.Now,
-					MessageID = sentMessage.MessageId,
-					CommandMessageID = msg.MessageId
-				};
-				sentGirlsCache.Add(sentMessage.MessageId.ToString(), girl, DateTimeOffset.Now.AddDays(days_to_keep_messages));
-				antispamBuffer[chatID].Enqueue(girl);
+				var sentMessage = await API.SendPhoto(picture.Link, 
+					chatID, 
+					seasonal ? $"{picture.SeasonRating} #{Database.GirlSeason}" : picture.Rating.ToString(), 
+					ParseMode.Default, 
+					0, 
+					buttons);
 
-				if (antispamBuffer[chatID].Count == 3)
+				if (sentMessage != null)
 				{
-					// check if third girl in a queue was posted less than antispam_cooldown seconds ago and remove it
-					var oldestGirl = antispamBuffer[chatID].Dequeue();
-					var cd = oldestGirl.PostTime.AddSeconds(antispam_cooldown);
-					if (cd > DateTime.Now)
+					var girl = new ChachedGirl
 					{
-						sentGirlsCache.Remove(oldestGirl.MessageID.ToString());
-						API.RemoveMessage(chatID, oldestGirl.MessageID);
-						Thread.Sleep(50); // going too fast breaks api
-						API.RemoveMessage(chatID, oldestGirl.CommandMessageID);
+						ID = picture.Id,
+						Rating = picture.Rating == int.MinValue ? 0 : picture.Rating,
+						Voters = new List<int>(),
+						PostTime = DateTime.Now,
+						MessageID = sentMessage.MessageId,
+						CommandMessageID = msg.MessageId,
+						Seasonal = seasonal,
+						SeasonalRating = picture.SeasonRating == int.MinValue ? 0 : picture.SeasonRating
+					};
+					sentGirlsCache.Add(sentMessage.MessageId.ToString(), girl,
+						DateTimeOffset.Now.AddDays(days_to_keep_messages));
+					antispamBuffer[chatID].Enqueue(girl);
+
+					if (antispamBuffer[chatID].Count == 3)
+					{
+						// check if third girl in a queue was posted less than antispam_cooldown seconds ago and remove it
+						var oldestGirl = antispamBuffer[chatID].Dequeue();
+						var cd = oldestGirl.PostTime.AddSeconds(antispam_cooldown);
+						if (cd > DateTime.Now)
+						{
+							sentGirlsCache.Remove(oldestGirl.MessageID.ToString());
+							API.RemoveMessage(chatID, oldestGirl.MessageID);
+							Thread.Sleep(50); // going too fast breaks api
+							API.RemoveMessage(chatID, oldestGirl.CommandMessageID);
+						}
 					}
 				}
+
 				return string.Empty;
 			}
 
@@ -166,7 +190,25 @@ namespace den0bot.Modules
 			}
 			return string.Empty;
 		}
+		private string TopGirlsSeasonal(long chatID)
+		{
+			var topGirls = Database.GetTopGirlsSeasonal(chatID, Database.GirlSeason);
+			if (topGirls != null)
+			{
+				List<InputMediaPhoto> photos = new List<InputMediaPhoto>();
 
+				topGirls = topGirls.Take(top_girls_amount).ToList();
+				foreach (var girl in topGirls)
+				{
+					if (girl.Rating < -10)
+						Database.RemoveGirl(girl.Id); // just in case
+
+					photos.Add(new InputMediaPhoto(girl.Link) { Caption = $"{girl.SeasonRating} #{Database.GirlSeason}" });
+				}
+				API.SendMultiplePhotos(photos, chatID).NoAwait();
+			}
+			return string.Empty;
+		}
 		public void ReceiveCallback(CallbackQuery callback)
 		{
 			if (callback.Data == "+" || callback.Data == "-") // sanity check
@@ -184,22 +226,56 @@ namespace den0bot.Modules
 					{
 						if (callback.Data == "+")
 						{
-							Database.ChangeGirlRating(girl.ID, 1);
-							girl.Voters.Add(callback.From.Id);
-							girl.Rating++;
+							if (girl.Seasonal)
+							{
+								Database.ChangeGirlRatingSeasonal(girl.ID, 1);
+								girl.SeasonalRating++;
 
-							API.EditMediaCaption(chatId, callback.Message.MessageId, girl.Rating.ToString(), buttons);
+								API.EditMediaCaption(chatId, callback.Message.MessageId, $"{girl.SeasonalRating} #{Database.GirlSeason}",
+									buttons);
+							}
+							else
+							{
+								Database.ChangeGirlRating(girl.ID, 1);
+								girl.Rating++;
+
+								API.EditMediaCaption(chatId, callback.Message.MessageId, girl.Rating.ToString(),
+									buttons);
+							}
+
+							girl.Voters.Add(callback.From.Id);
 							API.AnswerCallbackQuery(callback.Id, Localization.FormatGet("girls_rating_up", girl.Rating, chatId));
 						}
 						else if (callback.Data == "-")
 						{
-							Database.ChangeGirlRating(girl.ID, -1);
+							if (girl.Seasonal)
+							{
+								Database.ChangeGirlRatingSeasonal(girl.ID, -1);
+								girl.SeasonalRating--;
+							}
+							else
+							{
+								Database.ChangeGirlRating(girl.ID, -1);
+								girl.Rating--;
+							}
 							girl.Voters.Add(callback.From.Id);
-							girl.Rating--;
+
 							if (girl.Rating >= -10)
 							{
-								API.EditMediaCaption(chatId, callback.Message.MessageId, girl.Rating.ToString(), buttons);
-								API.AnswerCallbackQuery(callback.Id, Localization.FormatGet("girls_rating_down", girl.Rating, chatId));
+								if (girl.Seasonal)
+								{
+									API.EditMediaCaption(chatId, callback.Message.MessageId, $"{girl.SeasonalRating} #{Database.GirlSeason}",
+										buttons);
+									API.AnswerCallbackQuery(callback.Id,
+										Localization.FormatGet("girls_rating_down", $"{girl.SeasonalRating} #{Database.GirlSeason}", chatId));
+								}
+								else
+								{
+									API.EditMediaCaption(chatId, callback.Message.MessageId, girl.Rating.ToString(),
+										buttons);
+									API.AnswerCallbackQuery(callback.Id,
+										Localization.FormatGet("girls_rating_down", girl.Rating, chatId));
+								}
 							}
 							else
 							{

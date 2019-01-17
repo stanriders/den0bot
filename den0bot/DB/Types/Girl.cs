@@ -1,4 +1,4 @@
-﻿// den0bot (c) StanR 2018 - MIT License
+﻿// den0bot (c) StanR 2019 - MIT License
 using SQLite;
 
 namespace den0bot.DB.Types
@@ -16,6 +16,11 @@ namespace den0bot.DB.Types
 
 		public int Rating { get; set; }
 
-		//public string Voters { get; set; }
+		// seasonal ratings
+		public int Season { get; set; }
+
+		public int SeasonRating { get; set; }
+
+		public bool SeasonUsed { get; set; }
 	}
 }
