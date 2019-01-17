@@ -44,7 +44,7 @@ namespace den0bot.Modules
 				Map map = await OsuAPI.GetBeatmapAsync(score.BeatmapID);
 
 				string mods = string.Empty;
-				Mods enabledMods = score.EnabledMods;
+				Mods enabledMods = score.EnabledMods ?? Mods.None;
 				if (enabledMods > 0)
 					mods = " +" + enabledMods.ToString().Replace(", ", "");
 

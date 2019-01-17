@@ -138,7 +138,7 @@ namespace den0bot.Modules
 						score.Date > DateTime.UtcNow.AddHours(7)) // osu is UTC+8, we use topscores that aren't older than 1 hour
 					{
 						Map map = await OsuAPI.GetBeatmapAsync(score.BeatmapID);
-						Mods enabledMods = score.EnabledMods;
+						Mods enabledMods = score.EnabledMods ?? Mods.None;
 
 						string mods = string.Empty;
 						if (enabledMods > 0)

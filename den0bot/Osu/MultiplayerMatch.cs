@@ -50,7 +50,7 @@ namespace den0bot.Osu
 			public TeamMode TeamMode;
 
 			[JsonProperty("mods")]
-			public Mods Mods;
+			public Mods? Mods;
 
 			[JsonProperty("scores")]
 			public List<Score> Scores;

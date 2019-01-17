@@ -64,7 +64,7 @@ namespace den0bot.Modules
 				string result = string.Empty;
 				foreach (Score score in lastScores)
 				{
-					Mods enabledMods = score.EnabledMods;
+					Mods enabledMods = score.EnabledMods ?? Mods.None;
 					string mods = string.Empty;
 					if (enabledMods > 0)
 						mods = " +" + enabledMods.ToString().Replace(", ", "");

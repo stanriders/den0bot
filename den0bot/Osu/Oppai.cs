@@ -17,7 +17,7 @@ namespace den0bot.Osu
 		public static OppaiInfo GetBeatmapOppaiInfo(Map map, Score score = null)
 		{
 			if (score != null)
-				return GetBeatmapOppaiInfo(map.FileBytes, score.EnabledMods, -1, (int)score.Count300, (int)score.Count100, (int)score.Count50, (int)score.Combo, (int)score.Misses);
+				return GetBeatmapOppaiInfo(map.FileBytes, score.EnabledMods ?? Mods.None, -1, (int)score.Count300, (int)score.Count100, (int)score.Count50, (int)score.Combo, (int)score.Misses);
 			else
 				return GetBeatmapOppaiInfo(map.FileBytes);
 		}

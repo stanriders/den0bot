@@ -38,7 +38,7 @@ namespace den0bot.Osu
 		public uint CountGeki;
 
 		[JsonProperty("enabled_mods")]
-		public Mods EnabledMods;
+		public Mods? EnabledMods;
 		[JsonProperty("rank")]
 		public string Rank;
 		[JsonProperty("pp")]
