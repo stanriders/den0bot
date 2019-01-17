@@ -104,13 +104,15 @@ namespace den0bot.Modules
 			Match regexMatch = regex.Match(message.Text);
 			if (regexMatch.Groups.Count > 1)
 			{
-				List<Group> regexGroups = regexMatch.Groups.OfType<Group>().Where(x => (x != null) && (x.Length > 0)).ToList();
+				List<Group> regexGroups = regexMatch.Groups.OfType<Group>().Where(x => x.Length > 0).ToList();
+				if (regexGroups.Count > 0 && ulong.TryParse(regexGroups[1].Value, out var matchID))
+				{
+					var match = await OsuAPI.GetMatch(matchID);
 
-				ulong matchID = ulong.Parse(regexGroups[1].Value);
-				var match = await OsuAPI.GetMatch(matchID);
-
-				if (match.Games.Count > 0)
-					API.SendMessage(await formatMatchInfo(match), message.Chat, Telegram.Bot.Types.Enums.ParseMode.Html);
+					if (match?.Games.Count > 0)
+						API.SendMessage(await formatMatchInfo(match), message.Chat,
+							Telegram.Bot.Types.Enums.ParseMode.Html);
+				}
 			}
 		}
 
@@ -120,7 +122,7 @@ namespace den0bot.Modules
 
 			List<MultiplayerMatch.Game> games = match.Games;
 			var game = games.Last(x => x.EndTime != null);
-			if (game != null)
+			if (game?.Scores != null)
 			{
 				var map = await OsuAPI.GetBeatmapAsync(game.BeatmapID);
 				if (game.TeamMode >= MultiplayerMatch.TeamMode.Team)
