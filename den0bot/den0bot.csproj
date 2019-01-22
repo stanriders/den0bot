@@ -166,7 +166,6 @@
     <Compile Include="Osu\Player.cs" />
     <Compile Include="Osu\RankedStatus.cs" />
     <Compile Include="Osu\Score.cs" />
-    <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Util\RNG.cs" />
   </ItemGroup>
