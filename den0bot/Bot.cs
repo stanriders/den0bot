@@ -1,4 +1,4 @@
-﻿// den0bot (c) StanR 2018 - MIT License
+﻿// den0bot (c) StanR 2019 - MIT License
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -21,8 +21,11 @@ namespace den0bot
 		private static bool shouldShutdown;
 		public static void Shutdown() { shouldShutdown = true; }
 
+		public static void Main() => new Bot();
+
 		public Bot()
 		{
+			Log.Info("", "________________");
 			Database.Init();
 
 			modules = new List<IModule>()
@@ -58,6 +61,7 @@ namespace den0bot
 			{
 				Log.Error(this, "Can't connect to Telegram API!");
 			}
+			Log.Info("", "Exiting...");
 		}
 
 		private void Think()
@@ -138,8 +142,8 @@ namespace den0bot
 				if (msg.Text[0] != '/')
 				{
 					// send all messages to modules that need them
-					if (m is IReceiveAllMessages )
-						(m as IReceiveAllMessages).ReceiveMessage(msg);
+					if (m is IReceiveAllMessages messages)
+						messages.ReceiveMessage(msg);
 
 					continue;
 				}
