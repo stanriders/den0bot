@@ -20,4 +20,4 @@ Uses [Telegram.Bot](https://github.com/TelegramBots/telegram.bot), [SQLite-net](
  * ModYoutube: Checks CirclePeople channel for new videos and sends them to every chat it knows.
  
 ---
-Visual Studio 2017, net461.
+Visual Studio 2017, .NET Core 2.2.
