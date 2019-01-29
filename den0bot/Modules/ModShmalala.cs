@@ -77,7 +77,7 @@ namespace den0bot.Modules
 					if (curNode.Links.Count == 0)
 						break;
 
-					curNode = curNode.Links[RNG.NextNoMemory(curNode.Links.Count)];
+					curNode = curNode.Links[RNG.NextNoMemory(0, curNode.Links.Count)];
 					if (curNode.Word == null)
 						break;
 
