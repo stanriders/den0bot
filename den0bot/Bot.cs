@@ -25,9 +25,10 @@ namespace den0bot
 
 		public Bot()
 		{
-			Log.Info("", "________________");
+			Log.Info(this, "________________");
 			Database.Init();
 
+			Log.Info(this, "Starting modules...");
 			modules = new List<IModule>()
 			{
 				new ModBasicCommands(),
@@ -44,8 +45,10 @@ namespace den0bot
 				new ModRecentScores(),
 				new ModGirls(),
 				new ModMatchFollow(),
+				new ModShmalala()
 				//new ModSanta()
 			};
+			Log.Info(this, "Done!");
 
 			//Osu.IRC.Connect();
 
@@ -61,7 +64,7 @@ namespace den0bot
 			{
 				Log.Error(this, "Can't connect to Telegram API!");
 			}
-			Log.Info("", "Exiting...");
+			Log.Info(this, "Exiting...");
 		}
 
 		private void Think()

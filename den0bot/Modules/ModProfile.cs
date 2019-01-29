@@ -1,4 +1,4 @@
-﻿// den0bot (c) StanR 2018 - MIT License
+﻿// den0bot (c) StanR 2019 - MIT License
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -13,7 +13,7 @@ namespace den0bot.Modules
 	{
 		private readonly Regex regex = new Regex(@"(?>https?:\/\/)?(?>osu|old)\.ppy\.sh\/u(?>sers)?\/(\d+|\S+)", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 		private readonly int topscores_to_show = 3;
-		public ModProfile() { Log.Info(this, "Enabled"); }
+		public ModProfile() { Log.Debug(this, "Enabled"); }
 
 		public async void ReceiveMessage(Message message)
 		{

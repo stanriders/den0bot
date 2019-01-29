@@ -1,4 +1,4 @@
-﻿// den0bot (c) StanR 2018 - MIT License
+﻿// den0bot (c) StanR 2019 - MIT License
 using System;
 using System.Net;
 using System.Text;
@@ -51,7 +51,7 @@ namespace den0bot.Modules
 			else
 			{
 				isEnabled = true;
-				Log.Info(this, "Enabled");
+				Log.Debug(this, "Enabled");
 			}
 		}
 

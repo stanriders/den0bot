@@ -89,7 +89,7 @@ namespace den0bot.Modules
 					Action = msg => TopGirlsSeasonal(msg.Chat.Id)
 				},
 			});
-			Log.Info(this, "Enabled");
+			Log.Debug(this, "Enabled");
 		}
 		public void ReceiveMessage(Message message)
 		{

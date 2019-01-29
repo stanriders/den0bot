@@ -1,4 +1,4 @@
-﻿// den0bot (c) StanR 2018 - MIT License
+﻿// den0bot (c) StanR 2019 - MIT License
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -27,7 +27,7 @@ namespace den0bot.Modules
 				Name = "map",
 				ActionAsync = (msg) => GetMap(msg)
 			});
-			Log.Info(this, $"Enabled, {maplist.Count} maps");
+			Log.Debug(this, $"Enabled, {maplist.Count} maps");
 		}
 
 		private bool Start()
@@ -35,7 +35,7 @@ namespace den0bot.Modules
 			if (string.IsNullOrEmpty(Config.googleapi_token))
 				return false;
 
-			Log.Info(this, "Loading...");
+			Log.Debug(this, "Loading...");
 			try
 			{
 				string request = "https://sheets.googleapis.com/v4/spreadsheets/" + spreadsheet +

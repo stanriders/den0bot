@@ -1,4 +1,4 @@
-﻿// den0bot (c) StanR 2018 - MIT License
+﻿// den0bot (c) StanR 2019 - MIT License
 using System;
 using System.Linq;
 using System.Collections.Generic;
@@ -37,7 +37,7 @@ namespace den0bot.Modules
 					Action = (msg) => GetRandomDinosaur(msg.Chat)
 				}
 			});
-			Log.Info(this, "Enabled");
+			Log.Debug(this, "Enabled");
 		}
 
 		private string GetRandomShitposter(Chat sender)

@@ -1,4 +1,4 @@
-﻿// den0bot (c) StanR 2018 - MIT License
+﻿// den0bot (c) StanR 2019 - MIT License
 using System;
 using System.Collections.Generic;
 using den0bot.DB;
@@ -44,7 +44,7 @@ namespace den0bot.Modules
 
 			nextCheck = DateTime.Now.AddMinutes(1);
 #endif
-			Log.Info(this, "Enabled");
+			Log.Debug(this, "Enabled");
 		}
 
 		private void OnIRCMessage(object sender, IrcEventArgs e)
