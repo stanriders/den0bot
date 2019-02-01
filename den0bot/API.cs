@@ -1,4 +1,4 @@
-﻿// den0bot (c) StanR 2018 - MIT License
+﻿// den0bot (c) StanR 2019 - MIT License
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,7 +18,7 @@ namespace den0bot
 	static class API
 	{
 		public static User BotUser;
-		private static readonly TelegramBotClient api = new TelegramBotClient(Config.telegam_token);
+		private static readonly TelegramBotClient api = new TelegramBotClient(Config.Params.TelegamToken);
 
 		public static bool IsConnected => api.IsReceiving;
 

@@ -1,4 +1,4 @@
-﻿// den0bot (c) StanR 2018 - MIT License
+﻿// den0bot (c) StanR 2019 - MIT License
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -23,7 +23,7 @@ namespace den0bot.Modules
 				ActionAsync = GetScores,
 				ParseMode = ParseMode.Html
 			});
-			Log.Info(this, "Enabled");
+			Log.Debug(this, "Enabled");
 		}
 
 		private async Task<string> GetScores(Telegram.Bot.Types.Message message)

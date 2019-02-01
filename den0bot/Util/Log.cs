@@ -36,6 +36,22 @@ namespace den0bot.Util
 			File.AppendAllText(Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) + Path.DirectorySeparatorChar + "log.txt", result);
 		}
 
+		public static void Debug(object source, string text)
+		{
+#if DEBUG
+			string sourceName = source.GetType().Name;
+
+			if (sourceName == "String")
+				sourceName = (string)source;
+
+			string result = $"({DateTime.Now}) {sourceName}: {text ?? "null"}{Environment.NewLine}";
+
+			Console.Write(result);
+
+			File.AppendAllText(Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) + Path.DirectorySeparatorChar + "log.txt", result);
+#endif
+		}
+
 		public static void IRC(string sender, string text)
 		{
 			if (string.IsNullOrEmpty(text))

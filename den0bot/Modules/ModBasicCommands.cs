@@ -1,4 +1,4 @@
-﻿// den0bot (c) StanR 2018 - MIT License
+﻿// den0bot (c) StanR 2019 - MIT License
 using Telegram.Bot.Types.Enums;
 using den0bot.Util;
 
@@ -36,7 +36,7 @@ namespace den0bot.Modules
 				},
 
 			});
-			Log.Info(this, "Enabled");
+			Log.Debug(this, "Enabled");
 		}
 	}
 }

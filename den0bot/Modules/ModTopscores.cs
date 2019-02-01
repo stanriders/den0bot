@@ -1,4 +1,4 @@
-﻿// den0bot (c) StanR 2018 - MIT License
+﻿// den0bot (c) StanR 2019 - MIT License
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -34,7 +34,7 @@ namespace den0bot.Modules
 
 		private void Start()
 		{
-			Log.Info(this, "Loading...");
+			Log.Debug(this, "Loading...");
 
 			for (int i = 1; i <= Database.GetPlayerCount(); i++)
 			{

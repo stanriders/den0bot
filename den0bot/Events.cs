@@ -1,4 +1,4 @@
-﻿// den0bot (c) StanR 2018 - MIT License
+﻿// den0bot (c) StanR 2019 - MIT License
 using den0bot.Util;
 
 namespace den0bot
@@ -23,35 +23,11 @@ namespace den0bot
 		}
 		public static string Annoy(long chatID)
 		{
-			switch (RNG.NextNoMemory(0, 9))
-			{
-				case 0: return Localization.Get("annoy_1", chatID);
-				case 1: return Localization.Get("annoy_2", chatID);
-				case 2: return Localization.Get("annoy_3", chatID);
-				case 3: return Localization.Get("annoy_4", chatID);
-				case 4: return Localization.Get("annoy_5", chatID);
-				case 5: return Localization.Get("annoy_6", chatID);
-				case 6: return Localization.Get("annoy_7", chatID);
-				case 7: return Localization.Get("annoy_8", chatID);
-				case 8: return Localization.Get("annoy_9", chatID);
-				default: return string.Empty;
-			}
+			return Localization.Get($"annoy_{RNG.NextNoMemory(1, 10)}", chatID);
 		}
 		public static string RatingRepeat(long chatID)
 		{
-			switch (RNG.NextNoMemory(0, 9))
-			{
-				case 0: return Localization.Get("rating_repeat_1", chatID);
-				case 1: return Localization.Get("rating_repeat_2", chatID);
-				case 2: return Localization.Get("rating_repeat_3", chatID);
-				case 3: return Localization.Get("rating_repeat_4", chatID);
-				case 4: return Localization.Get("rating_repeat_5", chatID);
-				case 5: return Localization.Get("rating_repeat_6", chatID);
-				case 6: return Localization.Get("rating_repeat_7", chatID);
-				case 7: return Localization.Get("rating_repeat_8", chatID);
-				case 8: return Localization.Get("rating_repeat_9", chatID);
-				default: return string.Empty;
-			}
+			return Localization.Get($"rating_repeat_{RNG.NextNoMemory(1, 10)}", chatID);
 		}
 	}
 }

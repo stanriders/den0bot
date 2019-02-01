@@ -1,4 +1,4 @@
-﻿// den0bot (c) StanR 2018 - MIT License
+﻿// den0bot (c) StanR 2019 - MIT License
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -22,7 +22,7 @@ namespace den0bot.Osu
 			new Thread(delegate ()
 				{
 					irc.Connect("irc.ppy.sh", 6667);
-					irc.Login(Config.osu_irc_username, "den0bot", 0, Config.osu_irc_username, Config.osu_irc_password);
+					irc.Login(Config.Params.osuIRCUsername, "den0bot", 0, Config.Params.osuIRCUsername, Config.Params.osuIRCPassword);
 					isConnected = irc.IsConnected;
 					irc.Listen();
 				})

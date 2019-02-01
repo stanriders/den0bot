@@ -1,4 +1,4 @@
-﻿// den0bot (c) StanR 2018 - MIT License
+﻿// den0bot (c) StanR 2019 - MIT License
 using System;
 using System.Text.RegularExpressions;
 using den0bot.DB;
@@ -80,7 +80,7 @@ namespace den0bot.Modules
 					Action = SetLocale
 				}
 			});
-			Log.Info(this, "Enabled");
+			Log.Debug(this, "Enabled");
 		}
 
 		private string AddMeme(Telegram.Bot.Types.Message message)

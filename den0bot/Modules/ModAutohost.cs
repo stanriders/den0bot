@@ -1,4 +1,4 @@
-﻿// den0bot (c) StanR 2018 - MIT License
+﻿// den0bot (c) StanR 2019 - MIT License
 using System;
 using System.Collections.Generic;
 using den0bot.DB;
@@ -23,7 +23,7 @@ namespace den0bot.Modules
 				new Command()
 				{
 					Name = "mplink",
-					Action = msg => $"{Config.osu_lobby_name} - {Config.osu_lobby_password} {Environment.NewLine}{lobby.Link}"
+					Action = msg => $"{Config.Params.osuLobbyName} - {Config.Params.osuLobbyPassword} {Environment.NewLine}{lobby.Link}"
 				},
 				new Command()
 				{
@@ -37,14 +37,14 @@ namespace den0bot.Modules
 #if !DEBUG
 			lobby = new Lobby((uint)Database.CurrentLobbyID)
 			{
-				Name = Config.osu_lobby_name,
-				Password = Config.osu_lobby_password,
+				Name = Config.Params.osuLobbyName,
+				Password = Config.Params.osuLobbyPassword,
 				Size = 16
 			};
 
 			nextCheck = DateTime.Now.AddMinutes(1);
 #endif
-			Log.Info(this, "Enabled");
+			Log.Debug(this, "Enabled");
 		}
 
 		private void OnIRCMessage(object sender, IrcEventArgs e)
@@ -55,8 +55,8 @@ namespace den0bot.Modules
 			{
 				lobby = new Lobby()
 				{
-					Name = Config.osu_lobby_name,
-					Password = Config.osu_lobby_password,
+					Name = Config.Params.osuLobbyName,
+					Password = Config.Params.osuLobbyPassword,
 					Size = 16
 				};
 				Database.CurrentLobbyID = (int)lobby.ID;

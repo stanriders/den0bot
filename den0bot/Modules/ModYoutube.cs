@@ -1,4 +1,4 @@
-﻿// den0bot (c) StanR 2018 - MIT License
+﻿// den0bot (c) StanR 2019 - MIT License
 using System;
 using System.Net;
 using System.Text;
@@ -14,7 +14,7 @@ namespace den0bot.Modules
 		private DateTime nextCheck;
 		private bool isEnabled = false;
 
-		private const string api_key = Config.googleapi_token;
+		private readonly string api_key = Config.Params.GoogleAPIToken;
 		private const string channel_id = "UCt1GKXk_zkcBUEwAeXZ43RA";  // circle people again
 		private const double check_interval = 1.0; // minutes
 		private const int default_score_amount = 3;
@@ -51,7 +51,7 @@ namespace den0bot.Modules
 			else
 			{
 				isEnabled = true;
-				Log.Info(this, "Enabled");
+				Log.Debug(this, "Enabled");
 			}
 		}
 
