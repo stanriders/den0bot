@@ -43,7 +43,7 @@ namespace den0bot.Modules
 				// unpack chain if it exists
 				if (System.IO.File.Exists(file_path))
 				{
-					var packedChain = JsonConvert.DeserializeObject<Dictionary<string, string>>(System.IO.File.ReadAllText(file_path));
+					var packedChain = JsonConvert.DeserializeObject<Dictionary<string, List<string>>>(System.IO.File.ReadAllText(file_path));
 					foreach (var word in packedChain)
 					{
 						// first add all nodes without links
@@ -56,7 +56,7 @@ namespace den0bot.Modules
 					foreach (var word in packedChain)
 					{
 						// then add all links between nodes
-						var links = word.Value.Split(';').ToList();
+						var links = word.Value;
 						foreach (var link in links)
 						{
 							var node = nodes.Find(x => x.Word == link);
@@ -94,7 +94,15 @@ namespace den0bot.Modules
 
 			private MarkovChainNode GetNode(string value)
 			{
-				var node = nodes.SingleOrDefault(n => n.Word == value);
+				MarkovChainNode node = null;
+				if (string.IsNullOrEmpty(value))
+				{
+					node = nodes[RNG.NextNoMemory(0, nodes.Count)];
+				}
+				else
+				{
+					node = nodes.SingleOrDefault(n => n.Word == value);
+				}
 				if (node == null)
 				{
 					node = new MarkovChainNode { Word = value };
@@ -105,36 +113,21 @@ namespace den0bot.Modules
 
 			public void SaveToFile()
 			{
-				Dictionary<string, string> packedChain = new Dictionary<string, string>();
+				Dictionary<string, List<string>> packedChain = new Dictionary<string, List<string>>();
 				foreach (MarkovChainNode node in Nodes)
 				{
 					if (node.Word != null)
 					{
-						if (node.Links.Count > 0)
-						{
-							StringBuilder builder = new StringBuilder();
-							foreach (var link in node.Links)
-							{
-								builder.Append(link.Word);
-								if (node.Links.Count > 1)
-									builder.Append(';');
-							}
-
-							packedChain.Add(node.Word, builder.ToString());
-						}
-						else
-						{
-							packedChain.Add(node.Word, "");
-						}
+						packedChain.Add(node.Word, node.Links.Select(x => x.Word).ToList());
 					}
 				}
-
-				System.IO.File.WriteAllText(file_path, JsonConvert.SerializeObject(packedChain));
+				
+				System.IO.File.WriteAllText(file_path, JsonConvert.SerializeObject(packedChain, Formatting.Indented));
 			}
 		}
 
-		private readonly char[] sentenceSeparators = { '.', '!', '?', ',', ';', ':', '(', ')' };
-		private readonly Regex cleanWordRegex = new Regex(@"[()\[\]{}'""`~]");
+		private readonly char[] sentenceSeparators = { '.', '!', '?', ',', '(', ')', '\n' };
+		private readonly Regex cleanWordRegex = new Regex(@"[()\[\]{}'""`~\\\/]|(http|ftp|https):\/\/([\w_-]+(?:(?:\.[\w_-]+)+))([\w.,@?^=%&:\/~+#-]*[\w@?^=%&\/~+#-])?");
 
 		private int numTrainingMessagesReceived;
 		private int numTrainingWordsReceived;
@@ -154,6 +147,16 @@ namespace den0bot.Modules
 				{
 					Name = "talkstats",
 					Action = msg => $"Messages: {numTrainingMessagesReceived}, words: {numTrainingWordsReceived}"
+				},
+				new Command
+				{
+					Name = "talkdump",
+					Action = msg =>
+					{
+						markovChain.SaveToFile();
+						return "k cool";
+					},
+					IsOwnerOnly = true
 				}
 			});
 		}
@@ -184,20 +187,30 @@ namespace den0bot.Modules
 			}
 			while (words.Length < 3 && trials++ < 10);
 
-			return string.Join(" ", words) + ". ";
+			// uppercase first char
+			words[0] = words[0].Substring(0, 1).ToUpper() + words[0].Remove(0, 1);
+
+			return string.Join(" ", words) + $"{sentenceSeparators[RNG.NextNoMemory(0, sentenceSeparators.Length)]} ";
 		}
 
 		public void ReceiveMessage(Message message)
 		{
+			var text = message.Text.ToLower();
+			if (text.StartsWith(Localization.Get("shmalala_trigger", message.Chat.Id)))
+			{
+				API.SendMessage(GenerateRandomSentence(), message.Chat);
+				return;
+			}
+
 			// Train Markov generator from received message text.
 			// Assume it is composed of one or more coherent sentences that are themselves are composed of words.
-			var sentences = message.Text.Split(sentenceSeparators);
+			var sentences = text.ToLower().Split(sentenceSeparators);
 			foreach (var s in sentences)
 			{
 				string lastWord = null;
 				foreach (var w in s.Split(' ').Select(w => cleanWordRegex.Replace(w, string.Empty)))
 				{
-					if (w.Length == 0)
+					if (string.IsNullOrEmpty(w))
 						continue;
 
 					markovChain.Train(lastWord, w);
