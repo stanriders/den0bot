@@ -18,7 +18,7 @@ namespace den0bot
 	static class API
 	{
 		public static User BotUser;
-		private static readonly TelegramBotClient api = new TelegramBotClient(Config.Params.TelegamToken);
+		private static TelegramBotClient api;
 
 		public static bool IsConnected => api.IsReceiving;
 
@@ -27,9 +27,16 @@ namespace den0bot
 		/// </summary>
 		public static bool Connect()
 		{
+			if (string.IsNullOrEmpty(Config.Params.TelegamToken))
+			{
+				Log.Error("API", "Telegram token is null or empty!");
+				return false;
+			}
+
 			Log.Info("API", "Connecting...");
 			try
 			{
+				api = new TelegramBotClient(Config.Params.TelegamToken);
 				api.OnMessage += OnMessage;
 				api.OnCallbackQuery += OnCallback;
 				api.OnReceiveGeneralError += delegate (object sender, ReceiveGeneralErrorEventArgs args) { Log.Error("API - OnReceiveGeneralError", args.Exception.InnerMessageIfAny()); };
