@@ -15,7 +15,7 @@ namespace den0bot
 	{
 		private readonly List<IModule> modules;
 
-		private static bool IsOwner(string username) => (username == Config.owner_username);
+		private static bool IsOwner(string username) => (username == Config.Params.OwnerUsername);
 		private static bool IsAdmin(long chatID, string username) => IsOwner(username) || (API.GetAdmins(chatID).Exists(x => x.User.Username == username));
 
 		private static bool shouldShutdown;
@@ -26,7 +26,9 @@ namespace den0bot
 		public Bot()
 		{
 			Log.Info(this, "________________");
+			Config.Init();
 			Database.Init();
+			Localization.Init();
 
 			Log.Info(this, "Starting modules...");
 			modules = new List<IModule>()

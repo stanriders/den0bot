@@ -32,14 +32,14 @@ namespace den0bot.Modules
 
 		private bool Start()
 		{
-			if (string.IsNullOrEmpty(Config.googleapi_token))
+			if (string.IsNullOrEmpty(Config.Params.GoogleAPIToken))
 				return false;
 
 			Log.Debug(this, "Loading...");
 			try
 			{
 				string request = "https://sheets.googleapis.com/v4/spreadsheets/" + spreadsheet +
-				                 "/values/A2:B999?key=" + Config.googleapi_token;
+				                 "/values/A2:B999?key=" + Config.Params.GoogleAPIToken;
 				var data = new WebClient().DownloadData(request);
 
 				JArray array = JToken.Parse(Encoding.UTF8.GetString(data))["values"] as JArray;

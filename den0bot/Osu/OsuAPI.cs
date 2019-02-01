@@ -1,4 +1,4 @@
-﻿// den0bot (c) StanR 2018 - MIT License
+﻿// den0bot (c) StanR 2019 - MIT License
 using System;
 using System.Collections.Generic;
 using System.Net;
@@ -13,13 +13,13 @@ namespace den0bot.Osu
 	{
 		private static async Task<string> MakeApiRequestAsync(string request)
 		{
-			if (string.IsNullOrEmpty(Config.osu_token))
+			if (string.IsNullOrEmpty(Config.Params.osuToken))
 			{
 				Log.Error("OsuAPI", "API Key is not defined!");
 				return null;
 			}
 			else
-				return await new WebClient().DownloadStringTaskAsync($"https://osu.ppy.sh/api/{request}&k={Config.osu_token}");
+				return await new WebClient().DownloadStringTaskAsync($"https://osu.ppy.sh/api/{request}&k={Config.Params.osuToken}");
 		}
 
 		/// <summary>

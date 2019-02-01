@@ -117,7 +117,7 @@
     <Compile Include="API.cs" />
     <Compile Include="Bot.cs" />
     <Compile Include="DB\Types\Chat.cs" />
-    <Compile Include="Config.cs" />
+    <Compile Include="Util\Config.cs" />
     <Compile Include="DB\Database.cs" />
     <Compile Include="DB\Types\Girl.cs" />
     <Compile Include="DB\Types\Meme.cs" />
@@ -128,14 +128,11 @@
     <Compile Include="DB\Types\User.cs" />
     <Compile Include="Modules\ModSanta.cs" />
     <Compile Include="Util\Extensions.cs" />
-    <Compile Include="IReceivePhotos.cs" />
-    <Compile Include="Locales\ILocale.cs" />
-    <Compile Include="IModule.cs" />
-    <Compile Include="IReceiveAllMessages.cs" />
-    <Compile Include="IReceiveCallback.cs" />
-    <Compile Include="Locales\EN.cs" />
-    <Compile Include="Locales\RU.cs" />
-    <Compile Include="Localization.cs" />
+    <Compile Include="Modules\IReceivePhotos.cs" />
+    <Compile Include="Modules\IModule.cs" />
+    <Compile Include="Modules\IReceiveAllMessages.cs" />
+    <Compile Include="Modules\IReceiveCallback.cs" />
+    <Compile Include="Util\Localization.cs" />
     <Compile Include="Util\Log.cs" />
     <Compile Include="Events.cs" />
     <Compile Include="Modules\ModAutohost.cs" />
@@ -171,6 +168,12 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+    <None Include="Locales\en.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Locales\ru.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>

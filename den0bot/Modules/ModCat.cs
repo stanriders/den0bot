@@ -1,23 +1,24 @@
-﻿// den0bot (c) StanR 2018 - MIT License
+﻿// den0bot (c) StanR 2019 - MIT License
 using System;
 using System.Net;
 using System.Linq;
 using Telegram.Bot.Types;
 using Newtonsoft.Json.Linq;
 using System.Collections.Generic;
+using den0bot.Util;
 
 namespace den0bot.Modules
 {
 	class ModCat : IModule, IReceiveAllMessages
 	{
-		private readonly string api_link = "https://api.thecatapi.com/v1/images/search?size=med&type=jpg,png&api_key=" + Config.cat_token;
+		private readonly string api_link = "https://api.thecatapi.com/v1/images/search?size=med&type=jpg,png&api_key=" + Config.Params.CatToken;
 
 		private readonly Dictionary<long, DateTime> nextPost = new Dictionary<long, DateTime>(); // chatID, time
 		private const int cooldown = 5; // minutes
 
 		public void ReceiveMessage(Message message)
 		{
-			if (string.IsNullOrEmpty(Config.cat_token))
+			if (string.IsNullOrEmpty(Config.Params.CatToken))
 				return;
 
 			if (!nextPost.ContainsKey(message.Chat.Id))

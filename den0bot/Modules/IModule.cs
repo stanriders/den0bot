@@ -1,11 +1,11 @@
-﻿// den0bot (c) StanR 2018 - MIT License
+﻿// den0bot (c) StanR 2019 - MIT License
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 
-namespace den0bot
+namespace den0bot.Modules
 {
 	public abstract class IModule
 	{

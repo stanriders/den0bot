@@ -23,7 +23,7 @@ namespace den0bot.Modules
 				new Command()
 				{
 					Name = "mplink",
-					Action = msg => $"{Config.osu_lobby_name} - {Config.osu_lobby_password} {Environment.NewLine}{lobby.Link}"
+					Action = msg => $"{Config.Params.osuLobbyName} - {Config.Params.osuLobbyPassword} {Environment.NewLine}{lobby.Link}"
 				},
 				new Command()
 				{
@@ -37,8 +37,8 @@ namespace den0bot.Modules
 #if !DEBUG
 			lobby = new Lobby((uint)Database.CurrentLobbyID)
 			{
-				Name = Config.osu_lobby_name,
-				Password = Config.osu_lobby_password,
+				Name = Config.Params.osuLobbyName,
+				Password = Config.Params.osuLobbyPassword,
 				Size = 16
 			};
 
@@ -55,8 +55,8 @@ namespace den0bot.Modules
 			{
 				lobby = new Lobby()
 				{
-					Name = Config.osu_lobby_name,
-					Password = Config.osu_lobby_password,
+					Name = Config.Params.osuLobbyName,
+					Password = Config.Params.osuLobbyPassword,
 					Size = 16
 				};
 				Database.CurrentLobbyID = (int)lobby.ID;
