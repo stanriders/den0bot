@@ -1,4 +1,5 @@
 ﻿// den0bot (c) StanR 2019 - MIT License
+using System.Collections.Generic;
 using System.IO;
 using Newtonsoft.Json;
 
@@ -8,6 +9,8 @@ namespace den0bot.Util
 	{
 		public class ConfigFile
 		{
+			public List<string> Modules { get; set; } = new List<string>();
+
 			// https://telegram.me/botfather
 			public string TelegamToken { get; set; }
 			public string OwnerUsername { get; set; }

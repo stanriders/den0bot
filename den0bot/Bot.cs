@@ -13,7 +13,7 @@ namespace den0bot
 {
 	public class Bot
 	{
-		private readonly List<IModule> modules;
+		private readonly List<IModule> modules = new List<IModule>();
 
 		private static bool IsOwner(string username) => (username == Config.Params.OwnerUsername);
 		private static bool IsAdmin(long chatID, string username) => IsOwner(username) || (API.GetAdmins(chatID).Exists(x => x.User.Username == username));
@@ -31,25 +31,18 @@ namespace den0bot
 			Localization.Init();
 
 			Log.Info(this, "Starting modules...");
-			modules = new List<IModule>()
+			if (Config.Params.Modules != null)
 			{
-				new ModBasicCommands(),
-				new ModThread(),
-				//new ModYoutube(),
-				new ModRandom(),
-				//new ModTopscores(),
-				new ModProfile(),
-				new ModBeatmap(),
-				new ModMaplist(),
-				new ModCat(),
-				new ModSettings(),
-				//new ModAutohost(),
-				new ModRecentScores(),
-				new ModGirls(),
-				new ModMatchFollow(),
-				new ModShmalala()
-				//new ModSanta()
-			};
+				foreach (var moduleName in Config.Params.Modules)
+				{
+					Type type = Type.GetType($"den0bot.Modules.{moduleName}", true);
+					modules.Add((IModule) Activator.CreateInstance(type));
+				}
+			}
+			else
+			{
+				Log.Error(this, "Module list not found!");
+			}
 			Log.Info(this, "Done!");
 
 			//Osu.IRC.Connect();
