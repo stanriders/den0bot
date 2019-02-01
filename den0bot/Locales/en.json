@@ -1,4 +1,5 @@
 {
+  "generic_greeting": "Welcome, <a href=\"tg://user?id={userID}\">{name}</a>!",
   "generic_added_to_chat": "Sup. You can learn admin commands by sending /help in my PMs.\r\nЧегоооооо бляяя - /setlocale ru",
   "generic_fail": "No can do",
 
