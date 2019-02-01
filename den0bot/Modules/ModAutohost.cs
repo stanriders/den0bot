@@ -10,22 +10,21 @@ namespace den0bot.Modules
 {
 	class ModAutohost : IModule
 	{
-#if !DEBUG
 		private DateTime nextCheck;
 		private readonly double check_interval = 30; //seconds
-#endif
+
 		private Lobby lobby;
 
 		public ModAutohost()
 		{
-			AddCommands(new Command[]
+			AddCommands(new []
 			{
-				new Command()
+				new Command
 				{
 					Name = "mplink",
 					Action = msg => $"{Config.Params.osuLobbyName} - {Config.Params.osuLobbyPassword} {Environment.NewLine}{lobby.Link}"
 				},
-				new Command()
+				new Command
 				{
 					Name = "mpuserlist",
 					Action = (msg) => GetUserlist()
@@ -33,8 +32,8 @@ namespace den0bot.Modules
 			});
 
 			IRC.OnMessage += OnIRCMessage;
-			//IRC.Connect();
-#if !DEBUG
+			IRC.Connect();
+
 			lobby = new Lobby((uint)Database.CurrentLobbyID)
 			{
 				Name = Config.Params.osuLobbyName,
@@ -43,7 +42,6 @@ namespace den0bot.Modules
 			};
 
 			nextCheck = DateTime.Now.AddMinutes(1);
-#endif
 			Log.Debug(this, "Enabled");
 		}
 
@@ -97,13 +95,11 @@ namespace den0bot.Modules
 
 		public override void Think()
 		{
-#if !DEBUG
 			if (nextCheck < DateTime.Now && lobby.UserList.Count <= 0)
 			{
 				IRC.Rejoin(lobby.Channel);
 				nextCheck = DateTime.Now.AddSeconds(check_interval);
 			}
-#endif
 		}
 	}
 }

@@ -14,10 +14,8 @@ namespace den0bot.Modules
 
 		private int currentUser = 1;
 
-#if !DEBUG
 		private DateTime nextCheck;
 		private readonly double check_interval = 5; //seconds per player
-#endif
 
 		private readonly int scores_num = 5;
 
@@ -25,11 +23,9 @@ namespace den0bot.Modules
 		{
 			storedTopscores = new Dictionary<int, List<Score>>();
 
-#if !DEBUG
 			nextCheck = DateTime.Now;
 			Start();
 			Log.Info(this, "Enabled");
-#endif
 		}
 
 		private void Start()
@@ -64,13 +60,11 @@ namespace den0bot.Modules
 
 		public override void Think()
 		{
-#if !DEBUG
 			if (nextCheck < DateTime.Now)
 			{
 				Update();
 				nextCheck = DateTime.Now.AddSeconds(check_interval);
 			}
-#endif
 		}
 
 		private bool AddPlayer(int user)

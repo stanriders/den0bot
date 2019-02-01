@@ -56,7 +56,7 @@ namespace den0bot.Modules
 			if (name.EndsWith("@den0bot"))
 				name = name.Replace("@den0bot", "");
 
-			return commands.Find(x => x.ContainsName(name));
+			return commands.Find(x => x.ContainsName(name.ToLowerInvariant()));
 		}
 
 		public virtual void Think() { }

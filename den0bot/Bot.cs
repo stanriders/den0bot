@@ -23,7 +23,7 @@ namespace den0bot
 
 		public static void Main() => new Bot();
 
-		public Bot()
+		private Bot()
 		{
 			Log.Info(this, "________________");
 			Config.Init();
