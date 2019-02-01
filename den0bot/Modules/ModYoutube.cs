@@ -84,7 +84,7 @@ namespace den0bot.Modules
 
 				if (obj["items"].HasValues)
 				{
-					foreach (JObject vid in obj["items"])
+					foreach (var vid in obj["items"])
 					{
 						string title = vid["snippet"]["title"].ToString();
 						string id = vid["contentDetails"]["upload"]["videoId"].ToString();

@@ -1,4 +1,4 @@
-﻿// den0bot (c) StanR 2018 - MIT License
+﻿// den0bot (c) StanR 2019 - MIT License
 using SQLite;
 
 namespace den0bot.DB.Types
@@ -10,8 +10,8 @@ namespace den0bot.DB.Types
 
 		public uint OsuID { get; set; }
 
-		public string Topscores { get; set; }
+		//public string Topscores { get; set; }
 
-		public long TopscoresChatID { get; set; }
+		//public long TopscoresChatID { get; set; }
 	}
 }

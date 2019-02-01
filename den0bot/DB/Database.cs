@@ -409,18 +409,11 @@ namespace den0bot.DB
 			db.UpdateAll(table);
 		}
 		// ---
-		// Users
+		// Players
 		// ---
-		//public static List<Player> GetAllPlayers(long chatID) => db.Table<Player>().Where(x => x.ChatID == chatID)?.ToList();
 		public static int GetPlayerCount() => db.Table<Player>().Count();
-		//public static int GetPlayerCount(long chatID) => (int)db.Table<Player>().Where(x => x.ChatID == chatID)?.Count();
-
 		private static Player GetPlayer(int ID) => db.Table<Player>().FirstOrDefault(x => x.TelegramID == ID);
-		//private static Player GetPlayer(string username) => db.Table<Player>().Where(x => x.Username.ToLower() == username.ToLower())?.FirstOrDefault();
-		//public static string GetPlayerFriendlyName(int ID) => GetPlayer(ID)?.FriendlyName;
 		public static uint GetPlayerOsuID(int ID) => GetPlayer(ID)?.OsuID ?? 0;
-		//public static uint GetPlayerOsuID(string username) => GetPlayer(username)?.OsuID ?? 0;
-		//public static long GetPlayerChatID(int ID) => GetPlayer(ID)?.ChatID ?? 0;
 
 		public static bool AddPlayer(int tgID, uint osuID)
 		{
@@ -445,44 +438,6 @@ namespace den0bot.DB
 			}
 			return false;
 		}
-		public static List<Osu.Score> GetPlayerTopscores(int tgID)
-		{
-			string storedTopscores = db.Table<Player>().Where(x => x.TelegramID == tgID)?.First().Topscores;
-			if (!string.IsNullOrEmpty(storedTopscores))
-			{
-				List<Osu.Score> result = new List<Osu.Score>();
-				foreach (string score in storedTopscores.Split(';'))
-				{
-					if (score != string.Empty)
-					{
-						string scoreID = score.Split('-')[0];
-						string date = score.Split('-')[1];
-						result.Add(new Osu.Score
-						{
-							ScoreID = uint.Parse(scoreID),
-							Date = DateTime.Parse(date, CultureInfo.GetCultureInfo("en-us"))
-						});
-					}
-				}
-				return result;
-			}
-			return null;
-		}
-		public static void SetPlayerTopscores(List<Osu.Score> scores, int tgID)
-		{
-			Player player = db.Table<Player>().FirstOrDefault(x => x.TelegramID == tgID);
-			if (player != null)
-			{
-				string result = string.Empty;
-				foreach (Osu.Score score in scores)
-				{
-					result += score.ScoreID + "-" + score.Date.ToString(CultureInfo.GetCultureInfo("en-us")) + ";";
-				}
-				player.Topscores = result;
-				db.Update(player);
-			}
-		}
-
 		// ---
 		// Misc
 		// ---

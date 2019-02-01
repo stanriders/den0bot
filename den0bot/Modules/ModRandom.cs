@@ -28,31 +28,11 @@ namespace den0bot.Modules
 				},
 				new Command
 				{
-					Name = "shitposter",
-					Action = (msg) => GetRandomShitposter(msg.Chat)
-				},
-				new Command
-				{
 					Name = "den0saur",
 					Action = (msg) => GetRandomDinosaur(msg.Chat)
 				}
 			});
 			Log.Debug(this, "Enabled");
-		}
-
-		private string GetRandomShitposter(Chat sender)
-		{ /*
-			if (Database.GetPlayerCount(sender.Id) <= 0)
-				return Localization.Get("random_no_shitposter", sender.Id);
-
-			int num = RNG.Next(Database.GetPlayerCount(sender.Id));
-
-			if (Database.GetPlayerChatID(num) != sender.Id)
-				return GetRandomShitposter(sender);
-
-			return Database.GetPlayerFriendlyName(num) + Localization.Get("random_shitposter", sender.Id);
-			*/
-			return string.Empty;
 		}
 
 		private string GetRandomDinosaur(Chat sender)

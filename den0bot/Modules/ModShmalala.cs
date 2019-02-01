@@ -127,7 +127,7 @@ namespace den0bot.Modules
 		}
 
 		private readonly char[] sentenceSeparators = { '.', '!', '?', ',', '(', ')', '\n' };
-		private readonly Regex cleanWordRegex = new Regex(@"[()\[\]{}'""`~\\\/]|(http|ftp|https):\/\/([\w_-]+(?:(?:\.[\w_-]+)+))([\w.,@?^=%&:\/~+#-]*[\w@?^=%&\/~+#-])?");
+		private readonly Regex cleanWordRegex = new Regex(@"[()\[\]{}'""`~\\\/]|(http|ftp|https):\/\/([\w_-]+(?:(?:\.[\w_-]+)+))([\w.,@?^=%&:\/~+#-]*[\w@?^=%&\/~+#-])?", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
 		private int numTrainingMessagesReceived;
 		private int numTrainingWordsReceived;
