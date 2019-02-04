@@ -62,7 +62,8 @@ namespace den0bot.Modules
 			{
 				var curNode = GetExistingNode(startNode);
 				int wordAmt = 0; // make responses 10 words max so it could make a bit more sense
-				while (wordAmt < RNG.NextNoMemory(3,11))
+				int wordMax = RNG.NextNoMemory(3, 11);
+				while (wordAmt < wordMax)
 				{
 					if (curNode.Links.Count == 0)
 						break;
@@ -197,8 +198,10 @@ namespace den0bot.Modules
 			do
 			{
 				words = markovChain.GenerateSequence(startNode).ToArray();
+				if (trials++ > 10)
+					break;
 			}
-			while (words.Length < 3 && trials++ < 10);
+			while (words.Length < 3);
 
 			// uppercase first char
 			words[0] = words[0].Substring(0, 1).ToUpper() + words[0].Remove(0, 1);
@@ -219,7 +222,7 @@ namespace den0bot.Modules
 
 				// Use Markov chain to generate random message, composed of one or more sentences.
 				for (int i = 0; i < RNG.NextNoMemory(1, 4); i++)
-					textBuilder.Append(GenerateRandomSentence(GenerateRandomSentence(words[RNG.NextNoMemory(0, words.Length)])));
+					textBuilder.Append(GenerateRandomSentence(words[RNG.NextNoMemory(1, words.Length)]));
 
 				API.SendMessage(textBuilder.ToString(), message.Chat);
 				return;
