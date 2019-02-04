@@ -204,7 +204,6 @@ namespace den0bot.Osu
 						fileBytes = client.DownloadData("https://osu.ppy.sh/osu/" + BeatmapID);
 					}
 					return fileBytes;
-
 				}
 				catch (Exception e)
 				{

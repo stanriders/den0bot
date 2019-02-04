@@ -217,14 +217,16 @@ namespace den0bot.Modules
 			{
 				// use random word from message to start our response from
 				var words = text.Split(' ');
+				if (words.Length > 1)
+				{
+					var textBuilder = new StringBuilder();
 
-				var textBuilder = new StringBuilder();
+					// Use Markov chain to generate random message, composed of one or more sentences.
+					for (int i = 0; i < RNG.NextNoMemory(1, 4); i++)
+						textBuilder.Append(GenerateRandomSentence(words[RNG.NextNoMemory(1, words.Length)]));
 
-				// Use Markov chain to generate random message, composed of one or more sentences.
-				for (int i = 0; i < RNG.NextNoMemory(1, 4); i++)
-					textBuilder.Append(GenerateRandomSentence(words[RNG.NextNoMemory(1, words.Length)]));
-
-				API.SendMessage(textBuilder.ToString(), message.Chat);
+					API.SendMessage(textBuilder.ToString(), message.Chat);
+				}
 				return;
 			}
 

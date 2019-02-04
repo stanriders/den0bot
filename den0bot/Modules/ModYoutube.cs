@@ -76,7 +76,6 @@ namespace den0bot.Modules
 												Uri.EscapeDataString(lastChecked.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss.sZ")),
 												channel_id);
 
-
 				var data = await new WebClient().DownloadDataTaskAsync(request);
 
 				JObject obj = JObject.Parse(Encoding.UTF8.GetString(data));
