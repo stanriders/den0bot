@@ -69,10 +69,11 @@ namespace den0bot.Modules
 				Nodes = new ReadOnlyCollection<MarkovChainNode>(nodes);
 			}
 
-			public IEnumerable<string> GenerateSequence()
+			public IEnumerable<string> GenerateSequence(string startNode)
 			{
-				var curNode = GetNode(default(string));
-				while (true)
+				var curNode = GetExistingNode(startNode);
+				int wordAmt = 0; // make responses 10 words max so it could make a bit more sense
+				while (wordAmt < 10)
 				{
 					if (curNode.Links.Count == 0)
 						break;
@@ -81,6 +82,7 @@ namespace den0bot.Modules
 					if (curNode.Word == null)
 						break;
 
+					wordAmt++;
 					yield return curNode.Word;
 				}
 			}
@@ -111,6 +113,20 @@ namespace den0bot.Modules
 				return node;
 			}
 
+			private MarkovChainNode GetExistingNode(string value)
+			{
+				MarkovChainNode node = null;
+				if (!string.IsNullOrEmpty(value))
+				{
+					node = nodes.SingleOrDefault(n => n.Word == value);
+				}
+
+				if (node == null)
+					node = nodes[RNG.NextNoMemory(0, nodes.Count)];
+
+				return node;
+			}
+
 			public void SaveToFile()
 			{
 				Dictionary<string, List<string>> packedChain = new Dictionary<string, List<string>>();
@@ -127,7 +143,8 @@ namespace den0bot.Modules
 		}
 
 		private readonly char[] sentenceSeparators = { '.', '!', '?', ',', '(', ')', '\n' };
-		private readonly Regex cleanWordRegex = new Regex(@"[()\[\]{}'""`~\\\/]|(http|ftp|https):\/\/([\w_-]+(?:(?:\.[\w_-]+)+))([\w.,@?^=%&:\/~+#-]*[\w@?^=%&\/~+#-])?", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+		private readonly Regex cleanWordRegex = 
+			new Regex(@"[()\[\]{}'""`~\\\/\-*\d]|(http|ftp|https):\/\/([\w_-]+(?:(?:\.[\w_-]+)+))([\w.,@?^=%&:\/~+#-]*[\w@?^=%&\/~+#-])?", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
 		private int numTrainingMessagesReceived;
 		private int numTrainingWordsReceived;
@@ -170,12 +187,12 @@ namespace den0bot.Modules
 
 			// Use Markov chain to generate random message, composed of one or more sentences.
 			for (int i = 0; i < RNG.NextNoMemory(1, 4); i++)
-				textBuilder.Append(GenerateRandomSentence());
+				textBuilder.Append(GenerateRandomSentence(default(string)));
 
 			return textBuilder.ToString();
 		}
 
-		private string GenerateRandomSentence()
+		private string GenerateRandomSentence(string startNode)
 		{
 			// Generate sentence by using Markov chain to produce sequence of random words.
 			// Note: There must be at least three words in sentence.
@@ -183,7 +200,7 @@ namespace den0bot.Modules
 			string[] words;
 			do
 			{
-				words = markovChain.GenerateSequence().ToArray();
+				words = markovChain.GenerateSequence(startNode).ToArray();
 			}
 			while (words.Length < 3 && trials++ < 10);
 
@@ -198,7 +215,18 @@ namespace den0bot.Modules
 			var text = message.Text.ToLower();
 			if (text.StartsWith(Localization.Get("shmalala_trigger", message.Chat.Id)))
 			{
-				API.SendMessage(GenerateRandomSentence(), message.Chat);
+				// use random word from message to start our response from
+				var words = text.Split(' ')
+					.Select(w => cleanWordRegex.Replace(w, string.Empty))
+					.ToArray();
+
+				var textBuilder = new StringBuilder();
+
+				// Use Markov chain to generate random message, composed of one or more sentences.
+				for (int i = 0; i < RNG.NextNoMemory(1, 4); i++)
+					textBuilder.Append(GenerateRandomSentence(GenerateRandomSentence(words[RNG.NextNoMemory(0, words.Length)])));
+
+				API.SendMessage(textBuilder.ToString(), message.Chat);
 				return;
 			}
 
