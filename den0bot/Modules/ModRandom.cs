@@ -81,6 +81,5 @@ namespace den0bot.Modules
 
 			return Localization.Get("generic_fail", sender.Id);
 		}
-
 	}
 }

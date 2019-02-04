@@ -46,7 +46,6 @@ namespace den0bot.Modules
 			if (string.IsNullOrEmpty(api_key))
 			{
 				Log.Error(this, "API Key is not defined!");
-
 			}
 			else
 			{

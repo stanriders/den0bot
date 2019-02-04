@@ -86,7 +86,6 @@ namespace den0bot.Modules
 					double info95 = Oppai.GetBeatmapPP(map.FileBytes, modsEnum, 95);
 					if (info95 != -1)
 						pp += $" | 95% - {info95.FN2()}pp";
-					
 				}
 			}
 			catch (Exception)

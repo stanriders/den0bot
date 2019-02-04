@@ -36,7 +36,7 @@ namespace den0bot.Osu
 				irc.OnQueryAction += (sender, e) => OnMessage?.Invoke(sender, e);
 				irc.OnQueryNotice += OnMessage;
 				irc.OnQueryMessage += OnMessage;
-				irc.OnMotd += delegate (object sender, MotdEventArgs e) { Log.Info("IRC", e.Data.Message); }; ;
+				irc.OnMotd += delegate (object sender, MotdEventArgs e) { Log.Info("IRC", e.Data.Message); };
 				irc.OnError += delegate (object sender, ErrorEventArgs e) { Log.Error("IRC", e.ErrorMessage); };
 				irc.OnErrorMessage += OnMessage;
 			}

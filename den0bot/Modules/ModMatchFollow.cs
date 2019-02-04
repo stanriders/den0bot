@@ -10,14 +10,15 @@ using den0bot.Util;
 
 namespace den0bot.Modules
 {
-	class FollowedMatch
-	{
-		public ulong MatchID { get; set; }
-		public long ChatID { get; set; }
-		public uint CurrentGameID { get; set; }
-	}
 	class ModMatchFollow : IModule, IReceiveAllMessages
 	{
+		private class FollowedMatch
+		{
+			public ulong MatchID { get; set; }
+			public long ChatID { get; set; }
+			public uint CurrentGameID { get; set; }
+		}
+
 		private readonly List<FollowedMatch> followList = new List<FollowedMatch>();
 		private DateTime nextCheck = DateTime.Now;
 

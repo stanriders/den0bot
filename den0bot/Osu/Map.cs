@@ -7,8 +7,6 @@ using den0bot.Util;
 
 namespace den0bot.Osu
 {
-	//#pragma warning disable CS0649 // Field is never assigned to, and will always have its default value 0
-
 	public class Map
 	{
 		[JsonProperty("beatmap_id")]
@@ -216,6 +214,4 @@ namespace den0bot.Osu
 			}
 		}
 	}
-
-	//#pragma warning restore CS0649
 }

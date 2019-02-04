@@ -1,5 +1,4 @@
 ﻿// den0bot (c) StanR 2019 - MIT License
-using System;
 using System.Text.RegularExpressions;
 using den0bot.DB;
 using den0bot.Util;
@@ -43,30 +42,12 @@ namespace den0bot.Modules
 					Name = "removeme",
 					Action = RemoveMe
 				},
-				/*new Command()
-				{
-					Name = "addplayer",
-					IsAdminOnly = true,
-					Action = (msg) => AddPlayer(msg)
-				},
 				new Command()
 				{
 					Name = "removeplayer",
-					IsAdminOnly = true,
-					Action = (msg) => RemovePlayer(msg)
+					IsOwnerOnly = true,
+					Action = RemovePlayer
 				},
-				new Command()
-				{
-					Name = "updateplayer",
-					IsAdminOnly = true,
-					Action = (msg) => UpdatePlayer(msg)
-				},
-				new Command()
-				{
-					Name = "playerlist",
-					IsAdminOnly = true,
-					Action = (msg) => GetPlayerList(msg)
-				},*/
 				new Command()
 				{
 					Name = "shutdownnow",
@@ -128,34 +109,7 @@ namespace den0bot.Modules
 			}
 			return "Ты че деб? /addme <ссылка на профиль>";
 		}
-		private string AddPlayer(Telegram.Bot.Types.Message message)
-		{
-			string[] msg = message.Text.Split(' ');
-			if (msg.Length == 3)
-			{
-				string username = msg[1];
-				string id = msg[2];
 
-				if (!string.IsNullOrEmpty(username))
-				{
-					uint osuID = 0;
-					if (!string.IsNullOrEmpty(id))
-					{
-						uint.TryParse(id, out osuID);
-					}
-
-					if (username[0] == '@')
-						username = username.Substring(1);
-
-					var tgID = Database.GetUserID(username);
-					if (tgID != 0 && Database.AddPlayer(tgID, osuID))
-						return $"{username} добавлен!";
-					else
-						return "Че-т не вышло.";
-				}
-			}
-			return "Ты че деб? /addplayer <юзернейм-в-тг> <осу-айди>";
-		}
 		private string RemoveMe(Telegram.Bot.Types.Message message)
 		{
 			if (Database.RemovePlayer(message.From.Id))
@@ -163,13 +117,14 @@ namespace den0bot.Modules
 			else
 				return $"Че-т не вышло.";
 		}
+
 		private string RemovePlayer(Telegram.Bot.Types.Message message)
 		{
 			string name = message.Text.Substring(14);
 
 			if (!string.IsNullOrEmpty(name))
 			{
-				if (Database.RemovePlayer(Database.GetUserID(name)/*, message.Chat.Id*/))
+				if (Database.RemovePlayer(Database.GetUserID(name)))
 					return $"{name} удален.";
 				else
 					return $"Че-т не вышло.";
@@ -177,34 +132,6 @@ namespace den0bot.Modules
 			return "Ты че деб? /removeplayer <юзернейм>";
 		}
 
-		private string UpdatePlayer(Telegram.Bot.Types.Message message)
-		{
-			string[] msg = message.Text.Split(' ');
-			if (msg.Length == 4)
-			{
-				string name = msg[1];
-				string username = msg[2];
-				string id = msg[3];
-
-				if (!string.IsNullOrEmpty(username) && !string.IsNullOrEmpty(name))
-				{
-					uint osuID = 0;
-					if (!string.IsNullOrEmpty(id))
-					{
-						try { osuID = uint.Parse(id); } catch (Exception) { }
-					}
-
-					if (username[0] == '@')
-						username = username.Substring(1);
-
-					//if (Database.UpdatePlayer(username, name, osuID, message.Chat.Id))
-					//	return $"{username} добавлен! Имя {name}, профиль {osuID}";
-					//else
-						return "Че-т не вышло.";
-				}
-			}
-			return "Ты че деб? /updateplayer <имя> <юзернейм-в-тг> <осу-айди>";
-		}
 		private string GetPlayerList(Telegram.Bot.Types.Message message)
 		{
 			/*

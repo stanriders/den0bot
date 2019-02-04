@@ -471,7 +471,6 @@ namespace den0bot.DB
 						CurrentMPLobby = value
 					});
 				}
-
 			}
 		}
 		public static string GetCurrentTounament()

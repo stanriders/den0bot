@@ -33,8 +33,7 @@ namespace den0bot.Modules
 					Action = (msg) => msg.Chat.Type == ChatType.Private 
 						? Localization.Get("basiccommands_help", msg.Chat.Id) 
 						: string.Empty
-				},
-
+				}
 			});
 			Log.Debug(this, "Enabled");
 		}
