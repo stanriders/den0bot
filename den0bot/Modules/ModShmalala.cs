@@ -79,22 +79,21 @@ namespace den0bot.Modules
 
 			public void Train(string fromValue, string toValue)
 			{
-				var fromNode = GetNode(fromValue);
-				var toNode = GetNode(toValue);
-				fromNode.AddLink(toNode);
+				if (!string.IsNullOrEmpty(fromValue))
+				{
+					var fromNode = GetNode(fromValue);
+					if (!string.IsNullOrEmpty(toValue))
+					{
+						var toNode = GetNode(toValue);
+						if (toNode != null)
+							fromNode.AddLink(toNode);
+					}
+				}
 			}
 
 			private MarkovChainNode GetNode(string value)
 			{
-				MarkovChainNode node = null;
-				if (string.IsNullOrEmpty(value))
-				{
-					node = Nodes[RNG.NextNoMemory(0, Nodes.Count)];
-				}
-				else
-				{
-					node = Nodes.SingleOrDefault(n => n.Word == value);
-				}
+				MarkovChainNode node = Nodes.SingleOrDefault(n => n.Word == value);
 				if (node == null)
 				{
 					node = new MarkovChainNode { Word = value };
@@ -215,6 +214,9 @@ namespace den0bot.Modules
 			text = cleanWordRegex.Replace(text, string.Empty);
 			if (text.StartsWith(Localization.Get("shmalala_trigger", message.Chat.Id)))
 			{
+				if (markovChain.Nodes.Count == 0)
+					return;
+
 				// use random word from message to start our response from
 				var words = text.Split(' ');
 				if (words.Length > 1)

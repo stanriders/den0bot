@@ -167,7 +167,7 @@ namespace den0bot.Osu
 			return TimeSpan.FromSeconds(drainLength);
 		}
 
-		public string Thumbnail => "https://assets.ppy.sh/beatmaps/" + BeatmapSetID + "/covers/cover.jpg";
+		public string Thumbnail => "https://assets.ppy.sh/beatmaps/" + BeatmapSetID + "/covers/card@2x.jpg";
 
 		public string Link => "https://osu.ppy.sh/b/" + BeatmapID;
 

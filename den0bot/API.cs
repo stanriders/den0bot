@@ -234,11 +234,11 @@ namespace den0bot
 		/// <param name="chatID">Chat ID to edit message in</param>
 		/// <param name="msgID">Message to edit</param>
 		/// <param name="caption">New caption</param>
-		public static void EditMediaCaption(long chatID, int msgID, string caption, InlineKeyboardMarkup replyMarkup = null)
+		public static void EditMediaCaption(long chatID, int msgID, string caption, InlineKeyboardMarkup replyMarkup = null, ParseMode parseMode = ParseMode.Default)
 		{
 			try
 			{
-				api.EditMessageCaptionAsync(chatID, msgID, caption, replyMarkup);
+				api.EditMessageCaptionAsync(chatID, msgID, caption, replyMarkup, parseMode: parseMode);
 			}
 			catch (Exception ex) { Log.Error("API - EditMediaCaption", ex.InnerMessageIfAny()); }
 		}
@@ -256,6 +256,20 @@ namespace den0bot
 				api.AnswerCallbackQueryAsync(callbackID, text, showAlert);
 			}
 			catch (Exception ex) { Log.Error("API - AnswerCallbackQuery", ex.InnerMessageIfAny()); }
+		}
+
+		/// <summary>
+		/// Send voice message (or just audio file if it's not vorbis ogg)
+		/// </summary>
+		/// <param name="audio">Audio to send</param>
+		/// <param name="chatID">Chat ID to send photo to</param>
+		public static void SendVoice(InputOnlineFile audio, long chatID, string caption = null, ParseMode parseMode = ParseMode.Default, int replyTo = 0)
+		{
+			try
+			{
+				api.SendVoiceAsync(chatID, audio, caption, parseMode, replyToMessageId: replyTo);
+			}
+			catch (Exception ex) { Log.Error("API - SendVoice", ex.InnerMessageIfAny()); }
 		}
 	}
 }
