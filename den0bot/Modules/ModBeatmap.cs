@@ -5,6 +5,7 @@ using System.Linq;
 using System.Runtime.Caching;
 using System.Text.RegularExpressions;
 using den0bot.Osu;
+using den0bot.Osu.Types;
 using den0bot.Util;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.InputFiles;
@@ -91,10 +92,10 @@ namespace den0bot.Modules
 				Mods modsEnum = mods.ConvertToMods();
 
 				OppaiInfo info100 = Oppai.GetBeatmapOppaiInfo(map.FileBytes, modsEnum, 100);
-				if (info100 != null && info100.pp > 0)
+				if (info100 != null && info100.PP > 0)
 				{
-					pp = $"\n100% - {info100.pp.FN2()}pp";
-					starRating = info100.stars;
+					pp = $"\n100% - {info100.PP.FN2()}pp";
+					starRating = info100.Stars;
 
 					double info98 = Oppai.GetBeatmapPP(map.FileBytes, modsEnum, 98);
 					if (info98 != -1)

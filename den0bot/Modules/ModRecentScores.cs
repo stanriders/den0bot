@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using den0bot.DB;
 using den0bot.Osu;
+using den0bot.Osu.Types;
 using den0bot.Util;
 using Telegram.Bot.Types.Enums;
 
@@ -82,7 +83,7 @@ namespace den0bot.Modules
 						try
 						{
 							// Add pp values
-							double scorePP = Oppai.GetBeatmapOppaiInfo(map, score).pp;
+							double scorePP = Oppai.GetBeatmapOppaiInfo(map, score).PP;
 							string possiblePP = string.Empty;
 							if (score.Combo < map.MaxCombo - 1 || score.Misses > 0 )
 							{
@@ -90,7 +91,7 @@ namespace den0bot.Modules
 								Score fcScore = (Score)score.Clone();
 								fcScore.Combo = map.MaxCombo ?? 0;
 								fcScore.Misses = 0;
-								double possiblePPval = Oppai.GetBeatmapOppaiInfo(map, fcScore).pp;
+								double possiblePPval = Oppai.GetBeatmapOppaiInfo(map, fcScore).PP;
 								possiblePP = $"({possiblePPval.FN2()}pp if FC)";
 							}
 							result += $" | ~{scorePP.FN2()}pp {possiblePP}";

@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using den0bot.Osu;
+using den0bot.Osu.Types;
 
 namespace den0bot.Util
 {
@@ -47,7 +47,7 @@ namespace den0bot.Util
 			return value.ToString("N2");
 		}
 
-		public static Osu.Mods ConvertToMods(this string mods)
+		public static Mods ConvertToMods(this string mods)
 		{
 			if (Enum.TryParse(mods, true, out Mods result) || string.IsNullOrEmpty(mods) || mods.Length > 36) // every mod combination possible
 				return result;

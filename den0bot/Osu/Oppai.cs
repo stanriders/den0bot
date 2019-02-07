@@ -1,8 +1,11 @@
-﻿// den0bot (c) StanR 2018 - MIT License
+﻿// den0bot (c) StanR 2019 - MIT License
 using System;
 using System.Globalization;
 using System.IO;
 using System.Threading;
+using den0bot.Osu.Types;
+using den0bot.Util;
+using Mods = den0bot.Osu.Types.Mods;
 using OppaiSharp;
 
 namespace den0bot.Osu
@@ -11,7 +14,7 @@ namespace den0bot.Osu
 	{
 		public static double GetBeatmapPP(byte[] beatmap, Mods mods, double acc)
 		{
-			return GetBeatmapOppaiInfo(beatmap, mods, acc)?.pp ?? -1;
+			return GetBeatmapOppaiInfo(beatmap, mods, acc)?.PP ?? -1;
 		}
 
 		public static OppaiInfo GetBeatmapOppaiInfo(Map map, Score score = null)
@@ -31,7 +34,7 @@ namespace den0bot.Osu
 
 				Thread.CurrentThread.CurrentCulture = CultureInfo.InvariantCulture;
 				Beatmap map = Beatmap.Read(reader);
-				DiffCalc diff = new DiffCalc().Calc(map, (OppaiSharp.Mods)mods);
+				DiffCalc diff = new DiffCalc().Calc(map, (OppaiSharp.Mods) mods);
 
 				if (acc != -1)
 				{
@@ -45,19 +48,19 @@ namespace den0bot.Osu
 					c50: c50,
 					cMiss: misses,
 					combo: combo,
-					mods: (OppaiSharp.Mods)mods)
-					);
+					mods: (OppaiSharp.Mods) mods)
+				);
 
 				return new OppaiInfo()
 				{
-					version = map.Version,
-					stars = diff.Total,
-					aim = pp.Aim,
-					speed = pp.Speed,
-					pp = pp.Total
+					Stars = diff.Total,
+					PP = pp.Total
 				};
 			}
-			catch (Exception) { }
+			catch (Exception e)
+			{
+				Log.Error("Oppai", $"GetBeatmapOppaiInfo failed, ${e.InnerMessageIfAny()}");
+			}
 
 			return null;
 		}
@@ -75,7 +78,7 @@ namespace den0bot.Osu
 			/* just some black magic maths from wolfram alpha */
 			int c100 = (int)
 				Math.Floor(-3.0 * ((accuracy * 0.01 - 1.0) *
-					objCount + misses) * 0.5);
+						objCount + misses) * 0.5);
 
 			if (c100 > objCount - misses)
 			{

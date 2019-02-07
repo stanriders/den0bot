@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Net;
 using System.Linq;
 using System.Threading.Tasks;
+using den0bot.Osu.Types;
 using Newtonsoft.Json;
 using den0bot.Util;
 
