@@ -86,7 +86,7 @@ namespace den0bot.Modules
 				new Command
 				{
 					Names = { "seasonaltopdevok", "seasonaltopgirls" },
-					Action = msg => TopGirlsSeasonal(msg.Chat.Id)
+					Action = TopGirlsSeasonal
 				},
 			});
 			Log.Debug(this, "Enabled");
@@ -114,7 +114,7 @@ namespace den0bot.Modules
 			{
 				var sentMessage = await API.SendPhoto(picture.Link, 
 					chatID, 
-					seasonal ? $"{picture.SeasonRating} #{Database.GirlSeason}" : picture.Rating.ToString(), 
+					seasonal ? $"{picture.SeasonRating} (s{Database.GirlSeason})" : picture.Rating.ToString(), 
 					ParseMode.Default, 
 					0, 
 					buttons);
@@ -190,9 +190,19 @@ namespace den0bot.Modules
 			}
 			return string.Empty;
 		}
-		private string TopGirlsSeasonal(long chatID)
+		private string TopGirlsSeasonal(Message msg)
 		{
-			var topGirls = Database.GetTopGirlsSeasonal(chatID, Database.GirlSeason);
+			int season = Database.GirlSeason;
+
+			var split = msg.Text.Split(' ');
+			if (split.Length > 1
+			    && int.TryParse(msg.Text.Split(' ')[1], out var s)
+			    && s <= season) // we dont want to spoil next season
+			{
+				season = s;
+			}
+
+			var topGirls = Database.GetTopGirlsSeasonal(msg.Chat.Id, season);
 			if (topGirls != null)
 			{
 				List<InputMediaPhoto> photos = new List<InputMediaPhoto>();
@@ -203,9 +213,9 @@ namespace den0bot.Modules
 					if (girl.Rating < -10)
 						Database.RemoveGirl(girl.Id); // just in case
 
-					photos.Add(new InputMediaPhoto(girl.Link) { Caption = $"{girl.SeasonRating} #{Database.GirlSeason}" });
+					photos.Add(new InputMediaPhoto(girl.Link) { Caption = $"{girl.SeasonRating} (s{season})" });
 				}
-				API.SendMultiplePhotos(photos, chatID).NoAwait();
+				API.SendMultiplePhotos(photos, msg.Chat.Id).NoAwait();
 			}
 			return string.Empty;
 		}
@@ -231,7 +241,7 @@ namespace den0bot.Modules
 								Database.ChangeGirlRatingSeasonal(girl.ID, 1);
 								girl.SeasonalRating++;
 
-								API.EditMediaCaption(chatId, callback.Message.MessageId, $"{girl.SeasonalRating} #{Database.GirlSeason}",
+								API.EditMediaCaption(chatId, callback.Message.MessageId, $"{girl.SeasonalRating} (s{Database.GirlSeason})",
 									buttons);
 							}
 							else
@@ -264,10 +274,10 @@ namespace den0bot.Modules
 							{
 								if (girl.Seasonal)
 								{
-									API.EditMediaCaption(chatId, callback.Message.MessageId, $"{girl.SeasonalRating} #{Database.GirlSeason}",
+									API.EditMediaCaption(chatId, callback.Message.MessageId, $"{girl.SeasonalRating} (s{Database.GirlSeason})",
 										buttons);
 									API.AnswerCallbackQuery(callback.Id,
-										Localization.FormatGet("girls_rating_down", $"{girl.SeasonalRating} #{Database.GirlSeason}", chatId));
+										Localization.FormatGet("girls_rating_down", $"{girl.SeasonalRating} (s{Database.GirlSeason})", chatId));
 								}
 								else
 								{
