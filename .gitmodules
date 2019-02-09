@@ -1,0 +1,3 @@
+[submodule "OppaiSharp"]
+	path = OppaiSharp
+	url = https://github.com/stanriders/OppaiSharp.git
