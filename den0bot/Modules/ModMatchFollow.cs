@@ -6,6 +6,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Telegram.Bot.Types;
 using den0bot.Osu;
+using den0bot.Osu.Types;
 using den0bot.Util;
 
 namespace den0bot.Modules

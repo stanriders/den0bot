@@ -6,6 +6,7 @@ using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using den0bot.Osu;
+using den0bot.Osu.Types;
 using den0bot.Util;
 using Newtonsoft.Json.Linq;
 using Telegram.Bot.Types.Enums;

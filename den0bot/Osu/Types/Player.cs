@@ -1,7 +1,7 @@
-﻿// den0bot (c) StanR 2018 - MIT License
+﻿// den0bot (c) StanR 2019 - MIT License
 using Newtonsoft.Json;
 
-namespace den0bot.Osu
+namespace den0bot.Osu.Types
 {
 	public class Player
 	{

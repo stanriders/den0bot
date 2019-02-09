@@ -149,16 +149,16 @@
     <Compile Include="Modules\ModYoutube.cs" />
     <Compile Include="Osu\IRC.cs" />
     <Compile Include="Osu\Lobby.cs" />
-    <Compile Include="Osu\MultiplayerMatch.cs" />
-    <Compile Include="Osu\Mode.cs" />
+    <Compile Include="Osu\Types\MultiplayerMatch.cs" />
+    <Compile Include="Osu\Types\Mode.cs" />
     <Compile Include="Osu\Oppai.cs" />
-    <Compile Include="Osu\OppaiInfo.cs" />
-    <Compile Include="Osu\Map.cs" />
-    <Compile Include="Osu\Mods.cs" />
+    <Compile Include="Osu\Types\OppaiInfo.cs" />
+    <Compile Include="Osu\Types\Map.cs" />
+    <Compile Include="Osu\Types\Mods.cs" />
     <Compile Include="Osu\OsuAPI.cs" />
-    <Compile Include="Osu\Player.cs" />
-    <Compile Include="Osu\RankedStatus.cs" />
-    <Compile Include="Osu\Score.cs" />
+    <Compile Include="Osu\Types\Player.cs" />
+    <Compile Include="Osu\Types\RankedStatus.cs" />
+    <Compile Include="Osu\Types\Score.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Util\RNG.cs" />
   </ItemGroup>

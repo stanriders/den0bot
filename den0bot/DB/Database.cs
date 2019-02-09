@@ -1,7 +1,6 @@
 ﻿// den0bot (c) StanR 2019 - MIT License
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.IO;
 using System.Linq;
 using den0bot.DB.Types;
@@ -291,10 +290,7 @@ namespace den0bot.DB
 			List<Girl> girls = db.Table<Girl>().Where(x => x.ChatID == chatID && x.Rating >= 10)?.ToList();
 			if (girls != null && girls.Count > 0)
 			{
-				int num = RNG.Next(girls.Count);
-
-				SetUsedGirl(girls[num].Id);
-				return girls[num];
+				return girls[RNG.Next(girls.Count)];
 			}
 			return null;
 		}
