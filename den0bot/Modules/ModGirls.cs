@@ -40,6 +40,7 @@ namespace den0bot.Modules
 		private const int antispam_cooldown = 15; //seconds
 
 		private const int top_girls_amount = 9;
+		private const int delete_rating_threshold = -10; // lowest rating a girl can have before completely removing her from db
 
 		public ModGirls()
 		{
@@ -181,7 +182,7 @@ namespace den0bot.Modules
 				topGirls = topGirls.Take(top_girls_amount).ToList();
 				foreach (var girl in topGirls)
 				{
-					if (girl.Rating < -10)
+					if (girl.Rating < delete_rating_threshold)
 						Database.RemoveGirl(girl.Id); // just in case
 
 					photos.Add(new InputMediaPhoto(girl.Link) { Caption = girl.Rating.ToString() });
@@ -210,7 +211,7 @@ namespace den0bot.Modules
 				topGirls = topGirls.Take(top_girls_amount).ToList();
 				foreach (var girl in topGirls)
 				{
-					if (girl.Rating < -10)
+					if (girl.SeasonRating < delete_rating_threshold)
 						Database.RemoveGirl(girl.Id); // just in case
 
 					photos.Add(new InputMediaPhoto(girl.Link) { Caption = $"{girl.SeasonRating} (s{season})" });
@@ -270,7 +271,7 @@ namespace den0bot.Modules
 							}
 							girl.Voters.Add(callback.From.Id);
 
-							if (girl.Rating >= -10)
+							if (girl.Rating >= delete_rating_threshold && girl.SeasonalRating >= delete_rating_threshold)
 							{
 								if (girl.Seasonal)
 								{
