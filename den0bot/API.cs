@@ -15,7 +15,7 @@ using Telegram.Bot.Types.ReplyMarkups;
 
 namespace den0bot
 {
-	static class API
+	public static class API
 	{
 		public static User BotUser;
 		private static TelegramBotClient api;

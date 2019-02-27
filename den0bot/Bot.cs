@@ -1,6 +1,9 @@
 ﻿// den0bot (c) StanR 2019 - MIT License
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Reflection;
 using System.Threading;
 using Telegram.Bot.Args;
 using Telegram.Bot.Types;
@@ -14,6 +17,7 @@ namespace den0bot
 	public class Bot
 	{
 		private readonly List<IModule> modules = new List<IModule>();
+		private const string module_path = "./Modules";
 
 		private static bool IsOwner(string username) => (username == Config.Params.OwnerUsername);
 		private static bool IsAdmin(long chatID, string username) => IsOwner(username) || (API.GetAdmins(chatID).Exists(x => x.User.Username == username));
@@ -31,12 +35,33 @@ namespace den0bot
 			Localization.Init();
 
 			Log.Info(this, "Starting modules...");
+
+			List<Assembly> allAssemblies = new List<Assembly>();
+			foreach (string dll in Directory.GetFiles(module_path, "*.dll"))
+				allAssemblies.Add(Assembly.Load(dll));
+
 			if (Config.Params.Modules != null)
 			{
 				foreach (var moduleName in Config.Params.Modules)
 				{
-					Type type = Type.GetType($"den0bot.Modules.{moduleName}", true);
-					modules.Add((IModule) Activator.CreateInstance(type));
+					// if it's local
+					Type type = Type.GetType($"den0bot.Modules.{moduleName}", false);
+					if (type == null)
+					{
+						// if its not local
+						foreach (var ass in allAssemblies)
+						{
+							// we only allow subclases of IModule and only if they're in the config
+							type = ass.GetTypes().FirstOrDefault(t => t.IsPublic && t.IsSubclassOf(typeof(IModule)) && t.Name == moduleName);
+
+							if (type != null)
+								break;
+						}
+					}
+					if (type != null)
+						modules.Add((IModule) Activator.CreateInstance(type));
+					else
+						Log.Error(this, $"{moduleName} not found!");
 				}
 			}
 			else
