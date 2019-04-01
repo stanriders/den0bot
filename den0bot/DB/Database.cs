@@ -208,7 +208,7 @@ namespace den0bot.DB
 				}
 				else
 				{
-					int num = RNG.Next(memes.Count);
+					int num = RNG.Next(max: memes.Count);
 
 					SetUsedMeme(memes[num].Id);
 					return memes[num].Link;
@@ -277,7 +277,7 @@ namespace den0bot.DB
 				}
 				else
 				{
-					int num = RNG.Next(girls.Count);
+					int num = RNG.Next(max: girls.Count);
 
 					SetUsedGirl(girls[num].Id);
 					return girls[num];
@@ -290,7 +290,7 @@ namespace den0bot.DB
 			List<Girl> girls = db.Table<Girl>().Where(x => x.ChatID == chatID && x.Rating >= 10)?.ToList();
 			if (girls != null && girls.Count > 0)
 			{
-				return girls[RNG.Next(girls.Count)];
+				return girls[RNG.Next(max: girls.Count)];
 			}
 			return null;
 		}
@@ -327,7 +327,7 @@ namespace den0bot.DB
 				}
 				else
 				{
-					int num = RNG.Next(girls.Count);
+					int num = RNG.Next(max: girls.Count);
 
 					SetUsedGirlSeasonal(girls[num].Id);
 					return girls[num];
