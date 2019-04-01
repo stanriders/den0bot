@@ -40,10 +40,10 @@ namespace den0bot.Modules
 			try
 			{
 				string request = "https://sheets.googleapis.com/v4/spreadsheets/" + spreadsheet +
-				                 "/values/A2:B999?key=" + Config.Params.GoogleAPIToken;
-				var data = new WebClient().DownloadData(request);
+				                 "/values/A2:B200?key=" + Config.Params.GoogleAPIToken;
+				var data = new WebClient().DownloadString(request);
 
-				JArray array = JToken.Parse(Encoding.UTF8.GetString(data))["values"] as JArray;
+				JArray array = JToken.Parse(data)["values"] as JArray;
 
 				foreach (JToken token in array)
 				{
@@ -64,17 +64,17 @@ namespace den0bot.Modules
 		{
 			if (isEnabled && maplist.Count > 0)
 			{
-				int num = RNG.Next(maplist.Count);
-				string temp = maplist[num][1].Substring(19);
+				int num = RNG.Next(max: maplist.Count);
+				string link = maplist[num][1].Substring(19);
 				Map map = null;
-				if (temp[0] == 's')
+				if (link[0] == 's')
 				{
-					List<Map> set = await OsuAPI.GetBeatmapSetAsync(uint.Parse(temp.Substring(2)));
+					List<Map> set = await OsuAPI.GetBeatmapSetAsync(uint.Parse(link.Substring(2)));
 					map = set?.Last();
 				}
-				else if (temp[0] == 'b')
+				else if (link[0] == 'b')
 				{
-					map = await OsuAPI.GetBeatmapAsync(uint.Parse(temp.Substring(2)));
+					map = await OsuAPI.GetBeatmapAsync(uint.Parse(link.Substring(2)));
 				}
 				else
 				{
