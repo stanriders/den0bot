@@ -40,9 +40,7 @@ namespace den0bot.DB
 
 		public static void Close() => db.Close();
 
-		// ---
-		// Users
-		// ---
+		#region Users
 		public static void AddUser(int id, string username)
 		{
 			if (userCache.Find(x => x.Username == username) == null)
@@ -78,9 +76,9 @@ namespace den0bot.DB
 			return null;
 		}
 
-		// ---
-		// Santa
-		// ---
+		#endregion
+
+		#region Santa
 		public static void AddSanta(string sender, string receiver)
 		{
 			if (db.Table<Santa>().FirstOrDefault(x => x.Sender == sender) == null)
@@ -110,9 +108,9 @@ namespace den0bot.DB
 			}
 			return null;
 		}
-		// ---
-		// Chats
-		// ---
+		#endregion
+
+		#region Chats
 		public static List<Chat> GetAllChats() => chatCache;
 		public static void AddChat(long chatID)
 		{
@@ -180,9 +178,9 @@ namespace den0bot.DB
 					cachedChat.Locale = locale;
 			}
 		}
-		// ---
-		// Memes
-		// ---
+		#endregion
+
+		#region Memes
 		public static int GetMemeCount(long chatID) => db.Table<Meme>().Count(x => x.ChatID == chatID);
 		public static void AddMeme(string link, long chatID)
 		{
@@ -234,9 +232,9 @@ namespace den0bot.DB
 			db.UpdateAll(memes);
 		}
 
-		// ---
-		// Girls
-		// ---
+		#endregion
+
+		#region Girls
 		public static int GetGirlCount(long chatID) => db.Table<Girl>().Count(x => x.ChatID == chatID);
 		public static void AddGirl(string link, long chatID)
 		{
@@ -245,6 +243,8 @@ namespace den0bot.DB
 				var season = GirlSeason;
 				if (GirlSeasonStartDate == default(DateTime) || GirlSeasonStartDate.AddMonths(1) < DateTime.Today)
 				{
+					// rotate season if it's the day
+					SubmitSeasonalRatingsToGlobal(season);
 					GirlSeason = ++season;
 				}
 
@@ -299,6 +299,8 @@ namespace den0bot.DB
 			var season = GirlSeason;
 			if (GirlSeasonStartDate == default(DateTime) || GirlSeasonStartDate.AddMonths(1) < DateTime.Today)
 			{
+				// rotate season if it's the day
+				SubmitSeasonalRatingsToGlobal(season);
 				GirlSeason = ++season;
 			}
 
@@ -404,9 +406,28 @@ namespace den0bot.DB
 			}
 			db.UpdateAll(table);
 		}
-		// ---
-		// Players
-		// ---
+		public static void SubmitSeasonalRatingsToGlobal(int season)
+		{
+			if (season > 0)
+			{
+				var table = db.Table<Girl>().Where(x => x.Season == season);
+				foreach (var girl in table)
+				{
+					girl.Rating += girl.SeasonRating;
+					if (girl.Rating < -10)
+					{
+						db.Delete(girl);
+						continue;
+					}
+
+					db.Update(girl); // INEFFICIENT but works
+				}
+				db.UpdateAll(table);
+			}
+		}
+		#endregion
+
+		#region Players
 		public static int GetPlayerCount() => db.Table<Player>().Count();
 		private static Player GetPlayer(int ID) => db.Table<Player>().FirstOrDefault(x => x.TelegramID == ID);
 		public static uint GetPlayerOsuID(int ID) => GetPlayer(ID)?.OsuID ?? 0;
@@ -434,9 +455,9 @@ namespace den0bot.DB
 			}
 			return false;
 		}
-		// ---
-		// Misc
-		// ---
+		#endregion
+
+		#region Misc
 		public static int CurrentLobbyID
 		{
 			get
@@ -505,5 +526,6 @@ namespace den0bot.DB
 				}
 			}
 		}
+		#endregion
 	}
 }

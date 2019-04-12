@@ -37,8 +37,9 @@ namespace den0bot
 			Log.Info(this, "Starting modules...");
 
 			List<Assembly> allAssemblies = new List<Assembly>();
-			foreach (string dll in Directory.GetFiles(module_path, "*.dll"))
-				allAssemblies.Add(Assembly.Load(dll));
+			if (Directory.Exists(module_path))
+				foreach (string dll in Directory.GetFiles(module_path, "*.dll"))
+					allAssemblies.Add(Assembly.Load(dll));
 
 			if (Config.Params.Modules != null)
 			{
