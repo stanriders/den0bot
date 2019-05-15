@@ -42,11 +42,6 @@ namespace den0bot.Util
 			return dic.FirstOrDefault(x => x.Value == value).Key;
 		}
 
-		public static string FN2(this double value)
-		{
-			return value.ToString("N2");
-		}
-
 		public static Mods ConvertToMods(this string mods)
 		{
 			if (Enum.TryParse(mods, true, out Mods result) || string.IsNullOrEmpty(mods) || mods.Length > 36) // every mod combination possible

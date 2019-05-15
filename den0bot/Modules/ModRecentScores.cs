@@ -78,30 +78,34 @@ namespace den0bot.Modules
 					{
 						string mapInfo = $"{map.Artist} - {map.Title} [{map.Difficulty}]".FilterToHTML();
 
-						result += $"<b>({score.Rank})</b> <a href=\"{map.Link}\">{mapInfo}</a><b>{mods} ({score.Accuracy.FN2()}%)</b>{Environment.NewLine}" +
+						result += $"<b>({score.Rank})</b> <a href=\"{map.Link}\">{mapInfo}</a><b>{mods} ({score.Accuracy:N2}%)</b>{Environment.NewLine}" +
 								  $"{score.Combo}/{map.MaxCombo}x ({score.Count300}/ {score.Count100} / {score.Count50} / {score.Misses})";
 						try
 						{
 							// Add pp values
 							double scorePP = Oppai.GetBeatmapOppaiInfo(map, score).PP;
 							string possiblePP = string.Empty;
-							if (score.Combo < map.MaxCombo - 1 || score.Misses > 0 )
+							if (score.Combo < map.MaxCombo - 1 || score.Misses > 0)
 							{
 								// Add possible pp value if they missed or dropped more than 1 combo
-								Score fcScore = (Score)score.Clone();
+								Score fcScore = (Score) score.Clone();
 								fcScore.Combo = map.MaxCombo ?? 0;
 								fcScore.Misses = 0;
 								double possiblePPval = Oppai.GetBeatmapOppaiInfo(map, fcScore).PP;
-								possiblePP = $"({possiblePPval.FN2()}pp if FC)";
+								possiblePP = $"({possiblePPval:N2}pp if FC)";
 							}
-							result += $" | ~{scorePP.FN2()}pp {possiblePP}";
+
+							result += $" | ~{scorePP:N2}pp {possiblePP}";
 						}
-						catch(Exception) { }
+						catch (Exception e)
+						{
+							Log.Error(this, $"Oppai failed: {e.InnerMessageIfAny()}");
+						}
 					}
 					else
 					{
 						// Didn't get beatmap info, insert plain link
-						result += $"<b>({score.Rank})</b> https://osu.ppy.sh/b/{score.BeatmapID}<b>{mods} ({score.Accuracy.FN2()}%)</b>{Environment.NewLine}" +
+						result += $"<b>({score.Rank})</b> https://osu.ppy.sh/b/{score.BeatmapID}<b>{mods} ({score.Accuracy:N2}%)</b>{Environment.NewLine}" +
 								  $"{score.Combo}x ({score.Count300}/ {score.Count100} / {score.Count50} / {score.Misses})";
 					}
 

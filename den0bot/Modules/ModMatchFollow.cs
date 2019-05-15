@@ -141,7 +141,7 @@ namespace den0bot.Modules
 							var player = await OsuAPI.GetPlayerAsync(score.UserID.ToString());
 							string teamSymbol = score.Team > 1 ? "🔴" : "🔵";
 							string pass = score.IsPass == 1 ? "" : ", failed";
-							gamesString += $" {teamSymbol} <b>{player.Username}</b>: {score.ScorePoints} ({score.Combo}x, {score.Accuracy.FN2()}%{pass}){Environment.NewLine}";
+							gamesString += $" {teamSymbol} <b>{player.Username}</b>: {score.ScorePoints} ({score.Combo}x, {score.Accuracy:N2}%{pass}){Environment.NewLine}";
 						}
 					}
 					var redScore = allScores.Sum(x => (x.Team == 2) ? x.ScorePoints : 0);
@@ -161,7 +161,7 @@ namespace den0bot.Modules
 						{
 							var player = await OsuAPI.GetPlayerAsync(game.Scores[i].UserID.ToString());
 							string pass = game.Scores[i].IsPass == 1 ? "" : ", failed";
-							gamesString += $"{i + 1}. <b>{player.Username}</b>: {game.Scores[i].ScorePoints} ({game.Scores[i].Combo}x, {game.Scores[i].Accuracy.FN2()}%{pass}){Environment.NewLine}";
+							gamesString += $"{i + 1}. <b>{player.Username}</b>: {game.Scores[i].ScorePoints} ({game.Scores[i].Combo}x, {game.Scores[i].Accuracy:N2}%{pass}){Environment.NewLine}";
 						}
 					}
 				}

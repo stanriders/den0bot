@@ -94,30 +94,26 @@ namespace den0bot.Modules
 				OppaiInfo info100 = Oppai.GetBeatmapOppaiInfo(map.FileBytes, modsEnum, 100);
 				if (info100 != null && info100.PP > 0)
 				{
-					pp = $"\n100% - {info100.PP.FN2()}pp";
+					pp = $"100% - {info100.PP:N2}pp";
 					starRating = info100.Stars;
 
 					double info98 = Oppai.GetBeatmapPP(map.FileBytes, modsEnum, 98);
 					if (info98 != -1)
-						pp += $" | 98% - {info98.FN2()}pp";
+						pp += $" | 98% - {info98:N2}pp";
 
 					double info95 = Oppai.GetBeatmapPP(map.FileBytes, modsEnum, 95);
 					if (info95 != -1)
-						pp += $" | 95% - {info95.FN2()}pp";
+						pp += $" | 95% - {info95:N2)}pp";
 				}
 			}
-			catch (Exception)
-			{ }
+			catch (Exception e)
+			{
+				Log.Error("ModBeatmap", $"Oppai failed: {e.InnerMessageIfAny()}");
+			}
 
-			string result = string.Format("[{0}] - {1}* - {2}{3} - <b>{4}</b>\n<b>CS:</b> {5} | <b>AR:</b> {6} | <b>OD:</b> {7} | <b>BPM:</b> {8}",
-				map.Difficulty.FilterToHTML(), starRating.FN2(), map.DrainLength(mods).ToString("mm':'ss"), $" - {map.Creator}", map.Status.ToString(),
-				map.CS(mods).FN2(), map.AR(mods).FN2(), map.OD(mods).FN2(), map.BPM(mods).FN2());
-
-			//result = result.FilterToHTML(); // remove any possible html stuff before adding our own
-			result += pp;
-			//result += $"\n[<a href=\"https://osu.ppy.sh/beatmapsets/{map.BeatmapSetID}/download\">{Localization.Get("beatmap_download", chatID)}</a>]";
-
-			return result;
+			return string.Format("[{0}] - {1:N2}* - {2:mm\':\'ss}{3} - <b>{4}</b>\n<b>CS:</b> {5:N2} | <b>AR:</b> {6:N2} | <b>OD:</b> {7:N2} | <b>BPM:</b> {8:N2}\n{9}",
+				map.Difficulty.FilterToHTML(), starRating, map.DrainLength(mods), $" - {map.Creator}", map.Status.ToString(),
+				map.CS(mods), map.AR(mods), map.OD(mods), map.BPM(mods), pp);
 		}
 
 		public void ReceiveCallback(CallbackQuery callback)
