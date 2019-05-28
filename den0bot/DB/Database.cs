@@ -126,7 +126,7 @@ namespace den0bot.DB
 				db.Insert(chat);
 				chatCache.Add(chat);
 
-				Log.Info("Database", string.Format("Added chat '{0}' to the chat list", chatID));
+				Log.Info($"Added chat '{chatID}' to the chat list");
 			}
 		}
 		public static void RemoveChat(long chatID)

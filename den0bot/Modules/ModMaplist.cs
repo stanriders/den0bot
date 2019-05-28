@@ -3,9 +3,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
-using System.Text;
 using System.Threading.Tasks;
-using den0bot.Osu;
+using den0bot.Osu.API.Requests;
 using den0bot.Osu.Types;
 using den0bot.Util;
 using Newtonsoft.Json.Linq;
@@ -28,7 +27,7 @@ namespace den0bot.Modules
 				Name = "map",
 				ActionAsync = (msg) => GetMap(msg)
 			});
-			Log.Debug(this, $"Enabled, {maplist.Count} maps");
+			Log.Debug($"Enabled, {maplist.Count} maps");
 		}
 
 		private bool Start()
@@ -36,7 +35,7 @@ namespace den0bot.Modules
 			if (string.IsNullOrEmpty(Config.Params.GoogleAPIToken))
 				return false;
 
-			Log.Debug(this, "Loading...");
+			Log.Debug("Loading...");
 			try
 			{
 				string request = "https://sheets.googleapis.com/v4/spreadsheets/" + spreadsheet +
@@ -55,7 +54,7 @@ namespace den0bot.Modules
 			}
 			catch (Exception ex)
 			{
-				Log.Error(this, "Failed to start: " + ex.InnerMessageIfAny());
+				Log.Error("Failed to start: " + ex.InnerMessageIfAny());
 				return false;
 			}
 		}
@@ -69,12 +68,18 @@ namespace den0bot.Modules
 				Map map = null;
 				if (link[0] == 's')
 				{
-					List<Map> set = await OsuAPI.GetBeatmapSetAsync(uint.Parse(link.Substring(2)));
+					List<Map> set = await Osu.WebApi.MakeAPIRequest(new GetBeatmapSet
+					{
+						ID = uint.Parse(link.Substring(2))
+					});
 					map = set?.Last();
 				}
 				else if (link[0] == 'b')
 				{
-					map = await OsuAPI.GetBeatmapAsync(uint.Parse(link.Substring(2)));
+					map = await Osu.WebApi.MakeAPIRequest(new GetBeatmap
+					{
+						ID = uint.Parse(link.Substring(2))
+					});
 				}
 				else
 				{
@@ -101,7 +106,7 @@ namespace den0bot.Modules
 			}
 			else
 			{
-				Log.Info(this, "Trying to start again");
+				Log.Info("Trying to start again");
 				if (!Start())
 					return string.Empty;
 			}

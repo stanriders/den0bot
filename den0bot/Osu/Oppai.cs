@@ -29,25 +29,25 @@ namespace den0bot.Osu
 		{
 			try
 			{
-				var stream = new MemoryStream(beatmap, false);
-				var reader = new StreamReader(stream, true);
-
-				Thread.CurrentThread.CurrentCulture = CultureInfo.InvariantCulture;
-				Beatmap map = Beatmap.Read(reader);
-				DiffCalc diff = new DiffCalc().Calc(map, (OppaiSharp.Mods) mods);
-
-				PPv2 pp = new PPv2(new PPv2Parameters(map, diff,
-					accuracy: acc / 100,
-					cMiss: misses,
-					combo: combo,
-					mods: (OppaiSharp.Mods) mods)
-				);
-
-				return new OppaiInfo()
+				using (var stream = new MemoryStream(beatmap, false))
+				using (var reader = new StreamReader(stream, true))
 				{
-					Stars = diff.Total,
-					PP = pp.Total
-				};
+					Beatmap map = Beatmap.Read(reader);
+					DiffCalc diff = new DiffCalc().Calc(map, (OppaiSharp.Mods) mods);
+
+					PPv2 pp = new PPv2(new PPv2Parameters(map, diff,
+						accuracy: acc / 100,
+						cMiss: misses,
+						combo: combo,
+						mods: (OppaiSharp.Mods) mods)
+					);
+
+					return new OppaiInfo()
+					{
+						Stars = diff.Total,
+						PP = pp.Total
+					};
+				}
 			}
 			catch (Exception e)
 			{

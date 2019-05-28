@@ -42,7 +42,7 @@ namespace den0bot.Modules
 			};
 
 			nextCheck = DateTime.Now.AddMinutes(1);
-			Log.Debug(this, "Enabled");
+			Log.Debug("Enabled");
 		}
 
 		private void OnIRCMessage(object sender, IrcEventArgs e)

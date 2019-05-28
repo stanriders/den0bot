@@ -32,7 +32,7 @@ namespace den0bot.Modules
 					Action = (msg) => GetRandomDinosaur(msg.Chat)
 				}
 			});
-			Log.Debug(this, "Enabled");
+			Log.Debug("Enabled");
 		}
 
 		private string GetRandomDinosaur(Chat sender)

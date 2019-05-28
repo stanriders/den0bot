@@ -9,7 +9,7 @@ namespace den0bot.Util
 	{
 		public class ConfigFile
 		{
-			public List<string> Modules { get; set; } = new List<string>();
+			public List<string> Modules { get; } = new List<string>();
 
 			// https://telegram.me/botfather
 			public string TelegamToken { get; set; }

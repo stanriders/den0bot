@@ -185,7 +185,7 @@ namespace den0bot.Osu.Types
 				}
 				catch (Exception e)
 				{
-					Log.Error(this, $"File - {e.InnerMessageIfAny()}");
+					Log.Error($"File - {e.InnerMessageIfAny()}");
 					return string.Empty;
 				}
 			}
@@ -207,7 +207,7 @@ namespace den0bot.Osu.Types
 				}
 				catch (Exception e)
 				{
-					Log.Error(this, $"File - {e.InnerMessageIfAny()}");
+					Log.Error($"File - {e.InnerMessageIfAny()}");
 					return null;
 				}
 			}

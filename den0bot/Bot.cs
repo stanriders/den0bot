@@ -29,12 +29,12 @@ namespace den0bot
 
 		private Bot()
 		{
-			Log.Info(this, "________________");
+			Log.Info("________________");
 			Config.Init();
 			Database.Init();
 			Localization.Init();
 
-			Log.Info(this, "Starting modules...");
+			Log.Info("Starting modules...");
 
 			List<Assembly> allAssemblies = new List<Assembly>();
 			if (Directory.Exists(module_path))
@@ -62,14 +62,14 @@ namespace den0bot
 					if (type != null)
 						modules.Add((IModule) Activator.CreateInstance(type));
 					else
-						Log.Error(this, $"{moduleName} not found!");
+						Log.Error($"{moduleName} not found!");
 				}
 			}
 			else
 			{
-				Log.Error(this, "Module list not found!");
+				Log.Error("Module list not found!");
 			}
-			Log.Info(this, "Done!");
+			Log.Info("Done!");
 
 			//Osu.IRC.Connect();
 
@@ -78,14 +78,14 @@ namespace den0bot
 
 			if (API.Connect())
 			{
-				Log.Info(this, "Started thinking...");
+				Log.Info("Started thinking...");
 				Think();
 			}
 			else
 			{
-				Log.Error(this, "Can't connect to Telegram API!");
+				Log.Error("Can't connect to Telegram API!");
 			}
-			Log.Info(this, "Exiting...");
+			Log.Info("Exiting...");
 		}
 
 		private void Think()

@@ -1,6 +1,7 @@
 ﻿// den0bot (c) StanR 2019 - MIT License
 using System.Text.RegularExpressions;
 using den0bot.DB;
+using den0bot.Osu.API.Requests;
 using den0bot.Osu.Types;
 using den0bot.Util;
 using Telegram.Bot.Types.Enums;
@@ -62,7 +63,7 @@ namespace den0bot.Modules
 					Action = SetLocale
 				}
 			});
-			Log.Debug(this, "Enabled");
+			Log.Debug("Enabled");
 		}
 
 		private string AddMeme(Telegram.Bot.Types.Message message)
@@ -95,7 +96,12 @@ namespace den0bot.Modules
 					if (!uint.TryParse(player, out osuID))
 					{
 						// if they used /u/cookiezi instead of /u/124493 we ask osu API for an ID
-						Player info = Osu.OsuAPI.GetPlayerAsync(player).Result;
+						Player info = Osu.WebApi.MakeAPIRequest(new GetUser
+						{
+							Username = player
+
+						}).Result;
+
 						if (info == null)
 							return "Ты че деб? /addme <ссылка на профиль>";
 						else

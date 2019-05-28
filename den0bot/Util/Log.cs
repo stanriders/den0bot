@@ -1,54 +1,40 @@
 ﻿// den0bot (c) StanR 2018 - MIT License
 using System;
+using System.Diagnostics;
 using System.IO;
+using System.Reflection;
+using System.Runtime.CompilerServices;
 
 namespace den0bot.Util
 {
 	public static class Log
 	{
-		public static void Error(object source, string text)
+		public static void Error(string text, [CallerFilePath] string file = "", [CallerLineNumber] int line = 0)
 		{
-			string sourceName = source.GetType().Name;
-
-			if (sourceName == "String")
-				sourceName = (string)source;
-
-			string result = $"({DateTime.Now}) [ERROR] {sourceName}: {text ?? "null"}{Environment.NewLine}";
+			string result = $"({DateTime.Now}) [ERROR] {NameOfCallingClass()} ({Path.GetFileName(file)}:{line}): {text ?? "null"}{Environment.NewLine}";
 
 			Console.ForegroundColor = ConsoleColor.Red;
 			Console.Write(result);
 			Console.ResetColor();
 
-			File.AppendAllText(Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) + Path.DirectorySeparatorChar + "log.txt", result);
+			File.AppendAllText(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + Path.DirectorySeparatorChar + "log.txt", result);
 		}
 
-		public static void Info(object source, string text)
+		public static void Info(string text)
 		{
-			string sourceName = source.GetType().Name;
-
-			if (sourceName == "String")
-				sourceName = (string)source;
-
-			string result = $"({DateTime.Now}) {sourceName}: {text ?? "null"}{Environment.NewLine}";
+			string result = $"({DateTime.Now}) {NameOfCallingClass()}: {text ?? "null"}{Environment.NewLine}";
 
 			Console.Write(result);
-
-			File.AppendAllText(Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) + Path.DirectorySeparatorChar + "log.txt", result);
+			File.AppendAllText(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + Path.DirectorySeparatorChar + "log.txt", result);
 		}
 
-		public static void Debug(object source, string text)
+		public static void Debug(string text, [CallerMemberName] string caller = "", [CallerFilePath] string file = "", [CallerLineNumber] int line = 0)
 		{
 #if DEBUG
-			string sourceName = source.GetType().Name;
-
-			if (sourceName == "String")
-				sourceName = (string)source;
-
-			string result = $"({DateTime.Now}) {sourceName}: {text ?? "null"}{Environment.NewLine}";
+			string result = $"({DateTime.Now}) {NameOfCallingClass()}::{caller} ({Path.GetFileName(file)}:{line}): {text ?? "null"}{Environment.NewLine}";
 
 			Console.Write(result);
-
-			File.AppendAllText(Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) + Path.DirectorySeparatorChar + "log.txt", result);
+			File.AppendAllText(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + Path.DirectorySeparatorChar + "log.txt", result);
 #endif
 		}
 
@@ -59,7 +45,12 @@ namespace den0bot.Util
 
 			string result = string.Format("({0}) {1}: {2}" + Environment.NewLine, DateTime.Now, sender, text);
 
-			File.AppendAllText(Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) + Path.PathSeparator + "IRC.txt", result);
+			File.AppendAllText(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + Path.DirectorySeparatorChar + "IRC.txt", result);
+		}
+
+		private static string NameOfCallingClass()
+		{
+			return new StackFrame(2, false).GetMethod()?.DeclaringType?.Name;
 		}
 	}
 }

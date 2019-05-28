@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using den0bot.DB;
 using den0bot.Osu;
+using den0bot.Osu.API.Requests;
 using den0bot.Osu.Types;
 using den0bot.Util;
 using Telegram.Bot.Types.Enums;
@@ -24,7 +25,7 @@ namespace den0bot.Modules
 				ActionAsync = GetScores,
 				ParseMode = ParseMode.Html
 			});
-			Log.Debug(this, "Enabled");
+			Log.Debug("Enabled");
 		}
 
 		private async Task<string> GetScores(Telegram.Bot.Types.Message message)
@@ -56,7 +57,11 @@ namespace den0bot.Modules
 					return Localization.Get("recentscores_unknown_player", message.Chat.Id);
 			}
 
-			List<Score> lastScores = await OsuAPI.GetRecentScoresAsync(playerID, amount);
+			List<Score> lastScores = await Osu.WebApi.MakeAPIRequest(new GetRecentScores() {
+				Username = playerID,
+				Amount = amount
+			});
+
 			if (lastScores != null)
 			{
 				if (lastScores.Count == 0)
@@ -73,7 +78,11 @@ namespace den0bot.Modules
 					TimeSpan ago = DateTime.Now.ToUniversalTime() - score.Date;
 					string date = ago.ToString(@"hh\:mm\:ss") + " ago";
 
-					Map map = await OsuAPI.GetBeatmapAsync(score.BeatmapID);
+					Map map = await Osu.WebApi.MakeAPIRequest(new GetBeatmap
+					{
+						ID = score.BeatmapID
+
+					});
 					if (map != null)
 					{
 						string mapInfo = $"{map.Artist} - {map.Title} [{map.Difficulty}]".FilterToHTML();
@@ -99,7 +108,7 @@ namespace den0bot.Modules
 						}
 						catch (Exception e)
 						{
-							Log.Error(this, $"Oppai failed: {e.InnerMessageIfAny()}");
+							Log.Error($"Oppai failed: {e.InnerMessageIfAny()}");
 						}
 					}
 					else

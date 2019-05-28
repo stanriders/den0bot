@@ -29,18 +29,18 @@ namespace den0bot
 		{
 			if (string.IsNullOrEmpty(Config.Params.TelegamToken))
 			{
-				Log.Error("API", "Telegram token is null or empty!");
+				Log.Error("Telegram token is null or empty!");
 				return false;
 			}
 
-			Log.Info("API", "Connecting...");
+			Log.Info("Connecting...");
 			try
 			{
 				api = new TelegramBotClient(Config.Params.TelegamToken);
 				api.OnMessage += OnMessage;
 				api.OnCallbackQuery += OnCallback;
-				api.OnReceiveGeneralError += delegate (object sender, ReceiveGeneralErrorEventArgs args) { Log.Error("API - OnReceiveGeneralError", args.Exception.InnerMessageIfAny()); };
-				api.OnReceiveError += delegate (object sender, ReceiveErrorEventArgs args) { Log.Error("API - OnReceiveError", args.ApiRequestException.InnerMessageIfAny()); };
+				api.OnReceiveGeneralError += delegate (object sender, ReceiveGeneralErrorEventArgs args) { Log.Error(args.Exception.InnerMessageIfAny()); };
+				api.OnReceiveError += delegate (object sender, ReceiveErrorEventArgs args) { Log.Error(args.ApiRequestException.InnerMessageIfAny()); };
 
 				if (!api.TestApiAsync().Result)
 					return false;
@@ -51,18 +51,18 @@ namespace den0bot
 			}
 			catch (Exception ex)
 			{
-				Log.Error("API", ex.InnerMessageIfAny());
+				Log.Error(ex.InnerMessageIfAny());
 				return false;
 			}
 
-			Log.Info("API", "Connected!");
+			Log.Info("Connected!");
 
 			return true;
 		}
 
 		public static void Disconnect()
 		{
-			Log.Info("API", "Disconnecting...");
+			Log.Info("Disconnecting...");
 			api.StopReceiving();
 		}
 
@@ -95,7 +95,7 @@ namespace den0bot
 
 				return null;
 			}
-			catch (Exception ex) { Log.Error("API - SendMessage", ex.InnerMessageIfAny()); return null; }
+			catch (Exception ex) { Log.Error(ex.InnerMessageIfAny()); return null; }
 		}
 
 		/// <summary>
@@ -111,7 +111,7 @@ namespace den0bot
 				if (api.GetChatAsync(receiver.Id).Result == null)
 				{
 					Database.RemoveChat(receiver.Id);
-					Log.Info("API", $"Chat {receiver.Id} removed");
+					Log.Info($"Chat {receiver.Id} removed");
 					return;
 				}
 				else if (!receiver.DisableAnnouncements)
@@ -159,7 +159,7 @@ namespace den0bot
 				}
 				return null;
 			}
-			catch (Exception ex) { Log.Error("API - SendPhoto", ex.InnerMessageIfAny()); return null; }
+			catch (Exception ex) { Log.Error(ex.InnerMessageIfAny()); return null; }
 		}
 		private static InputOnlineFile UriPhotoDownload(Uri link)
 		{
@@ -169,7 +169,7 @@ namespace den0bot
 			}
 			catch (Exception ex)
 			{
-				Log.Error("API - UriPhotoDownload", ex.InnerMessageIfAny());
+				Log.Error(ex.InnerMessageIfAny());
 				return null;
 			}
 		}
@@ -189,7 +189,7 @@ namespace den0bot
 				}
 				return null;
 			}
-			catch (Exception ex) { Log.Error("API - SendMultiplePhotos", ex.InnerMessageIfAny()); return null; }
+			catch (Exception ex) { Log.Error(ex.InnerMessageIfAny()); return null; }
 		}
 
 		/// <summary>
@@ -203,7 +203,7 @@ namespace den0bot
 			{
 				api.SendStickerAsync(receiverID, sticker);
 			}
-			catch (Exception ex) { Log.Error("API - SendSticker", ex.InnerMessageIfAny()); }
+			catch (Exception ex) { Log.Error(ex.InnerMessageIfAny()); }
 		}
 
 		/// <summary>
@@ -225,7 +225,7 @@ namespace den0bot
 			{
 				api.DeleteMessageAsync(chatID, msgID);
 			}
-			catch (Exception ex) { Log.Error("API - RemoveMessage", ex.InnerMessageIfAny()); }
+			catch (Exception ex) { Log.Error(ex.InnerMessageIfAny()); }
 		}
 
 		/// <summary>
@@ -240,7 +240,7 @@ namespace den0bot
 			{
 				api.EditMessageCaptionAsync(chatID, msgID, caption, replyMarkup, parseMode: parseMode);
 			}
-			catch (Exception ex) { Log.Error("API - EditMediaCaption", ex.InnerMessageIfAny()); }
+			catch (Exception ex) { Log.Error(ex.InnerMessageIfAny()); }
 		}
 
 		/// <summary>
@@ -255,7 +255,7 @@ namespace den0bot
 			{
 				api.AnswerCallbackQueryAsync(callbackID, text, showAlert);
 			}
-			catch (Exception ex) { Log.Error("API - AnswerCallbackQuery", ex.InnerMessageIfAny()); }
+			catch (Exception ex) { Log.Error(ex.InnerMessageIfAny()); }
 		}
 
 		/// <summary>
@@ -269,7 +269,7 @@ namespace den0bot
 			{
 				api.SendVoiceAsync(chatID, audio, caption, parseMode, replyToMessageId: replyTo);
 			}
-			catch (Exception ex) { Log.Error("API - SendVoice", ex.InnerMessageIfAny()); }
+			catch (Exception ex) { Log.Error(ex.InnerMessageIfAny()); }
 		}
 	}
 }

@@ -70,7 +70,7 @@ namespace den0bot.Modules
 				{
 					Name = "resetgirlrating",
 					IsOwnerOnly = true,
-					Action = (msg) => {Database.RemoveRatings(); return string.Empty; }
+					Action = m => {Database.RemoveRatings(); return string.Empty; }
 				},
 				new Command
 				{
@@ -90,7 +90,7 @@ namespace den0bot.Modules
 					Action = TopGirlsSeasonal
 				},
 			});
-			Log.Debug(this, "Enabled");
+			Log.Debug("Enabled");
 		}
 		public void ReceiveMessage(Message message)
 		{
@@ -244,6 +244,7 @@ namespace den0bot.Modules
 
 								API.EditMediaCaption(chatId, callback.Message.MessageId, $"{girl.SeasonalRating} (s{Database.GirlSeason})",
 									buttons);
+								API.AnswerCallbackQuery(callback.Id, Localization.FormatGet("girls_rating_up", $"{girl.SeasonalRating} (s{Database.GirlSeason})", chatId));
 							}
 							else
 							{
@@ -252,10 +253,11 @@ namespace den0bot.Modules
 
 								API.EditMediaCaption(chatId, callback.Message.MessageId, girl.Rating.ToString(),
 									buttons);
+								API.AnswerCallbackQuery(callback.Id, Localization.FormatGet("girls_rating_up", girl.Rating, chatId));
 							}
 
 							girl.Voters.Add(callback.From.Id);
-							API.AnswerCallbackQuery(callback.Id, Localization.FormatGet("girls_rating_up", girl.Rating, chatId));
+							
 						}
 						else if (callback.Data == "-")
 						{
@@ -310,9 +312,7 @@ namespace den0bot.Modules
 		{
 			if (message.ReplyToMessage != null && sentGirlsCache.Contains(message.ReplyToMessage.MessageId.ToString()))
 			{
-				var girl = sentGirlsCache.Get(message.ReplyToMessage.MessageId.ToString()) as ChachedGirl;
-				sentGirlsCache.Remove(message.ReplyToMessage.MessageId.ToString());
-
+				var girl = sentGirlsCache.Remove(message.ReplyToMessage.MessageId.ToString()) as ChachedGirl;
 				Database.RemoveGirl(girl.ID);
 				API.RemoveMessage(message.Chat.Id, message.ReplyToMessage.MessageId);
 				return Localization.Get("girls_rating_delete_manual", message.Chat.Id);
