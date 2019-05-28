@@ -22,21 +22,13 @@ namespace den0bot.Modules
 				},
 				new Command
 				{
-					Name = "start",
+					Names = {"start", "help"},
 					Action = (msg) => msg.Chat.Type == ChatType.Private
 						? Localization.Get("basiccommands_help", msg.Chat.Id)
 						: string.Empty
-				},
-				new Command
-				{
-					Name = "help",
-					Action = (msg) => msg.Chat.Type == ChatType.Private 
-						? Localization.Get("basiccommands_help", msg.Chat.Id) 
-						: string.Empty
-				},
-
+				}
 			});
-			Log.Debug(this, "Enabled");
+			Log.Debug("Enabled");
 		}
 	}
 }

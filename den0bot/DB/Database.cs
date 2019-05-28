@@ -1,7 +1,6 @@
 ﻿// den0bot (c) StanR 2019 - MIT License
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.IO;
 using System.Linq;
 using den0bot.DB.Types;
@@ -41,9 +40,7 @@ namespace den0bot.DB
 
 		public static void Close() => db.Close();
 
-		// ---
-		// Users
-		// ---
+		#region Users
 		public static void AddUser(int id, string username)
 		{
 			if (userCache.Find(x => x.Username == username) == null)
@@ -79,9 +76,9 @@ namespace den0bot.DB
 			return null;
 		}
 
-		// ---
-		// Santa
-		// ---
+		#endregion
+
+		#region Santa
 		public static void AddSanta(string sender, string receiver)
 		{
 			if (db.Table<Santa>().FirstOrDefault(x => x.Sender == sender) == null)
@@ -111,9 +108,9 @@ namespace den0bot.DB
 			}
 			return null;
 		}
-		// ---
-		// Chats
-		// ---
+		#endregion
+
+		#region Chats
 		public static List<Chat> GetAllChats() => chatCache;
 		public static void AddChat(long chatID)
 		{
@@ -129,7 +126,7 @@ namespace den0bot.DB
 				db.Insert(chat);
 				chatCache.Add(chat);
 
-				Log.Info("Database", string.Format("Added chat '{0}' to the chat list", chatID));
+				Log.Info($"Added chat '{chatID}' to the chat list");
 			}
 		}
 		public static void RemoveChat(long chatID)
@@ -181,9 +178,9 @@ namespace den0bot.DB
 					cachedChat.Locale = locale;
 			}
 		}
-		// ---
-		// Memes
-		// ---
+		#endregion
+
+		#region Memes
 		public static int GetMemeCount(long chatID) => db.Table<Meme>().Count(x => x.ChatID == chatID);
 		public static void AddMeme(string link, long chatID)
 		{
@@ -209,7 +206,7 @@ namespace den0bot.DB
 				}
 				else
 				{
-					int num = RNG.Next(memes.Count);
+					int num = RNG.Next(max: memes.Count);
 
 					SetUsedMeme(memes[num].Id);
 					return memes[num].Link;
@@ -235,9 +232,9 @@ namespace den0bot.DB
 			db.UpdateAll(memes);
 		}
 
-		// ---
-		// Girls
-		// ---
+		#endregion
+
+		#region Girls
 		public static int GetGirlCount(long chatID) => db.Table<Girl>().Count(x => x.ChatID == chatID);
 		public static void AddGirl(string link, long chatID)
 		{
@@ -246,6 +243,8 @@ namespace den0bot.DB
 				var season = GirlSeason;
 				if (GirlSeasonStartDate == default(DateTime) || GirlSeasonStartDate.AddMonths(1) < DateTime.Today)
 				{
+					// rotate season if it's the day
+					SubmitSeasonalRatingsToGlobal(season);
 					GirlSeason = ++season;
 				}
 
@@ -278,7 +277,7 @@ namespace den0bot.DB
 				}
 				else
 				{
-					int num = RNG.Next(girls.Count);
+					int num = RNG.Next(max: girls.Count);
 
 					SetUsedGirl(girls[num].Id);
 					return girls[num];
@@ -291,10 +290,7 @@ namespace den0bot.DB
 			List<Girl> girls = db.Table<Girl>().Where(x => x.ChatID == chatID && x.Rating >= 10)?.ToList();
 			if (girls != null && girls.Count > 0)
 			{
-				int num = RNG.Next(girls.Count);
-
-				SetUsedGirl(girls[num].Id);
-				return girls[num];
+				return girls[RNG.Next(max: girls.Count)];
 			}
 			return null;
 		}
@@ -303,6 +299,8 @@ namespace den0bot.DB
 			var season = GirlSeason;
 			if (GirlSeasonStartDate == default(DateTime) || GirlSeasonStartDate.AddMonths(1) < DateTime.Today)
 			{
+				// rotate season if it's the day
+				SubmitSeasonalRatingsToGlobal(season);
 				GirlSeason = ++season;
 			}
 
@@ -331,7 +329,7 @@ namespace den0bot.DB
 				}
 				else
 				{
-					int num = RNG.Next(girls.Count);
+					int num = RNG.Next(max: girls.Count);
 
 					SetUsedGirlSeasonal(girls[num].Id);
 					return girls[num];
@@ -408,19 +406,31 @@ namespace den0bot.DB
 			}
 			db.UpdateAll(table);
 		}
-		// ---
-		// Users
-		// ---
-		//public static List<Player> GetAllPlayers(long chatID) => db.Table<Player>().Where(x => x.ChatID == chatID)?.ToList();
-		public static int GetPlayerCount() => db.Table<Player>().Count();
-		//public static int GetPlayerCount(long chatID) => (int)db.Table<Player>().Where(x => x.ChatID == chatID)?.Count();
+		public static void SubmitSeasonalRatingsToGlobal(int season)
+		{
+			if (season > 0)
+			{
+				var table = db.Table<Girl>().Where(x => x.Season == season);
+				foreach (var girl in table)
+				{
+					girl.Rating += girl.SeasonRating;
+					if (girl.Rating < -10)
+					{
+						db.Delete(girl);
+						continue;
+					}
 
+					db.Update(girl); // INEFFICIENT but works
+				}
+				db.UpdateAll(table);
+			}
+		}
+		#endregion
+
+		#region Players
+		public static int GetPlayerCount() => db.Table<Player>().Count();
 		private static Player GetPlayer(int ID) => db.Table<Player>().FirstOrDefault(x => x.TelegramID == ID);
-		//private static Player GetPlayer(string username) => db.Table<Player>().Where(x => x.Username.ToLower() == username.ToLower())?.FirstOrDefault();
-		//public static string GetPlayerFriendlyName(int ID) => GetPlayer(ID)?.FriendlyName;
 		public static uint GetPlayerOsuID(int ID) => GetPlayer(ID)?.OsuID ?? 0;
-		//public static uint GetPlayerOsuID(string username) => GetPlayer(username)?.OsuID ?? 0;
-		//public static long GetPlayerChatID(int ID) => GetPlayer(ID)?.ChatID ?? 0;
 
 		public static bool AddPlayer(int tgID, uint osuID)
 		{
@@ -445,47 +455,9 @@ namespace den0bot.DB
 			}
 			return false;
 		}
-		public static List<Osu.Score> GetPlayerTopscores(int tgID)
-		{
-			string storedTopscores = db.Table<Player>().Where(x => x.TelegramID == tgID)?.First().Topscores;
-			if (!string.IsNullOrEmpty(storedTopscores))
-			{
-				List<Osu.Score> result = new List<Osu.Score>();
-				foreach (string score in storedTopscores.Split(';'))
-				{
-					if (score != string.Empty)
-					{
-						string scoreID = score.Split('-')[0];
-						string date = score.Split('-')[1];
-						result.Add(new Osu.Score
-						{
-							ScoreID = uint.Parse(scoreID),
-							Date = DateTime.Parse(date, CultureInfo.GetCultureInfo("en-us"))
-						});
-					}
-				}
-				return result;
-			}
-			return null;
-		}
-		public static void SetPlayerTopscores(List<Osu.Score> scores, int tgID)
-		{
-			Player player = db.Table<Player>().FirstOrDefault(x => x.TelegramID == tgID);
-			if (player != null)
-			{
-				string result = string.Empty;
-				foreach (Osu.Score score in scores)
-				{
-					result += score.ScoreID + "-" + score.Date.ToString(CultureInfo.GetCultureInfo("en-us")) + ";";
-				}
-				player.Topscores = result;
-				db.Update(player);
-			}
-		}
+		#endregion
 
-		// ---
-		// Misc
-		// ---
+		#region Misc
 		public static int CurrentLobbyID
 		{
 			get
@@ -516,7 +488,6 @@ namespace den0bot.DB
 						CurrentMPLobby = value
 					});
 				}
-
 			}
 		}
 		public static string GetCurrentTounament()
@@ -555,5 +526,6 @@ namespace den0bot.DB
 				}
 			}
 		}
+		#endregion
 	}
 }

@@ -11,7 +11,7 @@ namespace den0bot.Modules
 	{
 		public class Command
 		{
-			public List<string> Names { get; set; } = new List<string>();
+			public List<string> Names { get; } = new List<string>();
 			public string Name
 			{
 				set => Names.Add(value);
@@ -21,14 +21,32 @@ namespace den0bot.Modules
 				return Names.Contains(name.Substring(1));
 			}
 
+			/// <summary>
+			/// <see cref="Telegram.Bot.Types.Enums.ParseMode" />
+			/// </summary>
 			public ParseMode ParseMode;
 
+			/// <summary>
+			/// Determines if command can only be used by chat admins
+			/// </summary>
 			public bool IsAdminOnly;
+
+			/// <summary>
+			/// Determines if command can only be used by bot owner
+			/// </summary>
 			public bool IsOwnerOnly;
+
+			/// <summary>
+			/// Determines if command result should be a reply to the command message
+			/// </summary>
 			public bool Reply;
 
 			public Func<Message, Task<string>> ActionAsync;
 			public Func<Message, string> Action;
+
+			/// <summary>
+			/// Function to call AFTER action is complete and sent
+			/// </summary>
 			public Action<Message> ActionResult;
 		}
 
@@ -56,7 +74,7 @@ namespace den0bot.Modules
 			if (name.EndsWith("@den0bot"))
 				name = name.Replace("@den0bot", "");
 
-			return commands.Find(x => x.ContainsName(name));
+			return commands.Find(x => x.ContainsName(name.ToLowerInvariant()));
 		}
 
 		public virtual void Think() { }

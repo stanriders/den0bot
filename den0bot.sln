@@ -1,9 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.25420.1
+# Visual Studio 15
+VisualStudioVersion = 15.0.27130.2026
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "den0bot", "den0bot\den0bot.csproj", "{CD9F1713-0320-4AFE-BF86-89C86D791EA2}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "den0bot.Modules.Example", "den0bot.Modules.Example\den0bot.Modules.Example.csproj", "{06B8C167-2620-4B1A-9F1C-DDCD00119220}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,9 +17,16 @@ Global
 		{CD9F1713-0320-4AFE-BF86-89C86D791EA2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CD9F1713-0320-4AFE-BF86-89C86D791EA2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CD9F1713-0320-4AFE-BF86-89C86D791EA2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{06B8C167-2620-4B1A-9F1C-DDCD00119220}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{06B8C167-2620-4B1A-9F1C-DDCD00119220}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{06B8C167-2620-4B1A-9F1C-DDCD00119220}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{06B8C167-2620-4B1A-9F1C-DDCD00119220}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {84F9713F-7A2D-4C7E-840D-E080D93D0B6F}
 	EndGlobalSection
 	GlobalSection(MonoDevelopProperties) = preSolution
 		Policies = $0

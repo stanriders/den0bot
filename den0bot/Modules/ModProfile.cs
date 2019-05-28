@@ -4,7 +4,8 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
-using den0bot.Osu;
+using den0bot.Osu.API.Requests;
+using den0bot.Osu.Types;
 using den0bot.Util;
 
 namespace den0bot.Modules
@@ -13,7 +14,7 @@ namespace den0bot.Modules
 	{
 		private readonly Regex regex = new Regex(@"(?>https?:\/\/)?(?>osu|old)\.ppy\.sh\/u(?>sers)?\/(\d+|\S+)", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 		private readonly int topscores_to_show = 3;
-		public ModProfile() { Log.Debug(this, "Enabled"); }
+		public ModProfile() { Log.Debug("Enabled"); }
 
 		public async void ReceiveMessage(Message message)
 		{
@@ -28,11 +29,20 @@ namespace den0bot.Modules
 
 		private async Task<string> FormatPlayerInfo(string playerID)
 		{
-			Player info = await OsuAPI.GetPlayerAsync(playerID);
+			Player info = await Osu.WebApi.MakeAPIRequest(new GetUser
+			{
+				Username = playerID
+			});
+
 			if (info == null)
 				return string.Empty;
 
-			List<Score> topscores = await OsuAPI.GetTopscoresAsync(info.ID, topscores_to_show);
+			List<Score> topscores = await Osu.WebApi.MakeAPIRequest(new GetTopscores
+			{
+				Amount = topscores_to_show,
+				Username = info.ID.ToString()
+			});
+
 			if (topscores == null || topscores.Count <= 0)
 				return string.Empty;
 
@@ -41,7 +51,7 @@ namespace den0bot.Modules
 			for (int i = 0; i < topscores.Count; i++)
 			{
 				Score score = topscores[i];
-				Map map = await OsuAPI.GetBeatmapAsync(score.BeatmapID);
+				Map map = await Osu.WebApi.MakeAPIRequest(new GetBeatmap { ID = score.BeatmapID});
 
 				string mods = string.Empty;
 				Mods enabledMods = score.EnabledMods ?? Mods.None;
@@ -52,12 +62,10 @@ namespace den0bot.Modules
 				string mapName = $"{map.Artist} - {map.Title} [{map.Difficulty}]".FilterToHTML();
 
 				formatedTopscores +=
-					$"<b>{(i + 1)}</b>. {mapName}{mods} (<b>{score.Rank}</b>, {score.Accuracy.FN2()}%) - <b>{score.Pp}</b>pp\n";
-				
+					$"<b>{(i + 1)}</b>. {mapName}{mods} (<b>{score.Rank}</b>, {score.Accuracy:N2}%) - <b>{score.Pp}</b>pp\n";
 			}
 
 			return $"<b>{info.Username}</b> <a href=\"https://a.ppy.sh/{info.ID}_0.jpeg\">-</a> #{info.Rank} ({info.Pp}pp)\nPlaycount: {info.Playcount}\n__________\n{formatedTopscores}";
 		}
-
 	}
 }

@@ -57,7 +57,7 @@ namespace den0bot.Modules
 				if (senderID == 0)
 					return $"Невозможно отправить сообщение {sender}";
 
-				var num = RNG.Next(receivers.Count);
+				var num = RNG.Next(max: receivers.Count);
 				var receiver = receivers[num];
 				Database.AddSanta(sender, receiver);
 

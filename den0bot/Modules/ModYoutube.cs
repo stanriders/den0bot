@@ -45,13 +45,12 @@ namespace den0bot.Modules
 
 			if (string.IsNullOrEmpty(api_key))
 			{
-				Log.Error(this, "API Key is not defined!");
-
+				Log.Error("API Key is not defined!");
 			}
 			else
 			{
 				isEnabled = true;
-				Log.Debug(this, "Enabled");
+				Log.Debug("Enabled");
 			}
 		}
 
@@ -77,14 +76,13 @@ namespace den0bot.Modules
 												Uri.EscapeDataString(lastChecked.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss.sZ")),
 												channel_id);
 
-
 				var data = await new WebClient().DownloadDataTaskAsync(request);
 
 				JObject obj = JObject.Parse(Encoding.UTF8.GetString(data));
 
 				if (obj["items"].HasValues)
 				{
-					foreach (JObject vid in obj["items"])
+					foreach (var vid in obj["items"])
 					{
 						string title = vid["snippet"]["title"].ToString();
 						string id = vid["contentDetails"]["upload"]["videoId"].ToString();
@@ -94,7 +92,7 @@ namespace den0bot.Modules
 					}
 				}
 			}
-			catch (Exception ex) { Log.Error(this, ex.InnerMessageIfAny()); }
+			catch (Exception ex) { Log.Error(ex.InnerMessageIfAny()); }
 		}
 
 		private async Task<string> GetLastScores(int amount)
@@ -122,7 +120,7 @@ namespace den0bot.Modules
 					result += title + Environment.NewLine + "http://youtu.be/" + id + Environment.NewLine + Environment.NewLine;
 				}
 			}
-			catch (Exception ex) { Log.Error(this, ex.InnerMessageIfAny()); }
+			catch (Exception ex) { Log.Error(ex.InnerMessageIfAny()); }
 
 			return result;
 		}

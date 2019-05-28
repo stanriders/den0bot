@@ -36,7 +36,7 @@ namespace den0bot.Modules
 					}
 				}
 			});
-			Log.Debug(this, "Enabled");
+			Log.Debug("Enabled");
 		}
 
 		private int FindThread()
@@ -103,7 +103,7 @@ namespace den0bot.Modules
 
 				return result;
 			}
-			catch (Exception ex) { Log.Error(this, ex.InnerMessageIfAny()); }
+			catch (Exception ex) { Log.Error(ex.InnerMessageIfAny()); }
 
 			return string.Empty;
 		}

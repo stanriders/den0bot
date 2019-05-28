@@ -1,14 +1,12 @@
-﻿// den0bot (c) StanR 2018 - MIT License
+﻿// den0bot (c) StanR 2019 - MIT License
 using System;
 using System.Net;
 using System.Text;
 using Newtonsoft.Json;
 using den0bot.Util;
 
-namespace den0bot.Osu
+namespace den0bot.Osu.Types
 {
-	//#pragma warning disable CS0649 // Field is never assigned to, and will always have its default value 0
-
 	public class Map
 	{
 		[JsonProperty("beatmap_id")]
@@ -169,7 +167,7 @@ namespace den0bot.Osu
 			return TimeSpan.FromSeconds(drainLength);
 		}
 
-		public string Thumbnail => "https://assets.ppy.sh/beatmaps/" + BeatmapSetID + "/covers/cover.jpg";
+		public string Thumbnail => "https://assets.ppy.sh/beatmaps/" + BeatmapSetID + "/covers/card@2x.jpg";
 
 		public string Link => "https://osu.ppy.sh/b/" + BeatmapID;
 
@@ -187,7 +185,7 @@ namespace den0bot.Osu
 				}
 				catch (Exception e)
 				{
-					Log.Error(this, $"File - {e.InnerMessageIfAny()}");
+					Log.Error($"File - {e.InnerMessageIfAny()}");
 					return string.Empty;
 				}
 			}
@@ -206,16 +204,13 @@ namespace den0bot.Osu
 						fileBytes = client.DownloadData("https://osu.ppy.sh/osu/" + BeatmapID);
 					}
 					return fileBytes;
-
 				}
 				catch (Exception e)
 				{
-					Log.Error(this, $"File - {e.InnerMessageIfAny()}");
+					Log.Error($"File - {e.InnerMessageIfAny()}");
 					return null;
 				}
 			}
 		}
 	}
-
-	//#pragma warning restore CS0649
 }

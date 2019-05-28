@@ -40,6 +40,7 @@ namespace den0bot.Modules
 		private const int antispam_cooldown = 15; //seconds
 
 		private const int top_girls_amount = 9;
+		private const int delete_rating_threshold = -10; // lowest rating a girl can have before completely removing her from db
 
 		public ModGirls()
 		{
@@ -69,7 +70,7 @@ namespace den0bot.Modules
 				{
 					Name = "resetgirlrating",
 					IsOwnerOnly = true,
-					Action = (msg) => {Database.RemoveRatings(); return string.Empty; }
+					Action = m => {Database.RemoveRatings(); return string.Empty; }
 				},
 				new Command
 				{
@@ -86,10 +87,10 @@ namespace den0bot.Modules
 				new Command
 				{
 					Names = { "seasonaltopdevok", "seasonaltopgirls" },
-					Action = msg => TopGirlsSeasonal(msg.Chat.Id)
+					Action = TopGirlsSeasonal
 				},
 			});
-			Log.Debug(this, "Enabled");
+			Log.Debug("Enabled");
 		}
 		public void ReceiveMessage(Message message)
 		{
@@ -114,7 +115,7 @@ namespace den0bot.Modules
 			{
 				var sentMessage = await API.SendPhoto(picture.Link, 
 					chatID, 
-					seasonal ? $"{picture.SeasonRating} #{Database.GirlSeason}" : picture.Rating.ToString(), 
+					seasonal ? $"{picture.SeasonRating} (s{Database.GirlSeason})" : picture.Rating.ToString(), 
 					ParseMode.Default, 
 					0, 
 					buttons);
@@ -181,7 +182,7 @@ namespace den0bot.Modules
 				topGirls = topGirls.Take(top_girls_amount).ToList();
 				foreach (var girl in topGirls)
 				{
-					if (girl.Rating < -10)
+					if (girl.Rating < delete_rating_threshold)
 						Database.RemoveGirl(girl.Id); // just in case
 
 					photos.Add(new InputMediaPhoto(girl.Link) { Caption = girl.Rating.ToString() });
@@ -190,9 +191,19 @@ namespace den0bot.Modules
 			}
 			return string.Empty;
 		}
-		private string TopGirlsSeasonal(long chatID)
+		private string TopGirlsSeasonal(Message msg)
 		{
-			var topGirls = Database.GetTopGirlsSeasonal(chatID, Database.GirlSeason);
+			int season = Database.GirlSeason;
+
+			var split = msg.Text.Split(' ');
+			if (split.Length > 1
+			    && int.TryParse(msg.Text.Split(' ')[1], out var s)
+			    && s <= season) // we dont want to spoil next season
+			{
+				season = s;
+			}
+
+			var topGirls = Database.GetTopGirlsSeasonal(msg.Chat.Id, season);
 			if (topGirls != null)
 			{
 				List<InputMediaPhoto> photos = new List<InputMediaPhoto>();
@@ -200,12 +211,12 @@ namespace den0bot.Modules
 				topGirls = topGirls.Take(top_girls_amount).ToList();
 				foreach (var girl in topGirls)
 				{
-					if (girl.Rating < -10)
+					if (girl.SeasonRating < delete_rating_threshold)
 						Database.RemoveGirl(girl.Id); // just in case
 
-					photos.Add(new InputMediaPhoto(girl.Link) { Caption = $"{girl.SeasonRating} #{Database.GirlSeason}" });
+					photos.Add(new InputMediaPhoto(girl.Link) { Caption = $"{girl.SeasonRating} (s{season})" });
 				}
-				API.SendMultiplePhotos(photos, chatID).NoAwait();
+				API.SendMultiplePhotos(photos, msg.Chat.Id).NoAwait();
 			}
 			return string.Empty;
 		}
@@ -231,8 +242,9 @@ namespace den0bot.Modules
 								Database.ChangeGirlRatingSeasonal(girl.ID, 1);
 								girl.SeasonalRating++;
 
-								API.EditMediaCaption(chatId, callback.Message.MessageId, $"{girl.SeasonalRating} #{Database.GirlSeason}",
+								API.EditMediaCaption(chatId, callback.Message.MessageId, $"{girl.SeasonalRating} (s{Database.GirlSeason})",
 									buttons);
+								API.AnswerCallbackQuery(callback.Id, Localization.FormatGet("girls_rating_up", $"{girl.SeasonalRating} (s{Database.GirlSeason})", chatId));
 							}
 							else
 							{
@@ -241,10 +253,11 @@ namespace den0bot.Modules
 
 								API.EditMediaCaption(chatId, callback.Message.MessageId, girl.Rating.ToString(),
 									buttons);
+								API.AnswerCallbackQuery(callback.Id, Localization.FormatGet("girls_rating_up", girl.Rating, chatId));
 							}
 
 							girl.Voters.Add(callback.From.Id);
-							API.AnswerCallbackQuery(callback.Id, Localization.FormatGet("girls_rating_up", girl.Rating, chatId));
+							
 						}
 						else if (callback.Data == "-")
 						{
@@ -260,14 +273,14 @@ namespace den0bot.Modules
 							}
 							girl.Voters.Add(callback.From.Id);
 
-							if (girl.Rating >= -10)
+							if (girl.Rating >= delete_rating_threshold && girl.SeasonalRating >= delete_rating_threshold)
 							{
 								if (girl.Seasonal)
 								{
-									API.EditMediaCaption(chatId, callback.Message.MessageId, $"{girl.SeasonalRating} #{Database.GirlSeason}",
+									API.EditMediaCaption(chatId, callback.Message.MessageId, $"{girl.SeasonalRating} (s{Database.GirlSeason})",
 										buttons);
 									API.AnswerCallbackQuery(callback.Id,
-										Localization.FormatGet("girls_rating_down", $"{girl.SeasonalRating} #{Database.GirlSeason}", chatId));
+										Localization.FormatGet("girls_rating_down", $"{girl.SeasonalRating} (s{Database.GirlSeason})", chatId));
 								}
 								else
 								{
@@ -299,9 +312,7 @@ namespace den0bot.Modules
 		{
 			if (message.ReplyToMessage != null && sentGirlsCache.Contains(message.ReplyToMessage.MessageId.ToString()))
 			{
-				var girl = sentGirlsCache.Get(message.ReplyToMessage.MessageId.ToString()) as ChachedGirl;
-				sentGirlsCache.Remove(message.ReplyToMessage.MessageId.ToString());
-
+				var girl = sentGirlsCache.Remove(message.ReplyToMessage.MessageId.ToString()) as ChachedGirl;
 				Database.RemoveGirl(girl.ID);
 				API.RemoveMessage(message.Chat.Id, message.ReplyToMessage.MessageId);
 				return Localization.Get("girls_rating_delete_manual", message.Chat.Id);

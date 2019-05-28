@@ -15,10 +15,10 @@ using Telegram.Bot.Types.ReplyMarkups;
 
 namespace den0bot
 {
-	static class API
+	public static class API
 	{
 		public static User BotUser;
-		private static readonly TelegramBotClient api = new TelegramBotClient(Config.Params.TelegamToken);
+		private static TelegramBotClient api;
 
 		public static bool IsConnected => api.IsReceiving;
 
@@ -27,13 +27,20 @@ namespace den0bot
 		/// </summary>
 		public static bool Connect()
 		{
-			Log.Info("API", "Connecting...");
+			if (string.IsNullOrEmpty(Config.Params.TelegamToken))
+			{
+				Log.Error("Telegram token is null or empty!");
+				return false;
+			}
+
+			Log.Info("Connecting...");
 			try
 			{
+				api = new TelegramBotClient(Config.Params.TelegamToken);
 				api.OnMessage += OnMessage;
 				api.OnCallbackQuery += OnCallback;
-				api.OnReceiveGeneralError += delegate (object sender, ReceiveGeneralErrorEventArgs args) { Log.Error("API - OnReceiveGeneralError", args.Exception.InnerMessageIfAny()); };
-				api.OnReceiveError += delegate (object sender, ReceiveErrorEventArgs args) { Log.Error("API - OnReceiveError", args.ApiRequestException.InnerMessageIfAny()); };
+				api.OnReceiveGeneralError += delegate (object sender, ReceiveGeneralErrorEventArgs args) { Log.Error(args.Exception.InnerMessageIfAny()); };
+				api.OnReceiveError += delegate (object sender, ReceiveErrorEventArgs args) { Log.Error(args.ApiRequestException.InnerMessageIfAny()); };
 
 				if (!api.TestApiAsync().Result)
 					return false;
@@ -44,18 +51,18 @@ namespace den0bot
 			}
 			catch (Exception ex)
 			{
-				Log.Error("API", ex.InnerMessageIfAny());
+				Log.Error(ex.InnerMessageIfAny());
 				return false;
 			}
 
-			Log.Info("API", "Connected!");
+			Log.Info("Connected!");
 
 			return true;
 		}
 
 		public static void Disconnect()
 		{
-			Log.Info("API", "Disconnecting...");
+			Log.Info("Disconnecting...");
 			api.StopReceiving();
 		}
 
@@ -88,7 +95,7 @@ namespace den0bot
 
 				return null;
 			}
-			catch (Exception ex) { Log.Error("API - SendMessage", ex.InnerMessageIfAny()); return null; }
+			catch (Exception ex) { Log.Error(ex.InnerMessageIfAny()); return null; }
 		}
 
 		/// <summary>
@@ -104,7 +111,7 @@ namespace den0bot
 				if (api.GetChatAsync(receiver.Id).Result == null)
 				{
 					Database.RemoveChat(receiver.Id);
-					Log.Info("API", $"Chat {receiver.Id} removed");
+					Log.Info($"Chat {receiver.Id} removed");
 					return;
 				}
 				else if (!receiver.DisableAnnouncements)
@@ -152,7 +159,7 @@ namespace den0bot
 				}
 				return null;
 			}
-			catch (Exception ex) { Log.Error("API - SendPhoto", ex.InnerMessageIfAny()); return null; }
+			catch (Exception ex) { Log.Error(ex.InnerMessageIfAny()); return null; }
 		}
 		private static InputOnlineFile UriPhotoDownload(Uri link)
 		{
@@ -162,7 +169,7 @@ namespace den0bot
 			}
 			catch (Exception ex)
 			{
-				Log.Error("API - UriPhotoDownload", ex.InnerMessageIfAny());
+				Log.Error(ex.InnerMessageIfAny());
 				return null;
 			}
 		}
@@ -182,7 +189,7 @@ namespace den0bot
 				}
 				return null;
 			}
-			catch (Exception ex) { Log.Error("API - SendMultiplePhotos", ex.InnerMessageIfAny()); return null; }
+			catch (Exception ex) { Log.Error(ex.InnerMessageIfAny()); return null; }
 		}
 
 		/// <summary>
@@ -196,7 +203,7 @@ namespace den0bot
 			{
 				api.SendStickerAsync(receiverID, sticker);
 			}
-			catch (Exception ex) { Log.Error("API - SendSticker", ex.InnerMessageIfAny()); }
+			catch (Exception ex) { Log.Error(ex.InnerMessageIfAny()); }
 		}
 
 		/// <summary>
@@ -218,7 +225,7 @@ namespace den0bot
 			{
 				api.DeleteMessageAsync(chatID, msgID);
 			}
-			catch (Exception ex) { Log.Error("API - RemoveMessage", ex.InnerMessageIfAny()); }
+			catch (Exception ex) { Log.Error(ex.InnerMessageIfAny()); }
 		}
 
 		/// <summary>
@@ -227,13 +234,13 @@ namespace den0bot
 		/// <param name="chatID">Chat ID to edit message in</param>
 		/// <param name="msgID">Message to edit</param>
 		/// <param name="caption">New caption</param>
-		public static void EditMediaCaption(long chatID, int msgID, string caption, InlineKeyboardMarkup replyMarkup = null)
+		public static void EditMediaCaption(long chatID, int msgID, string caption, InlineKeyboardMarkup replyMarkup = null, ParseMode parseMode = ParseMode.Default)
 		{
 			try
 			{
-				api.EditMessageCaptionAsync(chatID, msgID, caption, replyMarkup);
+				api.EditMessageCaptionAsync(chatID, msgID, caption, replyMarkup, parseMode: parseMode);
 			}
-			catch (Exception ex) { Log.Error("API - EditMediaCaption", ex.InnerMessageIfAny()); }
+			catch (Exception ex) { Log.Error(ex.InnerMessageIfAny()); }
 		}
 
 		/// <summary>
@@ -248,7 +255,21 @@ namespace den0bot
 			{
 				api.AnswerCallbackQueryAsync(callbackID, text, showAlert);
 			}
-			catch (Exception ex) { Log.Error("API - AnswerCallbackQuery", ex.InnerMessageIfAny()); }
+			catch (Exception ex) { Log.Error(ex.InnerMessageIfAny()); }
+		}
+
+		/// <summary>
+		/// Send voice message (or just audio file if it's not vorbis ogg)
+		/// </summary>
+		/// <param name="audio">Audio to send</param>
+		/// <param name="chatID">Chat ID to send photo to</param>
+		public static void SendVoice(InputOnlineFile audio, long chatID, string caption = null, ParseMode parseMode = ParseMode.Default, int replyTo = 0)
+		{
+			try
+			{
+				api.SendVoiceAsync(chatID, audio, caption, parseMode, replyToMessageId: replyTo);
+			}
+			catch (Exception ex) { Log.Error(ex.InnerMessageIfAny()); }
 		}
 	}
 }
