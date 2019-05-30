@@ -25,7 +25,7 @@ namespace den0bot.Modules
 			AddCommand(new Command()
 			{
 				Name = "map",
-				ActionAsync = (msg) => GetMap(msg)
+				ActionAsync = GetMap
 			});
 			Log.Debug($"Enabled, {maplist.Count} maps");
 		}
@@ -88,7 +88,7 @@ namespace den0bot.Modules
 
 				if (map != null)
 				{
-					string format = ModBeatmap.FormatMapInfo(map, string.Empty, message.Chat.Id);
+					string format = ModBeatmap.FormatMapInfo(map, Mods.None);
 					string caption = $"{maplist[num][0]} {format}";
 					if (caption.Length > 265) // 200 regular character limit + HTML
 					{

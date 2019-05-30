@@ -1,8 +1,6 @@
 ﻿// den0bot (c) StanR 2019 - MIT License
 using System;
-using System.Globalization;
 using System.IO;
-using System.Threading;
 using den0bot.Osu.Types;
 using den0bot.Util;
 using Mods = den0bot.Osu.Types.Mods;
@@ -51,7 +49,7 @@ namespace den0bot.Osu
 			}
 			catch (Exception e)
 			{
-				Log.Error("Oppai", $"GetBeatmapOppaiInfo failed, ${e.InnerMessageIfAny()}");
+				Log.Error($"GetBeatmapOppaiInfo failed, ${e.InnerMessageIfAny()}");
 			}
 
 			return null;

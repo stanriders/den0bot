@@ -16,7 +16,7 @@ namespace den0bot.Modules
 {
 	class ModBeatmap : IModule, IReceiveAllMessages, IReceiveCallback
 	{
-		private Regex regex = new Regex(@"(?>https?:\/\/)?(?>osu|old)\.ppy\.sh\/([b,s]|(?>beatmapsets))\/(\d+\/?\#osu\/)?(\d+)?\/?(?>[&,?].=\d)?\s?(?>\+(\w+))?", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+		private readonly Regex regex = new Regex(@"(?>https?:\/\/)?(?>osu|old)\.ppy\.sh\/([b,s]|(?>beatmapsets))\/(\d+\/?\#osu\/)?(\d+)?\/?(?>[&,?].=\d)?\s?(?>\+(\w+))?", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
 		private readonly MemoryCache sentMapsCache = MemoryCache.Default;
 		private const int days_to_keep_messages = 1; // how long do we keep maps in cache
@@ -35,7 +35,7 @@ namespace den0bot.Modules
 				bool isNew = regexGroups[1].Value == "beatmapsets"; // are we using new website or not
 				bool isSet = false;
 				uint beatmapId = 0;
-				string mods = string.Empty;
+				Mods mods = Mods.None;
 
 				if (isNew)
 				{
@@ -43,7 +43,7 @@ namespace den0bot.Modules
 					{
 						beatmapId = uint.Parse(regexGroups[3].Value);
 						if (regexGroups.Count > 4)
-							mods = regexGroups[4].Value;
+							mods = regexGroups[4].Value.ConvertToMods();
 					}
 					else
 					{
@@ -57,7 +57,7 @@ namespace den0bot.Modules
 
 					beatmapId = uint.Parse(regexGroups[2].Value);
 					if (regexGroups.Count > 3)
-						mods = regexGroups[3].Value;
+						mods = regexGroups[3].Value.ConvertToMods();
 				}
 
 				Map map = null;
@@ -75,13 +75,14 @@ namespace den0bot.Modules
 				{
 					map = await Osu.WebApi.MakeAPIRequest(new GetBeatmap
 					{
-						ID = beatmapId
+						ID = beatmapId,
+						Mods = mods
 					});
 				}
 
 				if (map != null)
 				{
-					var sentMessage = await API.SendPhoto(map.Thumbnail, message.Chat.Id, FormatMapInfo(map, mods, message.Chat.Id), Telegram.Bot.Types.Enums.ParseMode.Html, 0, buttons);
+					var sentMessage = await API.SendPhoto(map.Thumbnail, message.Chat.Id, FormatMapInfo(map, mods), Telegram.Bot.Types.Enums.ParseMode.Html, 0, buttons);
 					if (sentMessage != null)
 					{
 						// we only store mapset id to spare the memory a bit
@@ -91,27 +92,23 @@ namespace den0bot.Modules
 			}
 		}
 
-		public static string FormatMapInfo(Map map, string mods, long chatID)
+		public static string FormatMapInfo(Map map, Mods mods)
 		{
-			double starRating = map.StarRating;
 			string pp = string.Empty;
 
 			try
 			{
-				Mods modsEnum = mods.ConvertToMods();
-
-				OppaiInfo info100 = Oppai.GetBeatmapOppaiInfo(map.FileBytes, modsEnum, 100);
-				if (info100 != null && info100.PP > 0)
+				double info100 = Oppai.GetBeatmapPP(map.FileBytes, mods, 100);
+				if (info100 > 0)
 				{
-					pp = $"100% - {info100.PP:N2}pp";
-					starRating = info100.Stars;
+					pp = $"100% - {info100:N2}pp";
 
-					double info98 = Oppai.GetBeatmapPP(map.FileBytes, modsEnum, 98);
-					if (info98 != -1)
+					double info98 = Oppai.GetBeatmapPP(map.FileBytes, mods, 98);
+					if (info98 > 0)
 						pp += $" | 98% - {info98:N2}pp";
 
-					double info95 = Oppai.GetBeatmapPP(map.FileBytes, modsEnum, 95);
-					if (info95 != -1)
+					double info95 = Oppai.GetBeatmapPP(map.FileBytes, mods, 95);
+					if (info95 > 0)
 						pp += $" | 95% - {info95:N2}pp";
 				}
 			}
@@ -121,7 +118,7 @@ namespace den0bot.Modules
 			}
 
 			return string.Format("[{0}] - {1:N2}* - {2:mm\':\'ss}{3} - <b>{4}</b>\n<b>CS:</b> {5:N2} | <b>AR:</b> {6:N2} | <b>OD:</b> {7:N2} | <b>BPM:</b> {8:N2}\n{9}",
-				map.Difficulty.FilterToHTML(), starRating, map.DrainLength(mods), $" - {map.Creator}", map.Status.ToString(),
+				map.Difficulty.FilterToHTML(), map.StarRating, map.DrainLength(mods), $" - {map.Creator}", map.Status.ToString(),
 				map.CS(mods), map.AR(mods), map.OD(mods), map.BPM(mods), pp);
 		}
 

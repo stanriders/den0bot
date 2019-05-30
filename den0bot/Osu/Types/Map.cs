@@ -53,13 +53,13 @@ namespace den0bot.Osu.Types
 		[JsonProperty("bpm")]
 		private double bpm { get; set; }
 
-		public double BPM(string mods = default(string))
+		public double BPM(Mods mods)
 		{
-			if (mods.Contains("DT") || mods.Contains("NC"))
+			if (mods.HasFlag(Mods.DT) || mods.HasFlag(Mods.NC))
 			{
 				return bpm * 1.5;
 			}
-			else if (mods.Contains("HT"))
+			else if (mods.HasFlag(Mods.HT))
 			{
 				return bpm * 0.75;
 			}
@@ -69,13 +69,13 @@ namespace den0bot.Osu.Types
 			}
 		}
 
-		public double CS(string mods = default(string))
+		public double CS(Mods mods)
 		{
-			if (mods.Contains("HR"))
+			if (mods.HasFlag(Mods.HR))
 			{
 				return cs * 1.3;
 			}
-			else if (mods.Contains("EZ"))
+			else if (mods.HasFlag(Mods.EZ))
 			{
 				return cs * 0.5;
 			}
@@ -85,26 +85,26 @@ namespace den0bot.Osu.Types
 			}
 		}
 
-		public double AR(string mods = default(string))
+		public double AR(Mods mods)
 		{
 			double finalAR = ar;
 
-			if (mods.Contains("HR"))
+			if (mods.HasFlag(Mods.HR))
 			{
 				finalAR = Math.Min(finalAR * 1.4, 10);
 			}
-			else if (mods.Contains("EZ"))
+			else if (mods.HasFlag(Mods.EZ))
 			{
 				finalAR *= 0.5;
 			}
 
 			double ms = (11700.0 - 900 * finalAR) / 6.0;
-			if (mods.Contains("DT") || mods.Contains("NC"))
+			if (mods.HasFlag(Mods.DT) || mods.HasFlag(Mods.NC))
 			{
 				ms /= 1.5;
 				finalAR = (11700.0 - 6 * ms) / 900.0;
 			}
-			else if (mods.Contains("HT"))
+			else if (mods.HasFlag(Mods.HT))
 			{
 				ms /= 0.75;
 				finalAR = (11700.0 - 6 * ms) / 900.0;
@@ -113,38 +113,38 @@ namespace den0bot.Osu.Types
 			return finalAR;
 		}
 
-		public double OD(string mods = default(string))
+		public double OD(Mods mods)
 		{
 			double finalOD = od;
 
-			if (mods.Contains("HR"))
+			if (mods.HasFlag(Mods.HR))
 			{
 				finalOD = Math.Min(finalOD * 1.4, 10);
 			}
-			else if (mods.Contains("EZ"))
+			else if (mods.HasFlag(Mods.EZ))
 			{
 				finalOD *= 0.5;
 			}
 
 			double ms = (79.5 - 6 * finalOD);
-			if (mods.Contains("DT") || mods.Contains("NC"))
+			if (mods.HasFlag(Mods.DT) || mods.HasFlag(Mods.NC))
 			{
 				finalOD = (79.5 - ms / 1.5) / 6;
 			}
-			else if (mods.Contains("HT"))
+			else if (mods.HasFlag(Mods.HT))
 			{
 				finalOD = (79.5 - ms / 0.75) / 6;
 			}
 			return finalOD;
 		}
 
-		public double HP(string mods = default(string))
+		public double HP(Mods mods)
 		{
-			if (mods.Contains("HR"))
+			if (mods.HasFlag(Mods.HR))
 			{
 				return hp * 1.4;
 			}
-			else if (mods.Contains("EZ"))
+			else if (mods.HasFlag(Mods.EZ))
 			{
 				return hp * 0.5;
 			}
@@ -154,13 +154,13 @@ namespace den0bot.Osu.Types
 			}
 		}
 
-		public TimeSpan DrainLength(string mods = default(string))
+		public TimeSpan DrainLength(Mods mods)
 		{
-			if (mods.Contains("DT") || mods.Contains("NC"))
+			if (mods.HasFlag(Mods.DT) || mods.HasFlag(Mods.NC))
 			{
 				return TimeSpan.FromSeconds((long)(drainLength * 0.6666666));
 			}
-			else if (mods.Contains("HT"))
+			else if (mods.HasFlag(Mods.HT))
 			{
 				return TimeSpan.FromSeconds((long)(drainLength * 1.333333));
 			}

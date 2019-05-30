@@ -22,7 +22,11 @@ namespace den0bot.Osu.Types
 		FL = 1024,
 		SO = 4096,
 		PF = 16384, // Only set along with SuddenDeath. i.e: PF only gives 16416  
-		/*Key4 = 32768,
+
+		DifficultyChanging = NC | HT | DT | HR | EZ, // FL changes difficulty but osu! api doesn't think so
+
+		/*
+		Key4 = 32768,
 		Key5 = 65536,
 		Key6 = 131072,
 		Key7 = 262144,
@@ -34,6 +38,7 @@ namespace den0bot.Osu.Types
 		Key10 = 33554432,
 		Key1 = 67108864,
 		Key3 = 134217728,
-		Key2 = 268435456*/
+		Key2 = 268435456
+		*/
 	}
 }
