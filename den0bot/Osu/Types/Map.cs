@@ -212,5 +212,36 @@ namespace den0bot.Osu.Types
 				}
 			}
 		}
+
+		public string GetFormattedMapInfo(Mods mods)
+		{
+			string pp = string.Empty;
+
+			try
+			{
+				double info100 = Oppai.GetBeatmapPP(FileBytes, mods, 100);
+				if (info100 > 0)
+				{
+					pp = $"100% - {info100:N2}pp";
+
+					double info98 = Oppai.GetBeatmapPP(FileBytes, mods, 98);
+					if (info98 > 0)
+						pp += $" | 98% - {info98:N2}pp";
+
+					double info95 = Oppai.GetBeatmapPP(FileBytes, mods, 95);
+					if (info95 > 0)
+						pp += $" | 95% - {info95:N2}pp";
+				}
+			}
+			catch (Exception e)
+			{
+				Log.Error($"Oppai failed: {e.InnerMessageIfAny()}");
+			}
+
+			return
+				$"[{Difficulty.FilterToHTML()}] - {StarRating:N2}* - {DrainLength(mods):mm\':\'ss} - {Creator} - <b>{Status.ToString()}</b>\n" +
+				$"<b>CS:</b> {CS(mods):N2} | <b>AR:</b> {AR(mods):N2} | <b>OD:</b> {OD(mods):N2} | <b>BPM:</b> {BPM(mods):N2}\n" +
+				$"{pp}";
+		}
 	}
 }

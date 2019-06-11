@@ -88,7 +88,7 @@ namespace den0bot.Modules
 
 				if (map != null)
 				{
-					string format = ModBeatmap.FormatMapInfo(map, Mods.None);
+					string format = map.GetFormattedMapInfo(Mods.None);
 					string caption = $"{maplist[num][0]} {format}";
 					if (caption.Length > 265) // 200 regular character limit + HTML
 					{
@@ -99,7 +99,7 @@ namespace den0bot.Modules
 							caption = $"{format}";
 					}
 
-					API.SendPhoto(map?.Thumbnail, message.Chat, caption, ParseMode.Html);
+					API.SendPhoto(map.Thumbnail, message.Chat, caption, ParseMode.Html);
 				}
 
 				return string.Empty;

@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Caching;
 using System.Text.RegularExpressions;
-using den0bot.Osu;
 using den0bot.Osu.API.Requests;
 using den0bot.Osu.Types;
 using den0bot.Util;
@@ -82,7 +81,7 @@ namespace den0bot.Modules
 
 				if (map != null)
 				{
-					var sentMessage = await API.SendPhoto(map.Thumbnail, message.Chat.Id, FormatMapInfo(map, mods), Telegram.Bot.Types.Enums.ParseMode.Html, 0, buttons);
+					var sentMessage = await API.SendPhoto(map.Thumbnail, message.Chat.Id, map.GetFormattedMapInfo(mods), Telegram.Bot.Types.Enums.ParseMode.Html, 0, buttons);
 					if (sentMessage != null)
 					{
 						// we only store mapset id to spare the memory a bit
@@ -90,36 +89,6 @@ namespace den0bot.Modules
 					}
 				}
 			}
-		}
-
-		public static string FormatMapInfo(Map map, Mods mods)
-		{
-			string pp = string.Empty;
-
-			try
-			{
-				double info100 = Oppai.GetBeatmapPP(map.FileBytes, mods, 100);
-				if (info100 > 0)
-				{
-					pp = $"100% - {info100:N2}pp";
-
-					double info98 = Oppai.GetBeatmapPP(map.FileBytes, mods, 98);
-					if (info98 > 0)
-						pp += $" | 98% - {info98:N2}pp";
-
-					double info95 = Oppai.GetBeatmapPP(map.FileBytes, mods, 95);
-					if (info95 > 0)
-						pp += $" | 95% - {info95:N2}pp";
-				}
-			}
-			catch (Exception e)
-			{
-				Log.Error($"Oppai failed: {e.InnerMessageIfAny()}");
-			}
-
-			return string.Format("[{0}] - {1:N2}* - {2:mm\':\'ss}{3} - <b>{4}</b>\n<b>CS:</b> {5:N2} | <b>AR:</b> {6:N2} | <b>OD:</b> {7:N2} | <b>BPM:</b> {8:N2}\n{9}",
-				map.Difficulty.FilterToHTML(), map.StarRating, map.DrainLength(mods), $" - {map.Creator}", map.Status.ToString(),
-				map.CS(mods), map.AR(mods), map.OD(mods), map.BPM(mods), pp);
 		}
 
 		public void ReceiveCallback(CallbackQuery callback)
