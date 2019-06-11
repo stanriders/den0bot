@@ -15,7 +15,7 @@ namespace den0bot.Modules
 {
 	class ModBeatmap : IModule, IReceiveAllMessages, IReceiveCallback
 	{
-		private readonly Regex regex = new Regex(@"(?>https?:\/\/)?(?>osu|old)\.ppy\.sh\/([b,s]|(?>beatmapsets))\/(\d+\/?\#osu\/)?(\d+)?\/?(?>[&,?].=\d)?\s?(?>\+(\w+))?", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+		private readonly Regex regex = new Regex(@"(?>https?:\/\/)?(?>osu|old)\.ppy\.sh\/([b,s]|(?>beatmaps)|(?>beatmapsets))\/(\d+\/?\#osu\/)?(\d+)?\/?(?>[&,?].=\d)?\s?(?>\+(\w+))?", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
 		private readonly MemoryCache sentMapsCache = MemoryCache.Default;
 		private const int days_to_keep_messages = 1; // how long do we keep maps in cache
@@ -47,6 +47,9 @@ namespace den0bot.Modules
 					else
 					{
 						isSet = true;
+						beatmapId = uint.Parse(regexGroups[2].Value);
+						if (regexGroups.Count > 3)
+							mods = regexGroups[3].Value.ConvertToMods();
 					}
 				}
 				else
