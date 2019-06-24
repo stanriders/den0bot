@@ -17,7 +17,7 @@ namespace den0bot
 	public class Bot
 	{
 		private readonly List<IModule> modules = new List<IModule>();
-		private const string module_path = "./Modules";
+		private readonly string module_path = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) + Path.DirectorySeparatorChar + "Modules";
 
 		private static bool IsOwner(string username) => (username == Config.Params.OwnerUsername);
 		private static bool IsAdmin(long chatID, string username) => IsOwner(username) || (API.GetAdmins(chatID).Exists(x => x.User.Username == username));
@@ -39,7 +39,7 @@ namespace den0bot
 			List<Assembly> allAssemblies = new List<Assembly>();
 			if (Directory.Exists(module_path))
 				foreach (string dll in Directory.GetFiles(module_path, "*.dll"))
-					allAssemblies.Add(Assembly.Load(dll));
+					allAssemblies.Add(Assembly.LoadFile(dll));
 
 			if (Config.Params.Modules != null)
 			{

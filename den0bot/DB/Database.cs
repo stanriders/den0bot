@@ -1,7 +1,6 @@
 ﻿// den0bot (c) StanR 2019 - MIT License
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using den0bot.DB.Types;
 using den0bot.Util;
@@ -12,7 +11,7 @@ namespace den0bot.DB
 	public static class Database
 	{
 		private static SQLiteConnection db;
-		private static readonly string database_path = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) + Path.DirectorySeparatorChar + "data.db";
+		private const string database_path = "./data.db";
 		private static List<Chat> chatCache;
 		private static List<User> userCache;
 		private static int girlSeason;
