@@ -1,11 +1,7 @@
-﻿// den0bot (c) StanR 2018 - MIT License
+﻿// den0bot (c) StanR 2019 - MIT License
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using den0bot.Osu.Types;
 
 namespace den0bot.Util
 {
@@ -35,35 +31,6 @@ namespace den0bot.Util
 		public static string InnerMessageIfAny(this Exception value)
 		{
 			return value.InnerException?.Message ?? value.Message;
-		}
-
-		public static TKey GetKeyByValue<TKey, TValue>(this Dictionary<TKey, TValue> dic, TValue value) where TValue : class
-		{
-			return dic.FirstOrDefault(x => x.Value == value).Key;
-		}
-
-		public static Mods ConvertToMods(this string mods)
-		{
-			if (Enum.TryParse(mods, true, out Mods result) || string.IsNullOrEmpty(mods) || mods.Length > 36) // every mod combination possible
-				return result;
-			else
-			{
-				StringBuilder builder = new StringBuilder(mods.Length * 2);
-				bool secondChar = false;
-				foreach (char c in mods)
-				{
-					builder.Append(c);
-					if (secondChar)
-					{
-						builder.Append(',');
-						builder.Append(' ');
-					}
-					secondChar = !secondChar;
-				}
-				builder.Remove(builder.Length - 2, 2);
-				Enum.TryParse(builder.ToString(), true, out result);
-				return result;
-			}
 		}
 
 		public static void NoAwait(this Task task) { }

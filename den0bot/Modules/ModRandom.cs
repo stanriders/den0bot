@@ -1,11 +1,13 @@
 ﻿// den0bot (c) StanR 2019 - MIT License
-using System;
-using System.Linq;
+
 using System.Collections.Generic;
+using System.Numerics;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.InputFiles;
 using den0bot.DB;
 using den0bot.Util;
+using SQLite;
+using Telegram.Bot.Types.Enums;
 
 namespace den0bot.Modules
 {
@@ -13,13 +15,21 @@ namespace den0bot.Modules
 	{
 		public ModRandom()
 		{
+			Database.CreateTable<Meme>();
+
 			AddCommands(new[]
 			{
 				new Command
 				{
 					Name = "roll",
 					Reply = true,
-					Action = (msg) => Roll(msg.Text, msg.Chat.Id)
+					Action = Roll
+				},
+				new Command()
+				{
+					Name = "addmeme",
+					IsAdminOnly = true,
+					Action = AddMeme
 				},
 				new Command
 				{
@@ -46,33 +56,41 @@ namespace den0bot.Modules
 			return string.Empty;
 		}
 
-		private string Roll(string msg, long chatID)
+		private string Roll(Message msg)
 		{
-			int max = 101;
+			string[] msgArr = msg.Text.Split(' ');
 
-			List<string> msgArr = msg.Split(' ').ToList();
-			if (msgArr.Count > 1)
+			if (msgArr.Length > 1 && BigInteger.TryParse(msgArr[1], out var max) && max > 1)
+				return Localization.Get("random_roll", msg.Chat.Id) + RNG.NextBigInteger(max);
+			
+			return Localization.Get("random_roll", msg.Chat.Id) + RNG.Next(max: 101);
+		}
+
+		private string AddMeme(Telegram.Bot.Types.Message message)
+		{
+			long chatId = message.Chat.Id;
+			string link = message.Text.Substring(7);
+
+			if (link.StartsWith("http") && (link.EndsWith(".jpg") || link.EndsWith(".png")))
 			{
-				try
-				{
-					max = (int)uint.Parse(msgArr[1]) + 1;
-				}
-				catch (Exception e)
-				{
-					if (e is OverflowException)
-						return Localization.Get("random_roll_overflow", chatID);
-				}
+				AddMemeToDatabase(link, chatId);
+				return "Мемес добавлен!";
 			}
-			return Localization.Get("random_roll", chatID) + RNG.Next(1, max).ToString();
+			else if (message.Type == MessageType.Photo)
+			{
+				AddMemeToDatabase(message.Photo[0].FileId, chatId);
+				return "Мемес добавлен!";
+			}
+			return "Ты че деб? /addmeme <ссылка>";
 		}
 
 		private string GetRandomMeme(Chat sender)
 		{
-			int memeCount = Database.GetMemeCount(sender.Id);
+			int memeCount = GetMemeCountFromDatabase(sender.Id);
 			if (memeCount <= 0)
 				return Localization.Get("random_no_memes", sender.Id);
 
-			string photo = Database.GetMeme(sender.Id);
+			string photo = GetMemeFromDatabase(sender.Id);
 			if (!string.IsNullOrEmpty(photo))
 			{ 
 				API.SendPhoto(photo, sender);
@@ -81,5 +99,71 @@ namespace den0bot.Modules
 
 			return Localization.Get("generic_fail", sender.Id);
 		}
+
+		#region Database
+		private class Meme
+		{
+			[PrimaryKey, AutoIncrement]
+			public int Id { get; set; }
+
+			public string Link { get; set; }
+
+			public long ChatID { get; set; }
+
+			public bool Used { get; set; }
+		}
+
+		private int GetMemeCountFromDatabase(long chatID) => Database.Get<Meme>(x => x.ChatID == chatID).Count;
+		private void AddMemeToDatabase(string link, long chatID)
+		{
+			if (Database.Exist<Meme>(x => x.Link == link))
+			{
+				Database.Insert(new Meme
+				{
+					Link = link,
+					ChatID = chatID
+				});
+			}
+		}
+		private string GetMemeFromDatabase(long chatID)
+		{
+			List<Meme> memes = Database.Get<Meme>(x => x.ChatID == chatID);
+			if (memes != null)
+			{
+				memes.RemoveAll(x => x.Used == true);
+				if (memes.Count == 0)
+				{
+					ResetUsedMemeInDatabase(chatID);
+					return GetMemeFromDatabase(chatID);
+				}
+				else
+				{
+					int num = RNG.Next(max: memes.Count);
+
+					SetUsedMemeInDatabase(memes[num].Id);
+					return memes[num].Link;
+				}
+			}
+			return null;
+		}
+		private void SetUsedMemeInDatabase(int id)
+		{
+			Meme meme = Database.GetFirst<Meme>(x => x.Id == id);
+			if (meme != null)
+			{
+				meme.Used = true;
+				Database.Update(meme);
+			}
+		}
+		private void ResetUsedMemeInDatabase(long chatID)
+		{
+			List<Meme> memes = Database.Get<Meme>(x => x.ChatID == chatID);
+			foreach (Meme meme in memes)
+				meme.Used = false;
+
+			Database.UpdateAll(memes);
+		}
+
+		#endregion
 	}
 }

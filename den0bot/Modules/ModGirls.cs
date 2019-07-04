@@ -10,6 +10,7 @@ using den0bot.DB;
 using den0bot.Util;
 using System.Threading;
 using System.Linq;
+using SQLite;
 
 namespace den0bot.Modules
 {
@@ -44,6 +45,8 @@ namespace den0bot.Modules
 
 		public ModGirls()
 		{
+			Database.CreateTable<Girl>();
+
 			AddCommands(new[]
 			{
 				new Command
@@ -70,7 +73,7 @@ namespace den0bot.Modules
 				{
 					Name = "resetgirlrating",
 					IsOwnerOnly = true,
-					Action = m => {Database.RemoveRatings(); return string.Empty; }
+					Action = m => {RemoveRatings(); return string.Empty; }
 				},
 				new Command
 				{
@@ -96,7 +99,7 @@ namespace den0bot.Modules
 		{
 			if (message.Type == MessageType.Photo && message.Caption == Localization.Get("girls_tag", message.Chat.Id))
 			{
-				Database.AddGirl(message.Photo[0].FileId, message.Chat.Id);
+				AddGirl(message.Photo[0].FileId, message.Chat.Id);
 			}
 		}
 
@@ -104,13 +107,13 @@ namespace den0bot.Modules
 		{
 			long chatID = msg.Chat.Id;
 
-			if (Database.GetGirlCount(chatID) <= 0)
+			if (GetGirlCount(chatID) <= 0)
 				return Localization.Get("girls_not_found", chatID);
 
 			if (!antispamBuffer.ContainsKey(chatID))
 				antispamBuffer.Add(chatID, new Queue<ChachedGirl>(3));
 
-			DB.Types.Girl picture = seasonal ? Database.GetGirlSeasonal(chatID) : Database.GetGirl(chatID);
+			var picture = seasonal ? GetGirlSeasonal(chatID) : GetGirl(chatID);
 			if (picture != null && picture.Link != string.Empty)
 			{
 				var sentMessage = await API.SendPhoto(picture.Link, 
@@ -159,7 +162,7 @@ namespace den0bot.Modules
 		}
 		private async Task<string> GetRandomPlatinumGirl(Chat sender)
 		{
-			DB.Types.Girl picture = Database.GetPlatinumGirl(sender.Id);
+			var picture = GetPlatinumGirl(sender.Id);
 			if (picture != null && picture.Link != string.Empty)
 			{
 				await API.SendPhoto(picture.Link, sender.Id);
@@ -170,7 +173,7 @@ namespace den0bot.Modules
 		}
 		private string TopGirls(long chatID, bool reverse = false)
 		{
-			var topGirls = Database.GetTopGirls(chatID);
+			var topGirls = GetTopGirls(chatID);
 			if (topGirls != null)
 			{
 				List<InputMediaPhoto> photos = new List<InputMediaPhoto>();
@@ -183,7 +186,7 @@ namespace den0bot.Modules
 				foreach (var girl in topGirls)
 				{
 					if (girl.Rating < delete_rating_threshold)
-						Database.RemoveGirl(girl.Id); // just in case
+						RemoveGirl(girl.Id); // just in case
 
 					photos.Add(new InputMediaPhoto(girl.Link) { Caption = girl.Rating.ToString() });
 				}
@@ -203,7 +206,7 @@ namespace den0bot.Modules
 				season = s;
 			}
 
-			var topGirls = Database.GetTopGirlsSeasonal(msg.Chat.Id, season);
+			var topGirls = GetTopGirlsSeasonal(msg.Chat.Id, season);
 			if (topGirls != null)
 			{
 				List<InputMediaPhoto> photos = new List<InputMediaPhoto>();
@@ -212,7 +215,7 @@ namespace den0bot.Modules
 				foreach (var girl in topGirls)
 				{
 					if (girl.SeasonRating < delete_rating_threshold)
-						Database.RemoveGirl(girl.Id); // just in case
+						RemoveGirl(girl.Id); // just in case
 
 					photos.Add(new InputMediaPhoto(girl.Link) { Caption = $"{girl.SeasonRating} (s{season})" });
 				}
@@ -239,7 +242,7 @@ namespace den0bot.Modules
 						{
 							if (girl.Seasonal)
 							{
-								Database.ChangeGirlRatingSeasonal(girl.ID, 1);
+								ChangeGirlRatingSeasonal(girl.ID, 1);
 								girl.SeasonalRating++;
 
 								API.EditMediaCaption(chatId, callback.Message.MessageId, $"{girl.SeasonalRating} (s{Database.GirlSeason})",
@@ -248,7 +251,7 @@ namespace den0bot.Modules
 							}
 							else
 							{
-								Database.ChangeGirlRating(girl.ID, 1);
+								ChangeGirlRating(girl.ID, 1);
 								girl.Rating++;
 
 								API.EditMediaCaption(chatId, callback.Message.MessageId, girl.Rating.ToString(),
@@ -263,12 +266,12 @@ namespace den0bot.Modules
 						{
 							if (girl.Seasonal)
 							{
-								Database.ChangeGirlRatingSeasonal(girl.ID, -1);
+								ChangeGirlRatingSeasonal(girl.ID, -1);
 								girl.SeasonalRating--;
 							}
 							else
 							{
-								Database.ChangeGirlRating(girl.ID, -1);
+								ChangeGirlRating(girl.ID, -1);
 								girl.Rating--;
 							}
 							girl.Voters.Add(callback.From.Id);
@@ -293,7 +296,7 @@ namespace den0bot.Modules
 							else
 							{
 								sentGirlsCache.Remove(callback.Message.MessageId.ToString());
-								Database.RemoveGirl(girl.ID);
+								RemoveGirl(girl.ID);
 								API.RemoveMessage(chatId, callback.Message.MessageId);
 								API.AnswerCallbackQuery(callback.Id, Localization.Get("girls_rating_delete_lowrating", chatId));
 							}
@@ -313,11 +316,224 @@ namespace den0bot.Modules
 			if (message.ReplyToMessage != null && sentGirlsCache.Contains(message.ReplyToMessage.MessageId.ToString()))
 			{
 				var girl = sentGirlsCache.Remove(message.ReplyToMessage.MessageId.ToString()) as ChachedGirl;
-				Database.RemoveGirl(girl.ID);
+				RemoveGirl(girl.ID);
 				API.RemoveMessage(message.Chat.Id, message.ReplyToMessage.MessageId);
 				return Localization.Get("girls_rating_delete_manual", message.Chat.Id);
 			}
 			return string.Empty;
 		}
+
+		#region Database
+		private class Girl
+		{
+			[PrimaryKey, AutoIncrement]
+			public int Id { get; set; }
+
+			public string Link { get; set; }
+
+			public long ChatID { get; set; }
+
+			public bool Used { get; set; }
+
+			public int Rating { get; set; }
+
+			// seasonal ratings
+			public int Season { get; set; }
+
+			public int SeasonRating { get; set; }
+
+			public bool SeasonUsed { get; set; }
+		}
+
+		private int GetGirlCount(long chatID) => Database.Get<Girl>().Count(x => x.ChatID == chatID);
+		private void AddGirl(string link, long chatID)
+		{
+			if (Database.Exist<Girl>(x => x.Link == link))
+			{
+				var season = Database.GirlSeason;
+				if (Database.GirlSeasonStartDate == default(DateTime) || Database.GirlSeasonStartDate.AddMonths(1) < DateTime.Today)
+				{
+					// rotate season if it's the day
+					SubmitSeasonalRatingsToGlobal(season);
+					Database.GirlSeason = ++season;
+				}
+
+				Database.Insert(new Girl
+				{
+					Link = link,
+					ChatID = chatID,
+					Rating = 0,
+					Season = season + 1, // next season
+					SeasonRating = 0
+				});
+			}
+		}
+		private void RemoveGirl(int id)
+		{
+			Database.Remove<Girl>(x => x.Id == id);
+		}
+		private Girl GetGirl(long chatID)
+		{
+			List<Girl> girls = Database.Get<Girl>(x => x.ChatID == chatID);
+			if (girls != null)
+			{
+				girls.RemoveAll(x => x.Used == true);
+				if (girls.Count == 0)
+				{
+					ResetUsedGirl(chatID);
+					return GetGirl(chatID);
+				}
+				else
+				{
+					int num = RNG.Next(max: girls.Count);
+
+					SetUsedGirl(girls[num].Id);
+					return girls[num];
+				}
+			}
+			return null;
+		}
+		private Girl GetPlatinumGirl(long chatID)
+		{
+			List<Girl> girls = Database.Get<Girl>(x => x.ChatID == chatID && x.Rating >= 10);
+			if (girls != null && girls.Count > 0)
+			{
+				return girls[RNG.Next(max: girls.Count)];
+			}
+			return null;
+		}
+		private Girl GetGirlSeasonal(long chatID)
+		{
+			var season = Database.GirlSeason;
+			if (Database.GirlSeasonStartDate == default(DateTime) || Database.GirlSeasonStartDate.AddMonths(1) < DateTime.Today)
+			{
+				// rotate season if it's the day
+				SubmitSeasonalRatingsToGlobal(season);
+				Database.GirlSeason = ++season;
+			}
+
+			List<Girl> girls = Database.Get<Girl>(x => x.ChatID == chatID && x.Season == season);
+			if (girls != null)
+			{
+				if (girls.Count == 0 && Database.GirlSeason == 1)
+				{
+					// populate first season with latest girls
+					List<Girl> allGirls = Database.Get<Girl>(x => x.ChatID == chatID);
+					allGirls.Reverse();
+					if (allGirls.Count > 100)
+						allGirls = allGirls.Take(100).ToList();
+
+					foreach (var girl in allGirls)
+						girl.Season = 1;
+
+					Database.UpdateAll(allGirls);
+				}
+
+				girls.RemoveAll(x => x.SeasonUsed);
+				if (girls.Count == 0)
+				{
+					ResetUsedGirlSeasonal(chatID);
+					return GetGirlSeasonal(chatID);
+				}
+				else
+				{
+					int num = RNG.Next(max: girls.Count);
+
+					SetUsedGirlSeasonal(girls[num].Id);
+					return girls[num];
+				}
+			}
+			return null;
+		}
+		private void SetUsedGirl(int id)
+		{
+			Girl girl = Database.GetFirst<Girl>(x => x.Id == id);
+			if (girl != null)
+			{
+				girl.Used = true;
+				Database.Update(girl);
+			}
+		}
+		private void ResetUsedGirl(long chatID)
+		{
+			List<Girl> girls = Database.Get<Girl>(x => x.ChatID == chatID);
+			foreach (Girl girl in girls)
+				girl.Used = false;
+
+			Database.UpdateAll(girls);
+		}
+		private void SetUsedGirlSeasonal(int id)
+		{
+			Girl girl = Database.GetFirst<Girl>(x => x.Id == id);
+			if (girl != null)
+			{
+				girl.SeasonUsed = true;
+				Database.Update(girl);
+			}
+		}
+		private void ResetUsedGirlSeasonal(long chatID)
+		{
+			List<Girl> girls = Database.Get<Girl>(x => x.ChatID == chatID);
+			foreach (Girl girl in girls)
+				girl.SeasonUsed = false;
+
+			Database.UpdateAll(girls);
+		}
+		private void ChangeGirlRating(int id, int rating)
+		{
+			Girl girl = Database.GetFirst<Girl>(x => x.Id == id);
+			if (girl != null)
+			{
+				girl.Rating += rating;
+				Database.Update(girl);
+			}
+		}
+		private void ChangeGirlRatingSeasonal(int id, int rating)
+		{
+			Girl girl = Database.GetFirst<Girl>(x => x.Id == id);
+			if (girl != null)
+			{
+				girl.SeasonRating += rating;
+				Database.Update(girl);
+			}
+		}
+		private List<Girl> GetTopGirls(long chatID)
+		{
+			return Database.Get<Girl>(x => x.ChatID == chatID)?.OrderByDescending(x => x.Rating)?.ToList();
+		}
+		private List<Girl> GetTopGirlsSeasonal(long chatID, int season)
+		{
+			return Database.Get<Girl>(x => x.ChatID == chatID && x.Season == season)?.OrderByDescending(x => x.SeasonRating)?.ToList();
+		}
+		private void RemoveRatings()
+		{
+			var table = Database.Get<Girl>();
+			foreach (var girl in table)
+			{
+				girl.Rating = 0;
+			}
+			Database.UpdateAll(table);
+		}
+		private void SubmitSeasonalRatingsToGlobal(int season)
+		{
+			if (season > 0)
+			{
+				var table = Database.Get<Girl>(x => x.Season == season);
+				foreach (var girl in table)
+				{
+					girl.Rating += girl.SeasonRating;
+					if (girl.Rating < -10)
+					{
+						Database.Remove(girl);
+						continue;
+					}
+
+					Database.Update(girl); // INEFFICIENT but works
+				}
+				Database.UpdateAll(table);
+			}
+		}
+		#endregion
+
 	}
 }

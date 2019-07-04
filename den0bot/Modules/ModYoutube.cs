@@ -4,6 +4,7 @@ using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
+using den0bot.DB;
 using den0bot.Util;
 
 namespace den0bot.Modules
@@ -23,22 +24,45 @@ namespace den0bot.Modules
 		{
 			nextCheck = DateTime.Now;
 
-			AddCommand(new Command
+			AddCommands(new []
 			{
-				Name = "newscores",
-				ActionAsync = (msg) =>
+				new Command()
 				{
-					try
+					Name = "disableannouncements",
+					IsAdminOnly = true,
+					Action = (msg) =>
 					{
-						int amount = int.Parse(msg.Text.Remove(0, 10));
-						if (amount > 20)
-							return GetLastScores(default_score_amount);
-						else
-							return GetLastScores(amount);
+						Database.ToggleAnnouncements(msg.Chat.Id, false);
+						return "Понял, вырубаю";
 					}
-					catch (Exception)
+				},
+				new Command()
+				{
+					Name = "enableannouncements",
+					IsAdminOnly = true,
+					Action = (msg) =>
 					{
-						return GetLastScores(default_score_amount);
+						Database.ToggleAnnouncements(msg.Chat.Id, true);
+						return "Понял, врубаю";
+					}
+				},
+				new Command
+				{
+					Name = "newscores",
+					ActionAsync = (msg) =>
+					{
+						try
+						{
+							int amount = int.Parse(msg.Text.Remove(0, 10));
+							if (amount > 20)
+								return GetLastScores(default_score_amount);
+							else
+								return GetLastScores(amount);
+						}
+						catch (Exception)
+						{
+							return GetLastScores(default_score_amount);
+						}
 					}
 				}
 			});

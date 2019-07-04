@@ -1,4 +1,6 @@
 ﻿// den0bot (c) StanR 2019 - MIT License
+
+using den0bot.DB;
 using Telegram.Bot.Types.Enums;
 using den0bot.Util;
 
@@ -12,6 +14,13 @@ namespace den0bot.Modules
 			{
 				new Command
 				{
+					Names = {"start", "help"},
+					Action = (msg) => msg.Chat.Type == ChatType.Private
+						? Localization.Get("basiccommands_help", msg.Chat.Id)
+						: string.Empty
+				},
+				new Command
+				{
 					Name = "me",
 					ParseMode = ParseMode.Markdown,
 					Action = (msg) =>
@@ -20,12 +29,33 @@ namespace den0bot.Modules
 						return $"_{msg.From.FirstName}{msg.Text.Substring(3)}_";
 					}
 				},
-				new Command
+				new Command()
 				{
-					Names = {"start", "help"},
-					Action = (msg) => msg.Chat.Type == ChatType.Private
-						? Localization.Get("basiccommands_help", msg.Chat.Id)
-						: string.Empty
+					Name = "shutdownnow",
+					IsOwnerOnly = true,
+					Action = (msg) =>
+					{
+						Bot.Shutdown();
+						return "Выключаюсь...";
+					}
+				},
+				new Command()
+				{
+					Name = "setlocale",
+					IsAdminOnly = true,
+					Action = (message) =>
+					{
+						var locale = message.Text.Substring(11);
+						if (Localization.GetAvailableLocales().Contains(locale))
+						{
+							Database.SetChatLocale(message.Chat.Id, locale);
+							return "👌";
+						}
+						else
+						{
+							return "😡";
+						}
+					}
 				}
 			});
 			Log.Debug("Enabled");

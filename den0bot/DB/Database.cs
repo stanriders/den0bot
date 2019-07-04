@@ -1,8 +1,8 @@
 ﻿// den0bot (c) StanR 2019 - MIT License
 using System;
+using System.Collections;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
+using System.Linq.Expressions;
 using den0bot.DB.Types;
 using den0bot.Util;
 using SQLite;
@@ -12,7 +12,7 @@ namespace den0bot.DB
 	public static class Database
 	{
 		private static SQLiteConnection db;
-		private static readonly string database_path = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) + Path.DirectorySeparatorChar + "data.db";
+		private const string database_path = "./data.db";
 		private static List<Chat> chatCache;
 		private static List<User> userCache;
 		private static int girlSeason;
@@ -21,13 +21,8 @@ namespace den0bot.DB
 		{
 			db = new SQLiteConnection(database_path);
 			db.CreateTable<Chat>();
-			db.CreateTable<Meme>();
-			db.CreateTable<Player>();
 			db.CreateTable<Misc>();
-			db.CreateTable<Girl>();
 			db.CreateTable<User>();
-
-			db.CreateTable<Santa>();
 
 			// we keep whole chat and user tables in memory because they're being accessed quite often
 			chatCache = db.Table<Chat>().ToList();
@@ -36,6 +31,58 @@ namespace den0bot.DB
 			Misc miscTable = db.Table<Misc>().FirstOrDefault();
 			if (miscTable != null)
 				girlSeason = miscTable.GirlSeason;
+		}
+
+		public static void CreateTable<T>()
+		{
+			db.CreateTable<T>();
+		}
+
+		public static void Insert(object obj)
+		{
+			db.Insert(obj);
+		}
+
+		public static List<T> Get<T>() where T : new()
+		{
+			return db.Table<T>()?.ToList();
+		}
+
+		public static List<T> Get<T>(Expression<Func<T, bool>> predicate) where T : new()
+		{
+			return db.Table<T>().Where(predicate)?.ToList();
+		}
+
+		public static T GetFirst<T>(Expression<Func<T, bool>> predicate) where T : new()
+		{
+			return db.Table<T>().FirstOrDefault(predicate);
+		}
+
+		public static bool Exist<T>(Expression<Func<T, bool>> predicate) where T : new()
+		{
+			return db.Table<T>().FirstOrDefault(predicate) != null;
+		}
+
+		public static void Remove(object obj)
+		{
+			db.Delete(obj);
+		}
+
+		public static void Remove<T>(Expression<Func<T, bool>> predicate) where T : new()
+		{
+			var obj = db.Table<T>().FirstOrDefault(predicate);
+			if (obj != null)
+				db.Delete(obj);
+		}
+
+		public static void Update(object obj)
+		{
+			db.Update(obj);
+		}
+
+		public static void UpdateAll(IEnumerable objs)
+		{
+			db.UpdateAll(objs);
 		}
 
 		public static void Close() => db.Close();
@@ -76,38 +123,6 @@ namespace den0bot.DB
 			return null;
 		}
 
-		#endregion
-
-		#region Santa
-		public static void AddSanta(string sender, string receiver)
-		{
-			if (db.Table<Santa>().FirstOrDefault(x => x.Sender == sender) == null)
-			{
-				db.Insert(new Santa
-				{
-					Sender = sender,
-					Receiver = receiver
-				});
-			}
-		}
-		public static string GetSantaReceiver(string sender)
-		{
-			Santa santa = db.Table<Santa>().FirstOrDefault(x => x.Sender == sender);
-			if (santa != null)
-			{
-				return santa.Receiver;
-			}
-			return null;
-		}
-		public static string GetSantaSender(string receiver)
-		{
-			Santa santa = db.Table<Santa>().FirstOrDefault(x => x.Receiver == receiver);
-			if (santa != null)
-			{
-				return santa.Sender;
-			}
-			return null;
-		}
 		#endregion
 
 		#region Chats
@@ -177,283 +192,6 @@ namespace den0bot.DB
 				if (cachedChat != null)
 					cachedChat.Locale = locale;
 			}
-		}
-		#endregion
-
-		#region Memes
-		public static int GetMemeCount(long chatID) => db.Table<Meme>().Count(x => x.ChatID == chatID);
-		public static void AddMeme(string link, long chatID)
-		{
-			if (db.Table<Meme>().FirstOrDefault(x => x.Link == link) == null)
-			{
-				db.Insert(new Meme
-				{
-					Link = link,
-					ChatID = chatID
-				});
-			}
-		}
-		public static string GetMeme(long chatID)
-		{
-			List<Meme> memes = db.Table<Meme>().Where(x => x.ChatID == chatID)?.ToList();
-			if (memes != null)
-			{
-				memes.RemoveAll(x => x.Used == true);
-				if (memes.Count == 0)
-				{
-					ResetUsedMeme(chatID);
-					return GetMeme(chatID);
-				}
-				else
-				{
-					int num = RNG.Next(max: memes.Count);
-
-					SetUsedMeme(memes[num].Id);
-					return memes[num].Link;
-				}
-			}
-			return null;
-		}
-		public static void SetUsedMeme(int id)
-		{
-			Meme meme = db.Table<Meme>().FirstOrDefault(x => x.Id == id);
-			if (meme != null)
-			{
-				meme.Used = true;
-				db.Update(meme);
-			}
-		}
-		public static void ResetUsedMeme(long chatID)
-		{
-			List<Meme> memes = db.Table<Meme>().Where(x => x.ChatID == chatID)?.ToList();
-			foreach (Meme meme in memes)
-				meme.Used = false;
-
-			db.UpdateAll(memes);
-		}
-
-		#endregion
-
-		#region Girls
-		public static int GetGirlCount(long chatID) => db.Table<Girl>().Count(x => x.ChatID == chatID);
-		public static void AddGirl(string link, long chatID)
-		{
-			if (db.Table<Girl>().FirstOrDefault(x => x.Link == link) == null)
-			{
-				var season = GirlSeason;
-				if (GirlSeasonStartDate == default(DateTime) || GirlSeasonStartDate.AddMonths(1) < DateTime.Today)
-				{
-					// rotate season if it's the day
-					SubmitSeasonalRatingsToGlobal(season);
-					GirlSeason = ++season;
-				}
-
-				db.Insert(new Girl
-				{
-					Link = link,
-					ChatID = chatID,
-					Rating = 0,
-					Season = season + 1, // next season
-					SeasonRating = 0
-				});
-			}
-		}
-		public static void RemoveGirl(int id)
-		{
-			Girl girl = db.Table<Girl>().FirstOrDefault(x => x.Id == id);
-			if (girl != null)
-				db.Delete(girl);
-		}
-		public static Girl GetGirl(long chatID)
-		{
-			List<Girl> girls = db.Table<Girl>().Where(x => x.ChatID == chatID)?.ToList();
-			if (girls != null)
-			{
-				girls.RemoveAll(x => x.Used == true);
-				if (girls.Count == 0)
-				{
-					ResetUsedGirl(chatID);
-					return GetGirl(chatID);
-				}
-				else
-				{
-					int num = RNG.Next(max: girls.Count);
-
-					SetUsedGirl(girls[num].Id);
-					return girls[num];
-				}
-			}
-			return null;
-		}
-		public static Girl GetPlatinumGirl(long chatID)
-		{
-			List<Girl> girls = db.Table<Girl>().Where(x => x.ChatID == chatID && x.Rating >= 10)?.ToList();
-			if (girls != null && girls.Count > 0)
-			{
-				return girls[RNG.Next(max: girls.Count)];
-			}
-			return null;
-		}
-		public static Girl GetGirlSeasonal(long chatID)
-		{
-			var season = GirlSeason;
-			if (GirlSeasonStartDate == default(DateTime) || GirlSeasonStartDate.AddMonths(1) < DateTime.Today)
-			{
-				// rotate season if it's the day
-				SubmitSeasonalRatingsToGlobal(season);
-				GirlSeason = ++season;
-			}
-
-			List<Girl> girls = db.Table<Girl>().Where(x => x.ChatID == chatID && x.Season == season)?.ToList();
-			if (girls != null)
-			{
-				if (girls.Count == 0 && GirlSeason == 1)
-				{
-					// populate first season with latest girls
-					List<Girl> allGirls = db.Table<Girl>().Where(x => x.ChatID == chatID)?.ToList();
-					allGirls.Reverse();
-					if (allGirls.Count > 100)
-						allGirls = allGirls.Take(100).ToList();
-
-					foreach (var girl in allGirls)
-						girl.Season = 1;
-
-					db.UpdateAll(allGirls);
-				}
-
-				girls.RemoveAll(x => x.SeasonUsed);
-				if (girls.Count == 0)
-				{
-					ResetUsedGirlSeasonal(chatID);
-					return GetGirlSeasonal(chatID);
-				}
-				else
-				{
-					int num = RNG.Next(max: girls.Count);
-
-					SetUsedGirlSeasonal(girls[num].Id);
-					return girls[num];
-				}
-			}
-			return null;
-		}
-		public static void SetUsedGirl(int id)
-		{
-			Girl girl = db.Table<Girl>().FirstOrDefault(x => x.Id == id);
-			if (girl != null)
-			{
-				girl.Used = true;
-				db.Update(girl);
-			}
-		}
-		public static void ResetUsedGirl(long chatID)
-		{
-			List<Girl> girls = db.Table<Girl>().Where(x => x.ChatID == chatID)?.ToList();
-			foreach (Girl girl in girls)
-				girl.Used = false;
-
-			db.UpdateAll(girls);
-		}
-		public static void SetUsedGirlSeasonal(int id)
-		{
-			Girl girl = db.Table<Girl>().FirstOrDefault(x => x.Id == id);
-			if (girl != null)
-			{
-				girl.SeasonUsed = true;
-				db.Update(girl);
-			}
-		}
-		public static void ResetUsedGirlSeasonal(long chatID)
-		{
-			List<Girl> girls = db.Table<Girl>().Where(x => x.ChatID == chatID)?.ToList();
-			foreach (Girl girl in girls)
-				girl.SeasonUsed = false;
-
-			db.UpdateAll(girls);
-		}
-		public static void ChangeGirlRating(int id, int rating)
-		{
-			Girl girl = db.Table<Girl>().FirstOrDefault(x => x.Id == id);
-			if (girl != null)
-			{
-				girl.Rating += rating;
-				db.Update(girl);
-			}
-		}
-		public static void ChangeGirlRatingSeasonal(int id, int rating)
-		{
-			Girl girl = db.Table<Girl>().FirstOrDefault(x => x.Id == id);
-			if (girl != null)
-			{
-				girl.SeasonRating += rating;
-				db.Update(girl);
-			}
-		}
-		public static List<Girl> GetTopGirls(long chatID)
-		{
-			return db.Table<Girl>().Where(x => x.ChatID == chatID).OrderByDescending(x => x.Rating)?.ToList();
-		}
-		public static List<Girl> GetTopGirlsSeasonal(long chatID, int season)
-		{
-			return db.Table<Girl>().Where(x => x.ChatID == chatID && x.Season == season).OrderByDescending(x => x.SeasonRating)?.ToList();
-		}
-		public static void RemoveRatings()
-		{
-			var table = db.Table<Girl>();
-			foreach (var girl in table)
-			{
-				girl.Rating = 0;
-			}
-			db.UpdateAll(table);
-		}
-		public static void SubmitSeasonalRatingsToGlobal(int season)
-		{
-			if (season > 0)
-			{
-				var table = db.Table<Girl>().Where(x => x.Season == season);
-				foreach (var girl in table)
-				{
-					girl.Rating += girl.SeasonRating;
-					if (girl.Rating < -10)
-					{
-						db.Delete(girl);
-						continue;
-					}
-
-					db.Update(girl); // INEFFICIENT but works
-				}
-				db.UpdateAll(table);
-			}
-		}
-		#endregion
-
-		#region Players
-		public static int GetPlayerCount() => db.Table<Player>().Count();
-		private static Player GetPlayer(int ID) => db.Table<Player>().FirstOrDefault(x => x.TelegramID == ID);
-		public static uint GetPlayerOsuID(int ID) => GetPlayer(ID)?.OsuID ?? 0;
-
-		public static bool AddPlayer(int tgID, uint osuID)
-		{
-			if (db.Table<Player>().FirstOrDefault(x => x.TelegramID == tgID) == null)
-			{
-				db.Insert(new Player
-				{
-					TelegramID = tgID,
-					OsuID = osuID,
-				});
-				return true;
-			}
-			return false;
-		}
-		public static bool RemovePlayer(int tgID)
-		{
-			Player player = db.Table<Player>().FirstOrDefault(x => x.TelegramID == tgID);
-			if (player != null)
-			{
-				db.Delete(player);
-				return true;
-			}
-			return false;
 		}
 		#endregion
 

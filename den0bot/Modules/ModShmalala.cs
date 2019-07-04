@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
+using System.Threading.Tasks;
 using den0bot.Util;
 using Newtonsoft.Json;
 using Telegram.Bot.Types;
@@ -27,6 +29,8 @@ namespace den0bot.Modules
 		{
 			public List<MarkovChainNode> Nodes { get; } = new List<MarkovChainNode>();
 
+			public bool Ready { get; private set; } = false;
+
 			private const string file_path = "./markov.json";
 
 			public MarkovChain()
@@ -44,17 +48,23 @@ namespace den0bot.Modules
 						});
 					}
 
-					foreach (var word in packedChain)
+					// if chain is getting really big it might take a while to unpack
+					ThreadPool.QueueUserWorkItem((a) =>
 					{
-						// then add all links between nodes
-						var links = word.Value;
-						foreach (var link in links)
+						Parallel.ForEach(packedChain, (word) =>
 						{
-							var node = Nodes.Find(x => x.Word == link);
-							if (node != null)
-								Nodes.Find(x => x.Word == word.Key)?.AddLink(node);
-						}
-					}
+							// then add all links between nodes
+							var links = word.Value;
+							foreach (var link in links)
+							{
+								var node = Nodes.Find(x => x.Word == link);
+								if (node != null)
+									Nodes.Find(x => x.Word == word.Key)?.AddLink(node);
+							}
+						});
+
+						Ready = true;
+					});
 				}
 			}
 
@@ -176,7 +186,7 @@ namespace den0bot.Modules
 
 		private string SendRandomMessage(Message msg)
 		{
-			if (markovChain.Nodes.Count == 0)
+			if (!markovChain.Ready || markovChain.Nodes.Count == 0)
 				return "Bot has not yet been trained.";
 
 			var textBuilder = new StringBuilder();
@@ -210,50 +220,55 @@ namespace den0bot.Modules
 
 		public void ReceiveMessage(Message message)
 		{
-			var text = message.Text.ToLower();
-			text = cleanWordRegex.Replace(text, string.Empty);
-			if (text.StartsWith(Localization.Get("shmalala_trigger", message.Chat.Id)))
+			if (markovChain.Ready)
 			{
-				if (markovChain.Nodes.Count == 0)
+				var text = message.Text.ToLower();
+				text = cleanWordRegex.Replace(text, string.Empty);
+				if (text.StartsWith(Localization.Get("shmalala_trigger", message.Chat.Id)))
+				{
+					if (markovChain.Nodes.Count == 0)
+						return;
+
+					// use random word from message to start our response from
+					var words = text.Split(' ');
+					if (words.Length > 1)
+					{
+						var textBuilder = new StringBuilder();
+
+						// Use Markov chain to generate random message, composed of one or more sentences.
+						for (int i = 0; i < RNG.NextNoMemory(1, 4); i++)
+							textBuilder.Append(GenerateRandomSentence(words[RNG.NextNoMemory(1, words.Length)]));
+
+						API.SendMessage(textBuilder.ToString(), message.Chat);
+					}
+
 					return;
-
-				// use random word from message to start our response from
-				var words = text.Split(' ');
-				if (words.Length > 1)
-				{
-					var textBuilder = new StringBuilder();
-
-					// Use Markov chain to generate random message, composed of one or more sentences.
-					for (int i = 0; i < RNG.NextNoMemory(1, 4); i++)
-						textBuilder.Append(GenerateRandomSentence(words[RNG.NextNoMemory(1, words.Length)]));
-
-					API.SendMessage(textBuilder.ToString(), message.Chat);
 				}
-				return;
-			}
 
-			// Train Markov generator from received message text.
-			// Assume it is composed of one or more coherent sentences that are themselves are composed of words.
-			var sentences = text.ToLower().Split(sentenceSeparators);
-			foreach (var s in sentences)
-			{
-				string lastWord = null;
-				foreach (var w in s.Split(' '))
+				// Train Markov generator from received message text.
+				// Assume it is composed of one or more coherent sentences that are themselves are composed of words.
+				var sentences = text.ToLower().Split(sentenceSeparators);
+				foreach (var s in sentences)
 				{
-					if (string.IsNullOrEmpty(w))
-						continue;
+					string lastWord = null;
+					foreach (var w in s.Split(' '))
+					{
+						if (string.IsNullOrEmpty(w))
+							continue;
 
-					markovChain.Train(lastWord, w);
-					lastWord = w;
+						markovChain.Train(lastWord, w);
+						lastWord = w;
+					}
+
+					markovChain.Train(lastWord, null);
 				}
-				markovChain.Train(lastWord, null);
+
+				numTrainingMessagesReceived++;
+
+				// save whole chain every 10 messages
+				if (numTrainingMessagesReceived % 10 == 0)
+					markovChain.SaveToFile();
 			}
-
-			numTrainingMessagesReceived++;
-
-			// save whole chain every 10 messages
-			if (numTrainingMessagesReceived % 10 == 0)
-				markovChain.SaveToFile();
 		}
 	}
 }
