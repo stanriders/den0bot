@@ -134,8 +134,9 @@ namespace den0bot
 				msg.Type != MessageType.Photo)
 				return;
 
-			if (msg.Text != null && msg.Text.StartsWith("/"))
+			if (Config.Params.UseEvents && msg.Text != null && msg.Text.StartsWith("/"))
 			{
+				// random events
 				string e = Events.Event(senderChat.Id);
 				if (e != string.Empty)
 				{

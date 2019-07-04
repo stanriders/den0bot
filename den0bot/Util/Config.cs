@@ -11,6 +11,8 @@ namespace den0bot.Util
 		{
 			public List<string> Modules { get; } = new List<string>();
 
+			public bool UseEvents { get; set; }
+
 			// https://telegram.me/botfather
 			public string TelegamToken { get; set; }
 			public string OwnerUsername { get; set; }
