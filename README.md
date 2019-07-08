@@ -24,4 +24,4 @@ Uses [Telegram.Bot](https://github.com/TelegramBots/telegram.bot), [SQLite-net](
 
  
 ---
-Visual Studio 2017, net461.
+Visual Studio 2017, .NET Core 2.2.
