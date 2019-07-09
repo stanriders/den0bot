@@ -212,6 +212,9 @@ namespace den0bot.Modules
 			}
 			while (words.Length < 3);
 
+			if (words.Length <= 0)
+				return string.Empty;
+
 			// uppercase first char
 			words[0] = words[0].Substring(0, 1).ToUpper() + words[0].Remove(0, 1);
 
