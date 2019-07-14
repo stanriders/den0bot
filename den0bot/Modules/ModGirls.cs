@@ -80,7 +80,7 @@ namespace den0bot.Modules
 					Name = "delet",
 					IsAdminOnly = true,
 					Reply = true,
-					Action = DeleteGirl
+					ActionAsync = DeleteGirl
 				},
 				new Command
 				{
@@ -95,12 +95,14 @@ namespace den0bot.Modules
 			});
 			Log.Debug("Enabled");
 		}
-		public void ReceiveMessage(Message message)
+		public Task ReceiveMessage(Message message)
 		{
 			if (message.Type == MessageType.Photo && message.Caption == Localization.Get("girls_tag", message.Chat.Id))
 			{
 				AddGirl(message.Photo[0].FileId, message.Chat.Id);
 			}
+
+			return Task.CompletedTask;
 		}
 
 		private async Task<string> GetRandomGirl(Message msg, bool seasonal = false)
@@ -148,9 +150,8 @@ namespace den0bot.Modules
 						if (cd > DateTime.Now)
 						{
 							sentGirlsCache.Remove(oldestGirl.MessageID.ToString());
-							API.RemoveMessage(chatID, oldestGirl.MessageID);
-							Thread.Sleep(50); // going too fast breaks api
-							API.RemoveMessage(chatID, oldestGirl.CommandMessageID);
+							await API.RemoveMessage(chatID, oldestGirl.MessageID);
+							await API.RemoveMessage(chatID, oldestGirl.CommandMessageID);
 						}
 					}
 				}
@@ -223,7 +224,7 @@ namespace den0bot.Modules
 			}
 			return string.Empty;
 		}
-		public void ReceiveCallback(CallbackQuery callback)
+		public async Task<string> ReceiveCallback(CallbackQuery callback)
 		{
 			if (callback.Data == "+" || callback.Data == "-") // sanity check
 			{
@@ -231,36 +232,34 @@ namespace den0bot.Modules
 				{
 					long chatId = callback.Message.Chat.Id;
 					var girl = sentGirlsCache.Get(callback.Message.MessageId.ToString()) as ChachedGirl;
-					if (girl.Voters != null && girl.Voters.Contains(callback.From.Id))
+					if (girl?.Voters != null && girl.Voters.Contains(callback.From.Id))
 					{
 						// they already voted
-						API.AnswerCallbackQuery(callback.Id, Events.RatingRepeat(chatId));
+						return Localization.Get($"rating_repeat_{RNG.NextNoMemory(1, 10)}", chatId);
 					}
 					else
 					{
 						if (callback.Data == "+")
 						{
+							girl.Voters?.Add(callback.From.Id);
 							if (girl.Seasonal)
 							{
 								ChangeGirlRatingSeasonal(girl.ID, 1);
 								girl.SeasonalRating++;
 
-								API.EditMediaCaption(chatId, callback.Message.MessageId, $"{girl.SeasonalRating} (s{Database.GirlSeason})",
+								await API.EditMediaCaption(chatId, callback.Message.MessageId, $"{girl.SeasonalRating} (s{Database.GirlSeason})",
 									buttons);
-								API.AnswerCallbackQuery(callback.Id, Localization.FormatGet("girls_rating_up", $"{girl.SeasonalRating} (s{Database.GirlSeason})", chatId));
+								return Localization.FormatGet("girls_rating_up", $"{girl.SeasonalRating} (s{Database.GirlSeason})", chatId);
 							}
 							else
 							{
 								ChangeGirlRating(girl.ID, 1);
 								girl.Rating++;
 
-								API.EditMediaCaption(chatId, callback.Message.MessageId, girl.Rating.ToString(),
+								await API.EditMediaCaption(chatId, callback.Message.MessageId, girl.Rating.ToString(),
 									buttons);
-								API.AnswerCallbackQuery(callback.Id, Localization.FormatGet("girls_rating_up", girl.Rating, chatId));
-							}
-
-							girl.Voters.Add(callback.From.Id);
-							
+								return Localization.FormatGet("girls_rating_up", girl.Rating, chatId);
+							}	
 						}
 						else if (callback.Data == "-")
 						{
@@ -274,31 +273,29 @@ namespace den0bot.Modules
 								ChangeGirlRating(girl.ID, -1);
 								girl.Rating--;
 							}
-							girl.Voters.Add(callback.From.Id);
+							girl.Voters?.Add(callback.From.Id);
 
 							if (girl.Rating >= delete_rating_threshold && girl.SeasonalRating >= delete_rating_threshold)
 							{
 								if (girl.Seasonal)
 								{
-									API.EditMediaCaption(chatId, callback.Message.MessageId, $"{girl.SeasonalRating} (s{Database.GirlSeason})",
+									await API.EditMediaCaption(chatId, callback.Message.MessageId, $"{girl.SeasonalRating} (s{Database.GirlSeason})",
 										buttons);
-									API.AnswerCallbackQuery(callback.Id,
-										Localization.FormatGet("girls_rating_down", $"{girl.SeasonalRating} (s{Database.GirlSeason})", chatId));
+									return Localization.FormatGet("girls_rating_down", $"{girl.SeasonalRating} (s{Database.GirlSeason})", chatId);
 								}
 								else
 								{
-									API.EditMediaCaption(chatId, callback.Message.MessageId, girl.Rating.ToString(),
+									await API.EditMediaCaption(chatId, callback.Message.MessageId, girl.Rating.ToString(),
 										buttons);
-									API.AnswerCallbackQuery(callback.Id,
-										Localization.FormatGet("girls_rating_down", girl.Rating, chatId));
+									return Localization.FormatGet("girls_rating_down", girl.Rating, chatId);
 								}
 							}
 							else
 							{
 								sentGirlsCache.Remove(callback.Message.MessageId.ToString());
 								RemoveGirl(girl.ID);
-								API.RemoveMessage(chatId, callback.Message.MessageId);
-								API.AnswerCallbackQuery(callback.Id, Localization.Get("girls_rating_delete_lowrating", chatId));
+								await API.RemoveMessage(chatId, callback.Message.MessageId);
+								return Localization.Get("girls_rating_delete_lowrating", chatId);
 							}
 						}
 					}
@@ -306,18 +303,20 @@ namespace den0bot.Modules
 				else
 				{
 					// remove buttons from outdated messages
-					API.EditMediaCaption(callback.Message.Chat.Id, callback.Message.MessageId, callback.Message.Caption);
+					await API.EditMediaCaption(callback.Message.Chat.Id, callback.Message.MessageId, callback.Message.Caption);
 				}
 			}
+
+			return string.Empty;
 		}
 
-		private string DeleteGirl(Message message)
+		private async Task<string> DeleteGirl(Message message)
 		{
 			if (message.ReplyToMessage != null && sentGirlsCache.Contains(message.ReplyToMessage.MessageId.ToString()))
 			{
 				var girl = sentGirlsCache.Remove(message.ReplyToMessage.MessageId.ToString()) as ChachedGirl;
 				RemoveGirl(girl.ID);
-				API.RemoveMessage(message.Chat.Id, message.ReplyToMessage.MessageId);
+				await API.RemoveMessage(message.Chat.Id, message.ReplyToMessage.MessageId);
 				return Localization.Get("girls_rating_delete_manual", message.Chat.Id);
 			}
 			return string.Empty;

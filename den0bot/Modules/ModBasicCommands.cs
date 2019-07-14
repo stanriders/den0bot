@@ -23,9 +23,9 @@ namespace den0bot.Modules
 				{
 					Name = "me",
 					ParseMode = ParseMode.Markdown,
-					Action = (msg) =>
+					ActionAsync = async (msg) =>
 					{
-						API.RemoveMessage(msg.Chat.Id, msg.MessageId);
+						await API.RemoveMessage(msg.Chat.Id, msg.MessageId);
 						return $"_{msg.From.FirstName}{msg.Text.Substring(3)}_";
 					}
 				},

@@ -1,8 +1,11 @@
 ﻿// den0bot (c) StanR 2019 - MIT License
+
+using System.Threading.Tasks;
+
 namespace den0bot.Modules
 {
 	public interface IReceiveAllMessages
 	{
-		void ReceiveMessage(Telegram.Bot.Types.Message message);
+		Task ReceiveMessage(Telegram.Bot.Types.Message message);
 	}
 }

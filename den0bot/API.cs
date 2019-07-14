@@ -1,7 +1,6 @@
 ﻿// den0bot (c) StanR 2019 - MIT License
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using den0bot.DB;
@@ -73,16 +72,6 @@ namespace den0bot
 		/// Send message
 		/// </summary>
 		/// <param name="message">Text to send</param>
-		/// <param name="receiver">Chat to send message to</param>
-		/// <param name="mode">ParseMode to use (None/Markdown/HTML)</param>
-		/// <param name="replyID">Message ID to reply to</param>
-		public static void SendMessage(string message, Chat receiver, ParseMode mode = ParseMode.Default, int replyID = 0, IReplyMarkup replyMarkup = null, bool disablePreview = true) =>
-			SendMessage(message, receiver.Id, mode, replyID, replyMarkup, disablePreview).NoAwait();
-
-		/// <summary>
-		/// Send message
-		/// </summary>
-		/// <param name="message">Text to send</param>
 		/// <param name="receiverID">Chat ID to send message to</param>
 		/// <param name="mode">ParseMode to use (None/Markdown/HTML)</param>
 		/// <param name="replyID">Message ID to reply to</param>
@@ -92,10 +81,12 @@ namespace den0bot
 			{
 				if (!string.IsNullOrEmpty(message))
 					return await api?.SendTextMessageAsync(receiverID, message, mode, disablePreview, false, replyID, replyMarkup);
-
-				return null;
 			}
-			catch (Exception ex) { Log.Error(ex.InnerMessageIfAny()); return null; }
+			catch (Exception ex)
+			{
+				Log.Error(ex.InnerMessageIfAny());
+			}
+			return null;
 		}
 
 		/// <summary>
@@ -128,15 +119,6 @@ namespace den0bot
 		/// Send photo
 		/// </summary>
 		/// <param name="photo">Photo to send. Can be both internal telegram photo ID or a link</param>
-		/// <param name="receiver">Chat to send photo to</param>
-		/// <param name="message">Photo caption if any</param>
-		public static void SendPhoto(string photo, Chat receiver, string message = "", ParseMode mode = ParseMode.Default, int replyID = 0, IReplyMarkup replyMarkup = null) =>
-			SendPhoto(photo, receiver.Id, message, mode, replyID, replyMarkup).NoAwait();
-
-		/// <summary>
-		/// Send photo
-		/// </summary>
-		/// <param name="photo">Photo to send. Can be both internal telegram photo ID or a link</param>
 		/// <param name="receiverId">Chat ID to send photo to</param>
 		/// <param name="message">Photo caption if any</param>
 		public static async Task<Message> SendPhoto(string photo, long receiverId, string message = "", ParseMode mode = ParseMode.Default, int replyID = 0, IReplyMarkup replyMarkup = null)
@@ -157,9 +139,12 @@ namespace den0bot
 
 					return await api?.SendPhotoAsync(receiverId, file, message, mode, false, replyID, replyMarkup);
 				}
-				return null;
 			}
-			catch (Exception ex) { Log.Error(ex.InnerMessageIfAny()); return null; }
+			catch (Exception ex)
+			{
+				Log.Error(ex.InnerMessageIfAny());
+			}
+			return null;
 		}
 		private static InputOnlineFile UriPhotoDownload(Uri link)
 		{
@@ -170,8 +155,8 @@ namespace den0bot
 			catch (Exception ex)
 			{
 				Log.Error(ex.InnerMessageIfAny());
-				return null;
 			}
+			return null;
 		}
 
 		/// <summary>
@@ -187,9 +172,12 @@ namespace den0bot
 				{
 					return await api?.SendMediaGroupAsync(photos, receiverId);
 				}
-				return null;
 			}
-			catch (Exception ex) { Log.Error(ex.InnerMessageIfAny()); return null; }
+			catch (Exception ex)
+			{
+				Log.Error(ex.InnerMessageIfAny());
+			}
+			return null;
 		}
 
 		/// <summary>
@@ -197,21 +185,33 @@ namespace den0bot
 		/// </summary>
 		/// <param name="sticker">Telegram sticker ID</param>
 		/// <param name="receiverID">Chat to send sticker to</param>
-		public static void SendSticker(InputOnlineFile sticker, long receiverID)
+		public static async Task<Message> SendSticker(InputOnlineFile sticker, long receiverID)
 		{
 			try
 			{
-				api.SendStickerAsync(receiverID, sticker);
+				return await api.SendStickerAsync(receiverID, sticker);
 			}
-			catch (Exception ex) { Log.Error(ex.InnerMessageIfAny()); }
+			catch (Exception ex)
+			{
+				Log.Error(ex.InnerMessageIfAny());
+			}
+			return null;
 		}
 
 		/// <summary>
 		/// Returns List of chat memebers that are admins
 		/// </summary>
-		public static List<ChatMember> GetAdmins(long chatID)
+		public static async Task<ChatMember[]> GetAdmins(long chatID)
 		{
-			return api?.GetChatAdministratorsAsync(chatID).Result?.ToList();
+			try
+			{
+				return await api?.GetChatAdministratorsAsync(chatID);
+			}
+			catch (Exception ex)
+			{
+				Log.Error(ex.InnerMessageIfAny());
+			}
+			return null;
 		}
 
 		/// <summary>
@@ -219,13 +219,16 @@ namespace den0bot
 		/// </summary>
 		/// <param name="chatID">Chat ID to remove message from</param>
 		/// <param name="msgID">Message to remove</param>
-		public static void RemoveMessage(long chatID, int msgID)
+		public static async Task RemoveMessage(long chatID, int msgID)
 		{
 			try
 			{
-				api.DeleteMessageAsync(chatID, msgID);
+				await api.DeleteMessageAsync(chatID, msgID);
 			}
-			catch (Exception ex) { Log.Error(ex.InnerMessageIfAny()); }
+			catch (Exception ex)
+			{
+				Log.Error(ex.InnerMessageIfAny());
+			}
 		}
 
 		/// <summary>
@@ -234,13 +237,17 @@ namespace den0bot
 		/// <param name="chatID">Chat ID to edit message in</param>
 		/// <param name="msgID">Message to edit</param>
 		/// <param name="caption">New caption</param>
-		public static void EditMediaCaption(long chatID, int msgID, string caption, InlineKeyboardMarkup replyMarkup = null, ParseMode parseMode = ParseMode.Default)
+		public static async Task<Message> EditMediaCaption(long chatID, int msgID, string caption, InlineKeyboardMarkup replyMarkup = null, ParseMode parseMode = ParseMode.Default)
 		{
 			try
 			{
-				api.EditMessageCaptionAsync(chatID, msgID, caption, replyMarkup, parseMode: parseMode);
+				return await api.EditMessageCaptionAsync(chatID, msgID, caption, replyMarkup, parseMode: parseMode);
 			}
-			catch (Exception ex) { Log.Error(ex.InnerMessageIfAny()); }
+			catch (Exception ex)
+			{
+				Log.Error(ex.InnerMessageIfAny());
+			}
+			return null;
 		}
 
 		/// <summary>
@@ -249,13 +256,16 @@ namespace den0bot
 		/// <param name="callbackID">Callback ID that we need to answer</param>
 		/// <param name="text">Text to send</param>
 		/// <param name="showAlert">Alert user</param>
-		public static void AnswerCallbackQuery(string callbackID, string text = null, bool showAlert = false)
+		public static async Task AnswerCallbackQuery(string callbackID, string text = null, bool showAlert = false)
 		{
 			try
 			{
-				api.AnswerCallbackQueryAsync(callbackID, text, showAlert);
+				await api.AnswerCallbackQueryAsync(callbackID, text, showAlert);
 			}
-			catch (Exception ex) { Log.Error(ex.InnerMessageIfAny()); }
+			catch (Exception ex)
+			{
+				Log.Error(ex.InnerMessageIfAny());
+			}
 		}
 
 		/// <summary>
@@ -263,13 +273,17 @@ namespace den0bot
 		/// </summary>
 		/// <param name="audio">Audio to send</param>
 		/// <param name="chatID">Chat ID to send photo to</param>
-		public static void SendVoice(InputOnlineFile audio, long chatID, string caption = null, ParseMode parseMode = ParseMode.Default, int replyTo = 0)
+		public static async Task<Message> SendVoice(InputOnlineFile audio, long chatID, string caption = null, ParseMode parseMode = ParseMode.Default, int replyTo = 0)
 		{
 			try
 			{
-				api.SendVoiceAsync(chatID, audio, caption, parseMode, replyToMessageId: replyTo);
+				return await api.SendVoiceAsync(chatID, audio, caption, parseMode, replyToMessageId: replyTo);
 			}
-			catch (Exception ex) { Log.Error(ex.InnerMessageIfAny()); }
+			catch (Exception ex)
+			{
+				Log.Error(ex.InnerMessageIfAny());
+			}
+			return null;
 		}
 	}
 }

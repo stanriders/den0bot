@@ -104,7 +104,7 @@ namespace den0bot.Modules.Osu
 			updating = false;
 		}
 
-		public async void ReceiveMessage(Message message)
+		public async Task ReceiveMessage(Message message)
 		{
 			Match regexMatch = regex.Match(message.Text);
 			if (regexMatch.Groups.Count > 1)
@@ -118,7 +118,7 @@ namespace den0bot.Modules.Osu
 					});
 
 					if (match?.Games.Count > 0)
-						API.SendMessage(await formatMatchInfo(match), message.Chat,
+						await API.SendMessage(await formatMatchInfo(match), message.Chat.Id,
 							Telegram.Bot.Types.Enums.ParseMode.Html);
 				}
 			}

@@ -16,14 +16,14 @@ namespace den0bot.Modules.Osu
 		private readonly int topscores_to_show = 3;
 		public ModProfile() { Log.Debug("Enabled"); }
 
-		public async void ReceiveMessage(Message message)
+		public async Task ReceiveMessage(Message message)
 		{
 			Match regexMatch = regex.Match(message.Text);
 			if (regexMatch.Groups.Count > 1)
 			{
 				string playerID = regexMatch.Groups[1]?.Value;
 				if (!string.IsNullOrEmpty(playerID))
-					API.SendMessage( await FormatPlayerInfo(playerID), message.Chat, ParseMode.Html, message.MessageId, null, false);
+					await API.SendMessage( await FormatPlayerInfo(playerID), message.Chat.Id, ParseMode.Html, message.MessageId, null, false);
 			}
 		} 
 

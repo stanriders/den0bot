@@ -99,7 +99,7 @@ namespace den0bot.Modules.Osu
 							caption = $"{format}";
 					}
 
-					API.SendPhoto(map.Thumbnail, message.Chat, caption, ParseMode.Html);
+					await API.SendPhoto(map.Thumbnail, message.Chat.Id, caption, ParseMode.Html);
 				}
 
 				return string.Empty;

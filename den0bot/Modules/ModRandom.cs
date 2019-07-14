@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using System.Numerics;
+using System.Threading.Tasks;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.InputFiles;
 using den0bot.DB;
@@ -34,24 +35,24 @@ namespace den0bot.Modules
 				new Command
 				{
 					Name = "meme",
-					Action = (msg) => GetRandomMeme(msg.Chat)
+					ActionAsync = (msg) => GetRandomMeme(msg.Chat)
 				},
 				new Command
 				{
 					Name = "den0saur",
-					Action = (msg) => GetRandomDinosaur(msg.Chat)
+					ActionAsync = (msg) => GetRandomDinosaur(msg.Chat)
 				}
 			});
 			Log.Debug("Enabled");
 		}
 
-		private string GetRandomDinosaur(Chat sender)
+		private async Task<string> GetRandomDinosaur(Chat sender)
 		{
 			switch (RNG.Next(1, 4))
 			{
 				case 1: return "динозавр?";
-				case 2: API.SendSticker(new InputOnlineFile("BQADAgADNAADnML7Dbv6HgazQYiIAg"), sender.Id); break;
-				case 3: API.SendSticker(new InputOnlineFile("BQADAgADMAADnML7DXy6fUB4x-sqAg"), sender.Id); break;
+				case 2: await API.SendSticker(new InputOnlineFile("BQADAgADNAADnML7Dbv6HgazQYiIAg"), sender.Id); break;
+				case 3: await API.SendSticker(new InputOnlineFile("BQADAgADMAADnML7DXy6fUB4x-sqAg"), sender.Id); break;
 			}
 			return string.Empty;
 		}
@@ -84,7 +85,7 @@ namespace den0bot.Modules
 			return "Ты че деб? /addmeme <ссылка>";
 		}
 
-		private string GetRandomMeme(Chat sender)
+		private async Task<string> GetRandomMeme(Chat sender)
 		{
 			int memeCount = GetMemeCountFromDatabase(sender.Id);
 			if (memeCount <= 0)
@@ -93,7 +94,7 @@ namespace den0bot.Modules
 			string photo = GetMemeFromDatabase(sender.Id);
 			if (!string.IsNullOrEmpty(photo))
 			{ 
-				API.SendPhoto(photo, sender);
+				await API.SendPhoto(photo, sender.Id);
 				return string.Empty;
 			}
 

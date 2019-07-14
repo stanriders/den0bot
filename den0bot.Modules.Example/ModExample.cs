@@ -1,4 +1,5 @@
-﻿using Telegram.Bot.Types;
+﻿using System.Threading.Tasks;
+using Telegram.Bot.Types;
 
 namespace den0bot.Modules.Example
 {
@@ -13,9 +14,9 @@ namespace den0bot.Modules.Example
 			});
 		}
 
-		public void ReceiveMessage(Message message)
+		public async Task ReceiveMessage(Message message)
 		{
-			API.SendMessage("hi", message.Chat);
+			await API.SendMessage("hi", message.Chat.Id);
 		}
 
 		private string Go(Message msg)

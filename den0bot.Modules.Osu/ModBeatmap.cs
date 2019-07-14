@@ -1,15 +1,21 @@
 ﻿// den0bot (c) StanR 2018 - MIT License
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Net;
 using System.Runtime.Caching;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using den0bot.Modules.Osu.Osu.API.Requests;
 using den0bot.Modules.Osu.Osu.Types;
+using den0bot.Util;
+using FFmpeg.NET;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.InputFiles;
 using Telegram.Bot.Types.ReplyMarkups;
+using File = System.IO.File;
 
 namespace den0bot.Modules.Osu
 {
@@ -24,7 +30,7 @@ namespace den0bot.Modules.Osu
 			new[] {new InlineKeyboardButton {Text = "Preview", CallbackData = "preview"},}
 		);
 
-		public async void ReceiveMessage(Message message)
+		public async Task ReceiveMessage(Message message)
 		{
 			Match regexMatch = regex.Match(message.Text);
 			if (regexMatch.Groups.Count > 1)
@@ -94,15 +100,39 @@ namespace den0bot.Modules.Osu
 			}
 		}
 
-		public void ReceiveCallback(CallbackQuery callback)
+		public async Task<string> ReceiveCallback(CallbackQuery callback)
 		{
 			if (sentMapsCache.Contains(callback.Message.MessageId.ToString()) && callback.Data == "preview")
 			{
-				var mapsetID = sentMapsCache.Remove(callback.Message.MessageId.ToString()) as uint?;
-				API.SendVoice(new InputOnlineFile($"https://b.ppy.sh/preview/{mapsetID}.mp3"), callback.Message.Chat.Id, replyTo: callback.Message.MessageId);
-				API.EditMediaCaption(callback.Message.Chat.Id, callback.Message.MessageId, callback.Message.Caption, parseMode: Telegram.Bot.Types.Enums.ParseMode.Html);
-				API.AnswerCallbackQuery(callback.Id, "Ща всё будет");
+				await API.AnswerCallbackQuery(callback.Id, "Ща всё будет");
+				var mapsetId = sentMapsCache.Remove(callback.Message.MessageId.ToString()) as uint?;
+
+				using (var web = new WebClient())
+				{
+					try
+					{
+						var data = web.DownloadData($"https://b.ppy.sh/preview/{mapsetId}.mp3");
+						File.WriteAllBytes($"./{mapsetId}.mp3", data);
+					}
+					catch (Exception e)
+					{
+						Log.Error(e.InnerMessageIfAny());
+						return string.Empty;
+					}
+
+					await new Engine("ffmpeg").ConvertAsync(new MediaFile($"./{mapsetId}.mp3"),
+						new MediaFile($"./{mapsetId}.ogg"));
+
+					using (FileStream fs = File.Open($"./{mapsetId}.ogg", FileMode.Open, FileAccess.Read))
+						await API.SendVoice(new InputOnlineFile(fs), callback.Message.Chat.Id, replyTo: callback.Message.MessageId);
+
+					File.Delete($"./{mapsetId}.mp3");
+					File.Delete($"./{mapsetId}.ogg");
+				}
+
+				await API.EditMediaCaption(callback.Message.Chat.Id, callback.Message.MessageId, callback.Message.Caption, parseMode: Telegram.Bot.Types.Enums.ParseMode.Html);
 			}
+			return string.Empty;
 		}
 
 		private static Mods ConvertToMods(string mods)

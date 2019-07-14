@@ -1,8 +1,11 @@
 ﻿// den0bot (c) StanR 2019 - MIT License
+
+using System.Threading.Tasks;
+
 namespace den0bot.Modules
 {
 	public interface IReceiveCallback
 	{
-		void ReceiveCallback(Telegram.Bot.Types.CallbackQuery callback);
+		Task<string> ReceiveCallback(Telegram.Bot.Types.CallbackQuery callback);
 	}
 }

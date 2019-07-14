@@ -221,7 +221,7 @@ namespace den0bot.Modules
 			return string.Join(" ", words) + $"{sentenceSeparators[RNG.NextNoMemory(0, sentenceSeparators.Length)]} ";
 		}
 
-		public void ReceiveMessage(Message message)
+		public async Task ReceiveMessage(Message message)
 		{
 			if (markovChain.Ready)
 			{
@@ -242,7 +242,7 @@ namespace den0bot.Modules
 						for (int i = 0; i < RNG.NextNoMemory(1, 4); i++)
 							textBuilder.Append(GenerateRandomSentence(words[RNG.NextNoMemory(1, words.Length)]));
 
-						API.SendMessage(textBuilder.ToString(), message.Chat);
+						await API.SendMessage(textBuilder.ToString(), message.Chat.Id);
 					}
 
 					return;

@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
+using System.Threading.Tasks;
 using Telegram.Bot.Args;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
@@ -17,10 +18,17 @@ namespace den0bot
 	public class Bot
 	{
 		private readonly List<IModule> modules = new List<IModule>();
-		private readonly string module_path = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) + Path.DirectorySeparatorChar + "Modules";
+		private readonly string module_path = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + Path.DirectorySeparatorChar + "Modules";
 
 		private static bool IsOwner(string username) => (username == Config.Params.OwnerUsername);
-		private static bool IsAdmin(long chatID, string username) => IsOwner(username) || (API.GetAdmins(chatID).Exists(x => x.User.Username == username));
+		private static async Task<bool> IsAdmin(long chatID, string username)
+		{
+			if (IsOwner(username))
+				return true;
+
+			var admins = await API.GetAdmins(chatID);
+			return admins.FirstOrDefault(x => x.User.Username == username) != null;
+		}
 
 		private static bool shouldShutdown;
 		public static void Shutdown() { shouldShutdown = true; }
@@ -112,10 +120,10 @@ namespace den0bot
 				msg.Date < DateTime.Now.ToUniversalTime().AddSeconds(-15))
 				return;
 
-			Chat senderChat = msg.Chat;
+			var senderChatId = msg.Chat.Id;
 
 			if (msg.Chat.Type != ChatType.Private)
-				Database.AddChat(senderChat.Id);
+				Database.AddChat(senderChatId);
 
 			Database.AddUser(msg.From.Id, msg.From.Username);
 
@@ -123,11 +131,11 @@ namespace den0bot
 			{
 				string greeting;
 				if (msg.NewChatMembers[0].Id == API.BotUser.Id)
-					greeting = Localization.Get("generic_added_to_chat", senderChat.Id);
+					greeting = Localization.Get("generic_added_to_chat", senderChatId);
 				else
-					greeting = Localization.NewMemberGreeting(senderChat.Id, msg.NewChatMembers[0].FirstName, msg.NewChatMembers[0].Id);
+					greeting = Localization.NewMemberGreeting(senderChatId, msg.NewChatMembers[0].FirstName, msg.NewChatMembers[0].Id);
 
-				API.SendMessage(greeting, senderChat, ParseMode.Html);
+				await API.SendMessage(greeting, senderChatId, ParseMode.Html);
 				return;
 			}
 			if (msg.Type != MessageType.Text &&
@@ -137,10 +145,10 @@ namespace den0bot
 			if (Config.Params.UseEvents && msg.Text != null && msg.Text.StartsWith("/"))
 			{
 				// random events
-				string e = Events.Event(senderChat.Id);
+				string e = Events.Event(senderChatId);
 				if (e != string.Empty)
 				{
-					API.SendMessage(e, senderChat);
+					await API.SendMessage(e, senderChatId);
 					return;
 				}
 			}
@@ -168,7 +176,7 @@ namespace den0bot
 				{
 					// send all messages to modules that need them
 					if (m is IReceiveAllMessages messages)
-						messages.ReceiveMessage(msg);
+						await messages.ReceiveMessage(msg);
 
 					continue;
 				}
@@ -176,36 +184,35 @@ namespace den0bot
 				IModule.Command c = m.GetCommand(msg.Text);
 				if (c != null)
 				{
-					if ((c.IsAdminOnly && !IsAdmin(msg.Chat.Id, msg.From.Username)) ||
-						(c.IsOwnerOnly && !IsOwner(msg.From.Username)))
+					if ((c.IsOwnerOnly && !IsOwner(msg.From.Username)) ||
+					    (c.IsAdminOnly && !(await IsAdmin(msg.Chat.Id, msg.From.Username))))
 					{
 						// ignore admin commands from non-admins
-						result = Events.Annoy(senderChat.Id);
+						result = Localization.Get($"annoy_{RNG.NextNoMemory(1, 10)}", senderChatId);
 						break;
 					}
 
 					// fire command's action
-					string res = string.Empty;
 					if (c.Action != null)
-						res = c.Action(msg);
+						result = c.Action(msg);
 					else if (c.ActionAsync != null)
-						res = await c.ActionAsync(msg);
+						result = await c.ActionAsync(msg);
+					else
+						continue;
 
 					// send result if we got any
-					if (!string.IsNullOrEmpty(res))
+					if (!string.IsNullOrEmpty(result))
 					{
 						parseMode = c.ParseMode;
 						if (c.Reply)
 							replyID = msg.MessageId;
 
-						result = res;
-
 						if (c.ActionResult != null)
 						{
-							var sentMessage = await API.SendMessage(result, senderChat.Id, parseMode, replyID);
+							var sentMessage = await API.SendMessage(result, senderChatId, parseMode, replyID);
 							if (sentMessage != null)
 							{
-								// call action that recieves sent message
+								// call action that receives sent message
 								c.ActionResult(sentMessage);
 								return;
 							}
@@ -215,10 +222,10 @@ namespace den0bot
 				}
 			}
 
-			API.SendMessage(result, senderChat, parseMode, replyID);
+			await API.SendMessage(result, senderChatId, parseMode, replyID);
 		}
 
-		private void ProcessCallback(object sender, CallbackQueryEventArgs callbackEventArgs)
+		private async void ProcessCallback(object sender, CallbackQueryEventArgs callbackEventArgs)
 		{
 			foreach (IModule m in modules)
 			{
@@ -226,7 +233,8 @@ namespace den0bot
 				{
 					//if (callbackEventArgs.CallbackQuery.Data == m.ToString())
 					{
-						module.ReceiveCallback(callbackEventArgs.CallbackQuery);
+						var result = await module.ReceiveCallback(callbackEventArgs.CallbackQuery);
+						await API.AnswerCallbackQuery(callbackEventArgs.CallbackQuery.Id, result);
 					}
 				}
 			}

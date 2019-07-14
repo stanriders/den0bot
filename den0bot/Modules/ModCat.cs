@@ -5,6 +5,7 @@ using System.Linq;
 using Telegram.Bot.Types;
 using Newtonsoft.Json.Linq;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using den0bot.Util;
 
 namespace den0bot.Modules
@@ -16,7 +17,7 @@ namespace den0bot.Modules
 		private readonly Dictionary<long, DateTime> nextPost = new Dictionary<long, DateTime>(); // chatID, time
 		private const int cooldown = 5; // minutes
 
-		public void ReceiveMessage(Message message)
+		public async Task ReceiveMessage(Message message)
 		{
 			if (string.IsNullOrEmpty(Config.Params.CatToken))
 				return;
@@ -44,11 +45,11 @@ namespace den0bot.Modules
 					if (!string.IsNullOrEmpty(json))
 					{
 						JArray obj = JArray.Parse(json);
-						API.SendPhoto(obj[0]["url"].ToString(), message.Chat, string.Format(Localization.Get("cat_reply", message.Chat.Id), cat));
+						await API.SendPhoto(obj[0]["url"].ToString(), message.Chat.Id, string.Format(Localization.Get("cat_reply", message.Chat.Id), cat));
 					}
 					else
 					{
-						API.SendMessage(Localization.Get("cat_fail", message.Chat.Id), message.Chat);
+						await API.SendMessage(Localization.Get("cat_fail", message.Chat.Id), message.Chat.Id);
 					}
 
 					nextPost[message.Chat.Id] = DateTime.Now.AddMinutes(cooldown);

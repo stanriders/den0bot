@@ -21,13 +21,5 @@ namespace den0bot
 				default: return string.Empty;
 			}
 		}
-		public static string Annoy(long chatID)
-		{
-			return Localization.Get($"annoy_{RNG.NextNoMemory(1, 10)}", chatID);
-		}
-		public static string RatingRepeat(long chatID)
-		{
-			return Localization.Get($"rating_repeat_{RNG.NextNoMemory(1, 10)}", chatID);
-		}
 	}
 }
