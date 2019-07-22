@@ -62,12 +62,12 @@ namespace den0bot.Modules
 				new Command
 				{
 					Names = {"topdevok", "topgirls" },
-					Action = (msg) => TopGirls(msg.Chat.Id)
+					ActionAsync = (msg) => TopGirls(msg.Chat.Id)
 				},
 				new Command
 				{
 					Names = {"antitopdevok", "antitopgirls" },
-					Action = (msg) => TopGirls(msg.Chat.Id, true)
+					ActionAsync = (msg) => TopGirls(msg.Chat.Id, true)
 				},
 				new Command
 				{
@@ -90,7 +90,7 @@ namespace den0bot.Modules
 				new Command
 				{
 					Names = { "seasonaltopdevok", "seasonaltopgirls" },
-					Action = TopGirlsSeasonal
+					ActionAsync = TopGirlsSeasonal
 				},
 			});
 			Log.Debug("Enabled");
@@ -172,7 +172,7 @@ namespace den0bot.Modules
 
 			return Localization.Get("girls_not_found", sender.Id);
 		}
-		private string TopGirls(long chatID, bool reverse = false)
+		private async Task<string> TopGirls(long chatID, bool reverse = false)
 		{
 			var topGirls = GetTopGirls(chatID);
 			if (topGirls != null)
@@ -191,11 +191,11 @@ namespace den0bot.Modules
 
 					photos.Add(new InputMediaPhoto(girl.Link) { Caption = girl.Rating.ToString() });
 				}
-				API.SendMultiplePhotos(photos, chatID).NoAwait();
+				await API.SendMultiplePhotos(photos, chatID);
 			}
 			return string.Empty;
 		}
-		private string TopGirlsSeasonal(Message msg)
+		private async Task<string> TopGirlsSeasonal(Message msg)
 		{
 			int season = Database.GirlSeason;
 
@@ -220,7 +220,7 @@ namespace den0bot.Modules
 
 					photos.Add(new InputMediaPhoto(girl.Link) { Caption = $"{girl.SeasonRating} (s{season})" });
 				}
-				API.SendMultiplePhotos(photos, msg.Chat.Id).NoAwait();
+				await API.SendMultiplePhotos(photos, msg.Chat.Id);
 			}
 			return string.Empty;
 		}

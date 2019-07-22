@@ -112,7 +112,7 @@ namespace den0bot.Modules
 						string id = vid["contentDetails"]["upload"]["videoId"].ToString();
 
 						string result = $"❗️ {title}{Environment.NewLine}http://youtu.be/{id}";
-						API.SendMessageToAllChats(result);
+						await API.SendMessageToAllChats(result);
 					}
 				}
 			}

@@ -1,6 +1,7 @@
 ﻿// den0bot (c) StanR 2019 - MIT License
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using den0bot.DB;
@@ -33,22 +34,22 @@ namespace den0bot.Modules
 				{
 					Name = "santago",
 					IsOwnerOnly = true,
-					Action = Go
+					ActionAsync = Go
 				},
 				new Command
 				{
 					Name = "santahelp",
-					Action = Help
+					ActionAsync = Help
 				},
 				new Command
 				{
 					Name = "santagift",
-					Action = Gift
+					ActionAsync = Gift
 				}
 			});
 		}
 
-		private string Go(Message msg)
+		private async Task<string> Go(Message msg)
 		{
 			List<string> receivers = new List<string>(senders);
 
@@ -69,19 +70,19 @@ namespace den0bot.Modules
 
 				receivers.Remove(receiver);
 
-				API.SendMessage($"🎄🎄🎄 Ты даришь подарок @{receiver}! 🎄🎄🎄{Environment.NewLine}{Environment.NewLine}Если не сможешь придумать что подарить, то напиши /santahelp и тебе придет подсказка", senderID).NoAwait();
+				await API.SendMessage($"🎄🎄🎄 Ты даришь подарок @{receiver}! 🎄🎄🎄{Environment.NewLine}{Environment.NewLine}Если не сможешь придумать что подарить, то напиши /santahelp и тебе придет подсказка", senderID);
 			}
 			return string.Empty;
 		}
 
-		private string Help(Message msg)
+		private async Task<string> Help(Message msg)
 		{
 			if (msg.Chat.Type == ChatType.Private)
 			{
 				var receiverID = Database.GetUserID(GetSantaReceiver(msg.From.Username));
 				if (receiverID != 0)
 				{
-					API.SendMessage($"Твой санта не может придумать что тебе подарить. Напиши /santagift <подарок> и я передам ему твоё пожелание!", receiverID).NoAwait();
+					await API.SendMessage($"Твой санта не может придумать что тебе подарить. Напиши /santagift <подарок> и я передам ему твоё пожелание!", receiverID);
 
 					return "Ждем ответа...";
 				}
@@ -89,7 +90,7 @@ namespace den0bot.Modules
 			return string.Empty;
 		}
 
-		private string Gift(Message msg)
+		private async Task<string> Gift(Message msg)
 		{
 			if (msg.Chat.Type == ChatType.Private)
 			{
@@ -100,7 +101,7 @@ namespace den0bot.Modules
 					if (string.IsNullOrEmpty(gift) || string.IsNullOrWhiteSpace(gift))
 						return "Ты пожелание-то напиши";
 					else
-						API.SendMessage($"Тебе передали пожелание: \"{gift}\"", senderID).NoAwait();
+						await API.SendMessage($"Тебе передали пожелание: \"{gift}\"", senderID);
 
 					return "Отправил!";
 				}

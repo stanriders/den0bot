@@ -32,7 +32,5 @@ namespace den0bot.Util
 		{
 			return value.InnerException?.Message ?? value.Message;
 		}
-
-		public static void NoAwait(this Task task) { }
 	}
 }

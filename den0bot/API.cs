@@ -95,7 +95,7 @@ namespace den0bot
 		/// <param name="msg">Text to send</param>
 		/// <param name="image">Image to send if any</param>
 		/// <param name="mode">ParseMode to use (None/Markdown/HTML)</param>
-		public static void SendMessageToAllChats(string msg, string image = null, ParseMode mode = ParseMode.Default)
+		public static async Task SendMessageToAllChats(string msg, string image = null, ParseMode mode = ParseMode.Default)
 		{
 			foreach (DB.Types.Chat receiver in Database.GetAllChats())
 			{
@@ -108,9 +108,9 @@ namespace den0bot
 				else if (!receiver.DisableAnnouncements)
 				{
 					if (!string.IsNullOrEmpty(image))
-						SendPhoto(image, receiver.Id, msg, mode).NoAwait();
+						await SendPhoto(image, receiver.Id, msg, mode);
 					else
-						SendMessage(msg, receiver.Id, mode).NoAwait();
+						await SendMessage(msg, receiver.Id, mode);
 				}
 			}
 		}
