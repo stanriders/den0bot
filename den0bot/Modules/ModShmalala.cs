@@ -66,6 +66,10 @@ namespace den0bot.Modules
 						Ready = true;
 					});
 				}
+				else
+				{
+					Ready = true;
+				}
 			}
 
 			public IEnumerable<string> GenerateSequence(string startNode)
