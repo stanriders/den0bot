@@ -11,22 +11,22 @@ using Telegram.Bot.Types;
 
 namespace den0bot.Modules
 {
-	class ModShmalala : IModule, IReceiveAllMessages
+	public class ModShmalala : IModule, IReceiveAllMessages
 	{
 		// Based on https://github.com/IrcDotNet/IrcDotNet/tree/master/samples/IrcDotNet.Samples.MarkovTextBot
-		private class MarkovChainNode
-		{
-			public List<MarkovChainNode> Links { get; } = new List<MarkovChainNode>();
-			public string Word { get; set; }
-
-			public void AddLink(MarkovChainNode toNode)
-			{
-				Links.Add(toNode);
-			}
-		}
-
 		private class MarkovChain
 		{
+			public class MarkovChainNode
+			{
+				public List<MarkovChainNode> Links { get; } = new List<MarkovChainNode>();
+				public string Word { get; set; }
+
+				public void AddLink(MarkovChainNode toNode)
+				{
+					Links.Add(toNode);
+				}
+			}
+
 			public List<MarkovChainNode> Nodes { get; } = new List<MarkovChainNode>();
 
 			public bool Ready { get; private set; } = false;
@@ -143,15 +143,21 @@ namespace den0bot.Modules
 				
 				System.IO.File.WriteAllText(file_path, JsonConvert.SerializeObject(packedChain, Formatting.Indented));
 			}
+
+			public void DeleteFile()
+			{
+				if (System.IO.File.Exists(file_path))
+					System.IO.File.Delete(file_path);
+			}
 		}
 
-		private readonly char[] sentenceSeparators = { '.', '!', '?', ',', '(', ')', '\n' };
+		private readonly char[] sentenceSeparators = { '.', '!', '.', '!', '?', '(', ')', '\n' };
 		private readonly Regex cleanWordRegex = 
 			new Regex(@"[()\[\]{}'""`~\\\/\-*\d]|(http|ftp|https):\/\/([\w_-]+(?:(?:\.[\w_-]+)+))([\w.,@?^=%&:\/~+#-]*[\w@?^=%&\/~+#-])?", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
 		private int numTrainingMessagesReceived;
 
-		private readonly MarkovChain markovChain = new MarkovChain();
+		private MarkovChain markovChain = new MarkovChain();
 
 		public ModShmalala()
 		{
@@ -184,6 +190,17 @@ namespace den0bot.Modules
 						return "k cool";
 					},
 					IsOwnerOnly = true
+				},
+				new Command
+				{
+					Name = "talkwipe",
+					Action = msg =>
+					{
+						markovChain.DeleteFile();
+						markovChain = new MarkovChain();
+						return "Done!";
+					},
+					IsAdminOnly = true
 				}
 			});
 		}
