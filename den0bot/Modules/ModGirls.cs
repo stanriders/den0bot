@@ -347,7 +347,7 @@ namespace den0bot.Modules
 		private int GetGirlCount(long chatID) => Database.Get<Girl>().Count(x => x.ChatID == chatID);
 		private void AddGirl(string link, long chatID)
 		{
-			if (Database.Exist<Girl>(x => x.Link == link))
+			if (!Database.Exist<Girl>(x => x.Link == link))
 			{
 				var season = Database.GirlSeason;
 				if (Database.GirlSeasonStartDate == default(DateTime) || Database.GirlSeasonStartDate.AddMonths(1) < DateTime.Today)
