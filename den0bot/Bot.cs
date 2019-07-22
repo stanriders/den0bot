@@ -231,11 +231,9 @@ namespace den0bot
 			{
 				if (m is IReceiveCallback module)
 				{
-					//if (callbackEventArgs.CallbackQuery.Data == m.ToString())
-					{
-						var result = await module.ReceiveCallback(callbackEventArgs.CallbackQuery);
+					var result = await module.ReceiveCallback(callbackEventArgs.CallbackQuery);
+					if (!string.IsNullOrEmpty(result))
 						await API.AnswerCallbackQuery(callbackEventArgs.CallbackQuery.Id, result);
-					}
 				}
 			}
 		}

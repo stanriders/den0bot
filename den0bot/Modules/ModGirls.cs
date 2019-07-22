@@ -414,18 +414,25 @@ namespace den0bot.Modules
 			List<Girl> girls = Database.Get<Girl>(x => x.ChatID == chatID && x.Season == season);
 			if (girls != null)
 			{
-				if (girls.Count == 0 && Database.GirlSeason == 1)
+				if (girls.Count == 0)
 				{
-					// populate first season with latest girls
-					List<Girl> allGirls = Database.Get<Girl>(x => x.ChatID == chatID);
-					allGirls.Reverse();
-					if (allGirls.Count > 100)
-						allGirls = allGirls.Take(100).ToList();
+					if (Database.GirlSeason == 1)
+					{
+						// populate first season with latest girls
+						List<Girl> allGirls = Database.Get<Girl>(x => x.ChatID == chatID);
+						allGirls.Reverse();
+						if (allGirls.Count > 100)
+							allGirls = allGirls.Take(100).ToList();
 
-					foreach (var girl in allGirls)
-						girl.Season = 1;
+						foreach (var girl in allGirls)
+							girl.Season = 1;
 
-					Database.UpdateAll(allGirls);
+						Database.UpdateAll(allGirls);
+					}
+					else
+					{
+						return null;
+					}
 				}
 
 				girls.RemoveAll(x => x.SeasonUsed);
