@@ -62,7 +62,7 @@ namespace den0bot.Modules
 			string[] msgArr = msg.Text.Split(' ');
 
 			if (msgArr.Length > 1 && BigInteger.TryParse(msgArr[1], out var max) && max > 1)
-				return Localization.Get("random_roll", msg.Chat.Id) + RNG.NextBigInteger(max);
+				return Localization.Get("random_roll", msg.Chat.Id) + RNG.NextBigInteger(max+1);
 			
 			return Localization.Get("random_roll", msg.Chat.Id) + RNG.Next(max: 101);
 		}

@@ -45,7 +45,7 @@ namespace den0bot.Util
 				rng.NextBytes(buffer);
 				buffer[buffer.Length - 1] &= 0x7F; // force sign bit to positive
 				result = new BigInteger(buffer);
-			} while (result >= max);
+			} while (result >= max || result == 0);
 
 			return result;
 		}
