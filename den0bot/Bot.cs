@@ -33,6 +33,8 @@ namespace den0bot
 		private static bool shouldShutdown;
 		public static void Shutdown() { shouldShutdown = true; }
 
+		private const char command_trigger = '/';
+
 		public static void Main() => new Bot();
 
 		private Bot()
@@ -110,6 +112,28 @@ namespace den0bot
 			API.Disconnect();
 		}
 
+		private bool TryEvent(long chatID, out string text)
+		{
+			switch (RNG.NextNoMemory(0, 1000))
+			{
+				case 9: text = Localization.Get("event_1", chatID); break;
+				case 99: text = Localization.Get("event_2", chatID); break;
+				case 999: text = Localization.Get("event_3", chatID); break;
+				case 8: text = Localization.Get("event_4", chatID); break;
+				case 88: text = Localization.Get("event_5", chatID); break;
+				case 888: text = Localization.Get("event_6", chatID); break;
+				case 7: text = Localization.Get("event_7", chatID); break;
+				case 77: text = Localization.Get("event_8", chatID); break;
+				case 777: text = Localization.Get("event_9", chatID); break;
+				default: text = string.Empty; break;
+			}
+
+			if (text != string.Empty)
+				return true;
+
+			return false;
+		}
+
 		private async void ProcessMessage(object sender, MessageEventArgs messageEventArgs)
 		{
 			Message msg = messageEventArgs.Message;
@@ -138,15 +162,15 @@ namespace den0bot
 				await API.SendMessage(greeting, senderChatId, ParseMode.Html);
 				return;
 			}
+
 			if (msg.Type != MessageType.Text &&
 				msg.Type != MessageType.Photo)
 				return;
 
-			if (Config.Params.UseEvents && msg.Text != null && msg.Text.StartsWith("/"))
+			if (Config.Params.UseEvents && msg.Text != null && msg.Text[0] == command_trigger)
 			{
 				// random events
-				string e = Events.Event(senderChatId);
-				if (e != string.Empty)
+				if (TryEvent(senderChatId, out var e))
 				{
 					await API.SendMessage(e, senderChatId);
 					return;
@@ -172,7 +196,7 @@ namespace den0bot
 					continue;
 
 				// not a command
-				if (msg.Text[0] != '/')
+				if (msg.Text[0] != command_trigger)
 				{
 					// send all messages to modules that need them
 					if (m is IReceiveAllMessages messages)
