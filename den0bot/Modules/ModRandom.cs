@@ -75,14 +75,14 @@ namespace den0bot.Modules
 			if (link.StartsWith("http") && (link.EndsWith(".jpg") || link.EndsWith(".png")))
 			{
 				AddMemeToDatabase(link, chatId);
-				return "Мемес добавлен!";
+				return Localization.Get("random_meme_added", chatId);
 			}
 			else if (message.Type == MessageType.Photo)
 			{
 				AddMemeToDatabase(message.Photo[0].FileId, chatId);
-				return "Мемес добавлен!";
+				return Localization.Get("random_meme_added", chatId);
 			}
-			return "Ты че деб? /addmeme <ссылка>";
+			return Localization.Get("random_meme_add_failed", chatId);
 		}
 
 		private async Task<string> GetRandomMeme(Chat sender)

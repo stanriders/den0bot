@@ -205,11 +205,11 @@ namespace den0bot
 					continue;
 				}
 
-				IModule.Command c = m.GetCommand(msg.Text);
-				if (c != null)
+				var command = m.GetCommand(msg.Text);
+				if (command != null)
 				{
-					if ((c.IsOwnerOnly && !IsOwner(msg.From.Username)) ||
-					    (c.IsAdminOnly && !(await IsAdmin(msg.Chat.Id, msg.From.Username))))
+					if ((command.IsOwnerOnly && !IsOwner(msg.From.Username)) ||
+					    (command.IsAdminOnly && !(await IsAdmin(msg.Chat.Id, msg.From.Username))))
 					{
 						// ignore admin commands from non-admins
 						result = Localization.Get($"annoy_{RNG.NextNoMemory(1, 10)}", senderChatId);
@@ -217,27 +217,27 @@ namespace den0bot
 					}
 
 					// fire command's action
-					if (c.Action != null)
-						result = c.Action(msg);
-					else if (c.ActionAsync != null)
-						result = await c.ActionAsync(msg);
+					if (command.Action != null)
+						result = command.Action(msg);
+					else if (command.ActionAsync != null)
+						result = await command.ActionAsync(msg);
 					else
 						continue;
 
 					// send result if we got any
 					if (!string.IsNullOrEmpty(result))
 					{
-						parseMode = c.ParseMode;
-						if (c.Reply)
+						parseMode = command.ParseMode;
+						if (command.Reply)
 							replyID = msg.MessageId;
 
-						if (c.ActionResult != null)
+						if (command.ActionResult != null)
 						{
 							var sentMessage = await API.SendMessage(result, senderChatId, parseMode, replyID);
 							if (sentMessage != null)
 							{
 								// call action that receives sent message
-								c.ActionResult(sentMessage);
+								command.ActionResult(sentMessage);
 								return;
 							}
 						}

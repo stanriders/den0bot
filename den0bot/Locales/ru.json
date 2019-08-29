@@ -12,11 +12,17 @@
   "random_no_shitposter": "Ты щитпостер",
   "random_shitposter": " - щитпостер",
   "random_no_memes": "А мемов-то нет",
+  "random_meme_added": "Мемес добавлен!",
+  "random_meme_add_failed": "Ты че деб? /addmeme &lt;ссылка&gt;",
   "random_roll": "Нароллил ",
   "random_roll_overflow": "Нихуя ты загнул",
 
   "recentscores_unknown_player": "ты кто\nДобавь себя: /addme &lt;профиль&gt;",
   "recentscores_no_scores": "Нет скоров",
+  "recentscores_player_add_failed": "Ты че деб? /addme &lt;ссылка на профиль&gt;",
+  "recentscores_player_add_success": "Добавил!",
+  "recentscores_player_remove_failed": "Ты че деб? /removeplayer &lt;юзернейм&gt;",
+  "recentscores_player_remove_success": "Удалил!",
 
   "girls_tag": "#девки",
   "girls_rating_up": "Рейтинг девки повышен ({0})",
@@ -28,6 +34,8 @@
   "matchfollow_added": "Добавил",
 
   "shmalala_trigger": "денобот,",
+  "shmalala_notready": "Падажжи ебана",
+  "shmalala_stats": "Слов: {0}, связей: {1}",
 
   "event_1": "Егорыч, бросай наркотики",
   "event_2": "Панда - щитпостер",

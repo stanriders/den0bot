@@ -1,7 +1,6 @@
 ﻿// den0bot (c) StanR 2019 - MIT License
 using System;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
 namespace den0bot.Util
 {

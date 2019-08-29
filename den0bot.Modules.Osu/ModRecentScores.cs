@@ -172,25 +172,25 @@ namespace den0bot.Modules.Osu
 						}).Result;
 
 						if (info == null)
-							return "Ты че деб? /addme <ссылка на профиль>";
+							return Localization.Get("recentscores_player_add_failed", message.Chat.Id);
 						else
 							osuID = info.ID;
 					}
 					if (osuID != 0)
 					{
 						AddPlayerToDatabase(message.From.Id, osuID);
-						return "Добавил!";
+						return Localization.Get("recentscores_player_add_success", message.Chat.Id);
 					}
 				}
 			}
 			
-			return "Ты че деб? /addme <ссылка на профиль>";
+			return Localization.Get("recentscores_player_add_failed", message.Chat.Id);
 		}
 
 		private string RemoveMe(Telegram.Bot.Types.Message message)
 		{
 			RemovePlayerFromDatabase(message.From.Id);
-			return "Удалил.";
+			return Localization.Get("recentscores_player_remove_success", message.Chat.Id);
 		}
 
 		private string RemovePlayer(Telegram.Bot.Types.Message message)
@@ -200,9 +200,9 @@ namespace den0bot.Modules.Osu
 			if (!string.IsNullOrEmpty(name))
 			{
 				RemovePlayerFromDatabase(Database.GetUserID(name));
-				return $"{name} удален.";
+				return Localization.Get("recentscores_player_remove_success", message.Chat.Id);
 			}
-			return "Ты че деб? /removeplayer <юзернейм>";
+			return Localization.Get("recentscores_player_remove_failed", message.Chat.Id);
 		}
 
 		#region Database

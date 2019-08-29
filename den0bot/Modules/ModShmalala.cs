@@ -178,7 +178,7 @@ namespace den0bot.Modules
 						{
 							linkAmount += node.Links.Count;
 						}
-						return $"Words: {markovChain.Nodes.Count}, total links: {linkAmount}";
+						return Localization.FormatGet("shmalala_stats", markovChain.Nodes.Count, linkAmount, msg.Chat.Id);
 					}
 				},
 				new Command
@@ -208,7 +208,7 @@ namespace den0bot.Modules
 		private string SendRandomMessage(Message msg)
 		{
 			if (!markovChain.Ready || markovChain.Nodes.Count == 0)
-				return "Bot has not yet been trained.";
+				return Localization.Get("shmalala_notready", msg.Chat.Id);
 
 			var textBuilder = new StringBuilder();
 

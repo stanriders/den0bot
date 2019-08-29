@@ -33,6 +33,11 @@ namespace den0bot.Util
 			return string.Format(Get(key, chatID), arg);
 		}
 
+		public static string FormatGet(string key, object arg, object arg2, long chatID)
+		{
+			return string.Format(Get(key, chatID), arg, arg2);
+		}
+
 		public static string Get(string key, long chatID)
 		{
 			string locale = Database.GetChatLocale(chatID);

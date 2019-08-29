@@ -12,11 +12,17 @@
   "random_no_shitposter": "You're shitposter",
   "random_shitposter": " shitposter",
   "random_no_memes": "No memes found",
+  "random_meme_added": "Мемес добавлен!",
+  "random_meme_add_failed": "What? /addmeme &lt;link&gt;",
   "random_roll": "Rolled ",
   "random_roll_overflow": "T-there's no way that could f-fit!!~",
 
   "recentscores_unknown_player": "I don't know you.\nAdd yourself /addme &lt;osu!profile&gt;",
   "recentscores_no_scores": "No scores",
+  "recentscores_player_add_failed": "What? /addme &lt;profile link&gt;",
+  "recentscores_player_add_success": "Added!",
+  "recentscores_player_remove_failed": "What? /removeplayer &lt;username&gt;",
+  "recentscores_player_remove_success": "Removed!",
 
   "girls_tag": "#girls",
   "girls_rating_up": "Girl's rating increased ({0})",
@@ -28,11 +34,13 @@
   "matchfollow_added": "Added",
 
   "shmalala_trigger": "denobot,",
+  "shmalala_notready": "I'm not ready yet!",
+  "shmalala_stats": "Words: {0}, total links: {1}",
 
   "event_1": "idke can't ror hr",
   "event_2": "ye xD",
   "event_3": "727",
-  "event_4": "idke can ror hr",
+  "event_4": "imperial ded bycicle lol",
   "event_5": "Azer isn't so great? Are you kidding me?",
   "event_6": "We all know that FunOrange really got 2nd place. He only missed 1, and thats because of the damn star pattern towards the end; pretty much throws everyone off.",
   "event_7": "O-oooooooooo AAAAE-A-A-I-A-U- JO-oooooooooooo AAE-O-A-A-U-U-A- E-eee-ee-eee AAAAE-A-E-I-E-A- JO-ooo-oo-oo-oo EEEEO-A-AAA-AAAA",
