@@ -10,20 +10,17 @@ namespace den0bot.Modules.Osu.Osu
 {
 	static class Oppai
 	{
-		public static double GetBeatmapPP(byte[] beatmap, Mods mods, double acc)
+		public static double GetBeatmapPP(Map map, Mods mods, double acc)
 		{
-			return GetBeatmapOppaiInfo(beatmap, mods, acc)?.PP ?? -1;
+			return CalcPP(map.FileBytes, mods, acc)?.Total ?? -1;
 		}
 
-		public static OppaiInfo GetBeatmapOppaiInfo(Map map, Score score = null)
+		public static double GetBeatmapPP(Map map, Score score)
 		{
-			if (score != null)
-				return GetBeatmapOppaiInfo(map.FileBytes, score.EnabledMods ?? Mods.None, score.Accuracy, (int)score.Combo, (int)score.Misses);
-			else
-				return GetBeatmapOppaiInfo(map.FileBytes);
+			return CalcPP(map.FileBytes, score.EnabledMods ?? Mods.None, score.Accuracy, (int)score.Combo, (int)score.Misses)?.Total ?? -1;
 		}
 
-		public static OppaiInfo GetBeatmapOppaiInfo(byte[] beatmap, Mods mods = Mods.None, double acc = -1, int combo = -1, int misses = 0)
+		private static PPv2 CalcPP(byte[] beatmap, Mods mods = Mods.None, double acc = -1, int combo = -1, int misses = 0)
 		{
 			try
 			{
@@ -33,23 +30,12 @@ namespace den0bot.Modules.Osu.Osu
 					Beatmap map = Beatmap.Read(reader);
 					DiffCalc diff = new DiffCalc().Calc(map, (OppaiSharp.Mods) mods);
 
-					PPv2 pp = new PPv2(new PPv2Parameters(map, diff,
-						accuracy: acc / 100,
-						cMiss: misses,
-						combo: combo,
-						mods: (OppaiSharp.Mods) mods)
-					);
-
-					return new OppaiInfo()
-					{
-						Stars = diff.Total,
-						PP = pp.Total
-					};
+					return new PPv2(new PPv2Parameters(map, diff, acc / 100, misses, combo, (OppaiSharp.Mods) mods));
 				}
 			}
 			catch (Exception e)
 			{
-				Log.Error($"GetBeatmapOppaiInfo failed, ${e.InnerMessageIfAny()}");
+				Log.Error($"CalcPP failed, ${e.InnerMessageIfAny()}");
 			}
 
 			return null;

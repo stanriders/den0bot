@@ -118,7 +118,7 @@ namespace den0bot.Modules.Osu
 						try
 						{
 							// Add pp values
-							double scorePP = Oppai.GetBeatmapOppaiInfo(map, score).PP;
+							double scorePP = Oppai.GetBeatmapPP(map, score);
 							string possiblePP = string.Empty;
 							if (score.Combo < map.MaxCombo - 1 || score.Misses > 0)
 							{
@@ -126,7 +126,7 @@ namespace den0bot.Modules.Osu
 								Score fcScore = (Score) score.Clone();
 								fcScore.Combo = map.MaxCombo ?? 0;
 								fcScore.Misses = 0;
-								double possiblePPval = Oppai.GetBeatmapOppaiInfo(map, fcScore).PP;
+								double possiblePPval = Oppai.GetBeatmapPP(map, fcScore);
 								possiblePP = $"({possiblePPval:N2}pp if FC)";
 							}
 

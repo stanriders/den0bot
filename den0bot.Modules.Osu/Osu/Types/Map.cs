@@ -219,16 +219,16 @@ namespace den0bot.Modules.Osu.Osu.Types
 
 			try
 			{
-				double info100 = Oppai.GetBeatmapPP(FileBytes, mods, 100);
+				double info100 = Oppai.GetBeatmapPP(this, mods, 100);
 				if (info100 > 0)
 				{
 					pp = $"100% - {info100:N2}pp";
 
-					double info98 = Oppai.GetBeatmapPP(FileBytes, mods, 98);
+					double info98 = Oppai.GetBeatmapPP(this, mods, 98);
 					if (info98 > 0)
 						pp += $" | 98% - {info98:N2}pp";
 
-					double info95 = Oppai.GetBeatmapPP(FileBytes, mods, 95);
+					double info95 = Oppai.GetBeatmapPP(this, mods, 95);
 					if (info95 > 0)
 						pp += $" | 95% - {info95:N2}pp";
 				}
