@@ -28,14 +28,9 @@ namespace den0bot.Util
 			}
 		}
 
-		public static string FormatGet(string key, object arg, long chatID)
+		public static string FormatGet(string key, long chatID, params object[] arg)
 		{
 			return string.Format(Get(key, chatID), arg);
-		}
-
-		public static string FormatGet(string key, object arg, object arg2, long chatID)
-		{
-			return string.Format(Get(key, chatID), arg, arg2);
 		}
 
 		public static string Get(string key, long chatID)

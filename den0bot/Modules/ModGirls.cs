@@ -249,7 +249,7 @@ namespace den0bot.Modules
 
 								await API.EditMediaCaption(chatId, callback.Message.MessageId, $"{girl.SeasonalRating} (s{Database.GirlSeason})",
 									buttons);
-								return Localization.FormatGet("girls_rating_up", $"{girl.SeasonalRating} (s{Database.GirlSeason})", chatId);
+								return Localization.FormatGet("girls_rating_up", chatId, $"{girl.SeasonalRating} (s{Database.GirlSeason})");
 							}
 							else
 							{
@@ -258,7 +258,7 @@ namespace den0bot.Modules
 
 								await API.EditMediaCaption(chatId, callback.Message.MessageId, girl.Rating.ToString(),
 									buttons);
-								return Localization.FormatGet("girls_rating_up", girl.Rating, chatId);
+								return Localization.FormatGet("girls_rating_up", chatId, girl.Rating);
 							}	
 						}
 						else if (callback.Data == "-")
@@ -281,13 +281,13 @@ namespace den0bot.Modules
 								{
 									await API.EditMediaCaption(chatId, callback.Message.MessageId, $"{girl.SeasonalRating} (s{Database.GirlSeason})",
 										buttons);
-									return Localization.FormatGet("girls_rating_down", $"{girl.SeasonalRating} (s{Database.GirlSeason})", chatId);
+									return Localization.FormatGet("girls_rating_down", chatId, $"{girl.SeasonalRating} (s{Database.GirlSeason})");
 								}
 								else
 								{
 									await API.EditMediaCaption(chatId, callback.Message.MessageId, girl.Rating.ToString(),
 										buttons);
-									return Localization.FormatGet("girls_rating_down", girl.Rating, chatId);
+									return Localization.FormatGet("girls_rating_down", chatId, girl.Rating);
 								}
 							}
 							else

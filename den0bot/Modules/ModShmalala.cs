@@ -178,7 +178,7 @@ namespace den0bot.Modules
 						{
 							linkAmount += node.Links.Count;
 						}
-						return Localization.FormatGet("shmalala_stats", markovChain.Nodes.Count, linkAmount, msg.Chat.Id);
+						return Localization.FormatGet("shmalala_stats", msg.Chat.Id, markovChain.Nodes.Count, linkAmount);
 					}
 				},
 				new Command

@@ -8,7 +8,7 @@ using OppaiSharp;
 
 namespace den0bot.Modules.Osu.Osu
 {
-	static class Oppai
+	public static class Oppai
 	{
 		public static double GetBeatmapPP(Map map, Mods mods, double acc)
 		{
