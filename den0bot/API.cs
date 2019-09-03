@@ -98,8 +98,9 @@ namespace den0bot
 		public static async Task SendMessageToAllChats(string msg, string image = null, ParseMode mode = ParseMode.Default)
 		{
 			foreach (DB.Types.Chat receiver in Database.GetAllChats())
-			{
-				if (api.GetChatAsync(receiver.Id).Result == null)
+            {
+                var chat = await api.GetChatAsync(receiver.Id);
+                if (chat == null)
 				{
 					Database.RemoveChat(receiver.Id);
 					Log.Info($"Chat {receiver.Id} removed");

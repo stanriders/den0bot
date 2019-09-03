@@ -28,7 +28,7 @@ namespace den0bot.Modules.Osu
 				new Command
 				{
 					Name = "addme",
-					Action = AddMe
+					ActionAsync = AddMe
 				},
 				new Command
 				{
@@ -107,8 +107,7 @@ namespace den0bot.Modules.Osu
 					Map map = await Osu.WebApi.MakeAPIRequest(new GetBeatmap
 					{
 						ID = score.BeatmapID
-
-					});
+                    });
 					if (map != null)
 					{
 						string mapInfo = $"{map.Artist} - {map.Title} [{map.Difficulty}]".FilterToHTML();
@@ -153,7 +152,7 @@ namespace den0bot.Modules.Osu
 			return null;
 		}
 
-		private string AddMe(Telegram.Bot.Types.Message message)
+		private async Task<string> AddMe(Telegram.Bot.Types.Message message)
 		{
 			Match regexMatch = profileRegex.Match(message.Text);
 			if (regexMatch.Groups.Count > 1)
@@ -161,15 +160,13 @@ namespace den0bot.Modules.Osu
 				string player = regexMatch.Groups[1]?.Value;
 				if (!string.IsNullOrEmpty(player))
 				{
-					uint osuID = 0;
-					if (!uint.TryParse(player, out osuID))
+                    if (!uint.TryParse(player, out var osuID))
 					{
 						// if they used /u/cookiezi instead of /u/124493 we ask osu API for an ID
-						Osu.Types.Player info = Osu.WebApi.MakeAPIRequest(new GetUser
+						Osu.Types.Player info = await Osu.WebApi.MakeAPIRequest(new GetUser
 						{
 							Username = player
-
-						}).Result;
+                        });
 
 						if (info == null)
 							return Localization.Get("recentscores_player_add_failed", message.Chat.Id);

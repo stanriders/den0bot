@@ -153,13 +153,11 @@ namespace den0bot
 
 			if (msg.NewChatMembers != null && msg.NewChatMembers.Length > 0)
 			{
-				string greeting;
-				if (msg.NewChatMembers[0].Id == API.BotUser.Id)
+				string greeting = Localization.NewMemberGreeting(senderChatId, msg.NewChatMembers[0].FirstName, msg.NewChatMembers[0].Id);
+                if (msg.NewChatMembers[0].Id == API.BotUser.Id)
 					greeting = Localization.Get("generic_added_to_chat", senderChatId);
-				else
-					greeting = Localization.NewMemberGreeting(senderChatId, msg.NewChatMembers[0].FirstName, msg.NewChatMembers[0].Id);
 
-				await API.SendMessage(greeting, senderChatId, ParseMode.Html);
+                await API.SendMessage(greeting, senderChatId, ParseMode.Html);
 				return;
 			}
 
