@@ -8,7 +8,6 @@ using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.ReplyMarkups;
 using den0bot.DB;
 using den0bot.Util;
-using System.Threading;
 using System.Linq;
 using SQLite;
 
@@ -16,7 +15,7 @@ namespace den0bot.Modules
 {
 	public class ModGirls : IModule, IReceiveAllMessages, IReceiveCallback, IReceivePhotos
 	{
-		private class ChachedGirl
+		private class CachedGirl
 		{
 			public int ID { get; set; }
 			public int Rating { get; set; }
@@ -37,7 +36,7 @@ namespace den0bot.Modules
 			}
 		);
 
-		private readonly Dictionary<long, Queue<ChachedGirl>> antispamBuffer = new Dictionary<long, Queue<ChachedGirl>>(); // chatID, queue
+		private readonly Dictionary<long, Queue<CachedGirl>> antispamBuffer = new Dictionary<long, Queue<CachedGirl>>(); // chatID, queue
 		private const int antispam_cooldown = 15; //seconds
 
 		private const int top_girls_amount = 9;
@@ -113,7 +112,7 @@ namespace den0bot.Modules
 				return Localization.Get("girls_not_found", chatID);
 
 			if (!antispamBuffer.ContainsKey(chatID))
-				antispamBuffer.Add(chatID, new Queue<ChachedGirl>(3));
+				antispamBuffer.Add(chatID, new Queue<CachedGirl>(3));
 
 			var picture = seasonal ? GetGirlSeasonal(chatID) : GetGirl(chatID);
 			if (picture != null && picture.Link != string.Empty)
@@ -127,7 +126,7 @@ namespace den0bot.Modules
 
 				if (sentMessage != null)
 				{
-					var girl = new ChachedGirl
+					var girl = new CachedGirl
 					{
 						ID = picture.Id,
 						Rating = picture.Rating == int.MinValue ? 0 : picture.Rating,
@@ -231,7 +230,7 @@ namespace den0bot.Modules
 				if (sentGirlsCache.Contains(callback.Message.MessageId.ToString()))
 				{
 					long chatId = callback.Message.Chat.Id;
-					var girl = sentGirlsCache.Get(callback.Message.MessageId.ToString()) as ChachedGirl;
+					var girl = sentGirlsCache.Get(callback.Message.MessageId.ToString()) as CachedGirl;
 					if (girl?.Voters != null && girl.Voters.Contains(callback.From.Id))
 					{
 						// they already voted
@@ -314,7 +313,7 @@ namespace den0bot.Modules
 		{
 			if (message.ReplyToMessage != null && sentGirlsCache.Contains(message.ReplyToMessage.MessageId.ToString()))
 			{
-				var girl = sentGirlsCache.Remove(message.ReplyToMessage.MessageId.ToString()) as ChachedGirl;
+				var girl = sentGirlsCache.Remove(message.ReplyToMessage.MessageId.ToString()) as CachedGirl;
 				RemoveGirl(girl.ID);
 				await API.RemoveMessage(message.Chat.Id, message.ReplyToMessage.MessageId);
 				return Localization.Get("girls_rating_delete_manual", message.Chat.Id);
