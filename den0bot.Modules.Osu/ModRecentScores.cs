@@ -83,17 +83,17 @@ namespace den0bot.Modules.Osu
 				playerID = id.ToString();
 			}
 
-			List<Score> lastScores = await Osu.WebApi.MakeAPIRequest(new GetRecentScores() {
+			List<Score> lastScores = await Osu.WebApi.MakeAPIRequest(new GetRecentScores {
 				Username = playerID,
 				Amount = amount
 			});
 
-			string result = string.Empty;
 			if (lastScores != null)
 			{
 				if (lastScores.Count == 0)
 					return Localization.Get("recentscores_no_scores", message.Chat.Id);
 
+				string result = string.Empty;
 				foreach (Score score in lastScores)
 				{
 					Mods enabledMods = score.EnabledMods ?? Mods.None;
@@ -102,18 +102,18 @@ namespace den0bot.Modules.Osu
 						mods = " +" + enabledMods.ToString().Replace(", ", "");
 
 					TimeSpan ago = DateTime.Now.ToUniversalTime() - score.Date;
-					string date = ago.ToString(@"hh\:mm\:ss") + " ago";
+					string date = $"{ago:hh\\:mm\\:ss} ago";
 
 					Map map = await Osu.WebApi.MakeAPIRequest(new GetBeatmap
 					{
 						ID = score.BeatmapID
-                    });
+					});
 					if (map != null)
 					{
+						// html-filtered map title
 						string mapInfo = $"{map.Artist} - {map.Title} [{map.Difficulty}]".FilterToHTML();
 
-						result += $"<b>({score.Rank})</b> <a href=\"{map.Link}\">{mapInfo}</a><b>{mods} ({score.Accuracy:N2}%)</b>{Environment.NewLine}" +
-								  $"{score.Combo}/{map.MaxCombo}x ({score.Count300}/ {score.Count100} / {score.Count50} / {score.Misses})";
+						string pp = string.Empty;
 						try
 						{
 							// Add pp values
@@ -122,32 +122,36 @@ namespace den0bot.Modules.Osu
 							if (score.Combo < map.MaxCombo - 1 || score.Misses > 0)
 							{
 								// Add possible pp value if they missed or dropped more than 1 combo
-								Score fcScore = (Score) score.Clone();
+								Score fcScore = (Score)score.Clone();
 								fcScore.Combo = map.MaxCombo ?? 0;
 								fcScore.Misses = 0;
+
 								double possiblePPval = Oppai.GetBeatmapPP(map, fcScore);
 								possiblePP = $"({possiblePPval:N2}pp if FC)";
 							}
 
-							result += $" | ~{scorePP:N2}pp {possiblePP}";
+							pp = $"| ~{scorePP:N2}pp {possiblePP}";
 						}
 						catch (Exception e)
 						{
 							Log.Error($"Oppai failed: {e.InnerMessageIfAny()}");
 						}
+
+						result = $"<b>({score.Rank})</b> <a href=\"{map.Link}\">{mapInfo}</a><b>{mods} ({score.Accuracy:N2}%)</b>{Environment.NewLine}" +
+								 $"{score.Combo}/{map.MaxCombo}x ({score.Count300}/ {score.Count100} / {score.Count50} / {score.Misses}) {pp}{Environment.NewLine}" +
+								 $"{date}{Environment.NewLine}{Environment.NewLine}";
 					}
 					else
 					{
-						// Didn't get beatmap info, insert plain link
-						result += $"<b>({score.Rank})</b> https://osu.ppy.sh/b/{score.BeatmapID}<b>{mods} ({score.Accuracy:N2}%)</b>{Environment.NewLine}" +
-								  $"{score.Combo}x ({score.Count300}/ {score.Count100} / {score.Count50} / {score.Misses})";
+						// Didn't get beatmap info, insert plain link instead
+						result = $"<b>({score.Rank})</b> https://osu.ppy.sh/b/{score.BeatmapID}<b>{mods} ({score.Accuracy:N2}%)</b>{Environment.NewLine}" +
+								 $"{score.Combo}x ({score.Count300}/ {score.Count100} / {score.Count50} / {score.Misses}){Environment.NewLine}" +
+								 $"{date}{Environment.NewLine}{Environment.NewLine}";
 					}
-
-					// Add date
-					result += $"{Environment.NewLine}{date}{Environment.NewLine}{Environment.NewLine}";
 				}
+				return result;
 			}
-			return result;
+			return string.Empty;
 		}
 
 		private async Task<string> AddMe(Telegram.Bot.Types.Message message)
