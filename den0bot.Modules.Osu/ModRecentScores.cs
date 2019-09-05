@@ -54,7 +54,7 @@ namespace den0bot.Modules.Osu
 
 		private async Task<string> GetScores(Telegram.Bot.Types.Message message)
 		{
-			string playerID = string.Empty;
+			string playerID;
 			int amount = 1;
 
 			List<string> msgSplit = message.Text.Split(' ').ToList();
@@ -88,12 +88,12 @@ namespace den0bot.Modules.Osu
 				Amount = amount
 			});
 
+			string result = string.Empty;
 			if (lastScores != null)
 			{
 				if (lastScores.Count == 0)
 					return Localization.Get("recentscores_no_scores", message.Chat.Id);
 
-				string result = string.Empty;
 				foreach (Score score in lastScores)
 				{
 					Mods enabledMods = score.EnabledMods ?? Mods.None;
@@ -146,10 +146,8 @@ namespace den0bot.Modules.Osu
 					// Add date
 					result += $"{Environment.NewLine}{date}{Environment.NewLine}{Environment.NewLine}";
 				}
-
-				return result;
 			}
-			return null;
+			return result;
 		}
 
 		private async Task<string> AddMe(Telegram.Bot.Types.Message message)
