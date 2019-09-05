@@ -42,7 +42,10 @@ namespace den0bot
 				api.OnReceiveError += delegate (object sender, ReceiveErrorEventArgs args) { Log.Error(args.ApiRequestException.InnerMessageIfAny()); };
 
 				if (!api.TestApiAsync().Result)
+				{
+					Log.Error("API Test failed, shutting down!");
 					return false;
+				}
 
 				BotUser = api.GetMeAsync().Result;
 
@@ -80,7 +83,7 @@ namespace den0bot
 			try
 			{
 				if (!string.IsNullOrEmpty(message))
-					return await api?.SendTextMessageAsync(receiverID, message, mode, disablePreview, false, replyID, replyMarkup);
+					return await api.SendTextMessageAsync(receiverID, message, mode, disablePreview, false, replyID, replyMarkup);
 			}
 			catch (Exception ex)
 			{
@@ -138,7 +141,7 @@ namespace den0bot
 						}
 					}
 
-					return await api?.SendPhotoAsync(receiverId, file, message, mode, false, replyID, replyMarkup);
+					return await api.SendPhotoAsync(receiverId, file, message, mode, false, replyID, replyMarkup);
 				}
 			}
 			catch (Exception ex)
@@ -151,7 +154,8 @@ namespace den0bot
 		{
 			try
 			{
-				return new InputOnlineFile(new WebClient().OpenRead(link));
+				using(var client = new WebClient())
+					return new InputOnlineFile(client.OpenRead(link));
 			}
 			catch (Exception ex)
 			{
@@ -171,7 +175,7 @@ namespace den0bot
 			{
 				if (photos != null && photos.Count > 1)
 				{
-					return await api?.SendMediaGroupAsync(photos, receiverId);
+					return await api.SendMediaGroupAsync(photos, receiverId);
 				}
 			}
 			catch (Exception ex)
@@ -206,7 +210,7 @@ namespace den0bot
 		{
 			try
 			{
-				return await api?.GetChatAdministratorsAsync(chatID);
+				return await api.GetChatAdministratorsAsync(chatID);
 			}
 			catch (Exception ex)
 			{

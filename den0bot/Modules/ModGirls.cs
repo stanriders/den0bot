@@ -349,7 +349,7 @@ namespace den0bot.Modules
 			if (!Database.Exist<Girl>(x => x.Link == link))
 			{
 				var season = Database.GirlSeason;
-				if (Database.GirlSeasonStartDate == default(DateTime) || Database.GirlSeasonStartDate.AddMonths(1) < DateTime.Today)
+				if (Database.GirlSeasonStartDate == default || Database.GirlSeasonStartDate.AddMonths(1) < DateTime.Today)
 				{
 					// rotate season if it's the day
 					SubmitSeasonalRatingsToGlobal(season);
@@ -403,7 +403,7 @@ namespace den0bot.Modules
 		private Girl GetGirlSeasonal(long chatID)
 		{
 			var season = Database.GirlSeason;
-			if (Database.GirlSeasonStartDate == default(DateTime) || Database.GirlSeasonStartDate.AddMonths(1) < DateTime.Today)
+			if (Database.GirlSeasonStartDate == default || Database.GirlSeasonStartDate.AddMonths(1) < DateTime.Today)
 			{
 				// rotate season if it's the day
 				SubmitSeasonalRatingsToGlobal(season);
@@ -539,6 +539,5 @@ namespace den0bot.Modules
 			}
 		}
 		#endregion
-
 	}
 }
