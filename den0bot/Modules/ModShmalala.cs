@@ -75,8 +75,8 @@ namespace den0bot.Modules
 			public IEnumerable<string> GenerateSequence(string startNode)
 			{
 				var curNode = GetExistingNode(startNode);
-				int wordAmt = 0; // make responses 10 words max so it could make a bit more sense
-				int wordMax = RNG.NextNoMemory(3, 11);
+				int wordAmt = 0; // make responses 8 words max so it could make a bit more sense
+				int wordMax = RNG.NextNoMemory(3, 9);
 				while (wordAmt < wordMax)
 				{
 					if (curNode.Links.Count == 0)
@@ -151,7 +151,7 @@ namespace den0bot.Modules
 			}
 		}
 
-		private readonly char[] sentenceSeparators = { '.', '!', '.', '!', '?', '(', ')', '\n' };
+		private readonly char[] sentenceSeparators = { '.', '.', '.', '!', '!', '?', '(', ')', '\n' };
 		private readonly Regex cleanWordRegex = 
 			new Regex(@"[()\[\]{}'""`~\\\/\-*\d]|(http|ftp|https):\/\/([\w_-]+(?:(?:\.[\w_-]+)+))([\w.,@?^=%&:\/~+#-]*[\w@?^=%&\/~+#-])?", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
