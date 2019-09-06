@@ -1,6 +1,5 @@
 ﻿// den0bot (c) StanR 2019 - MIT License
 using System;
-using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
@@ -100,7 +99,7 @@ namespace den0bot.Modules
 												Uri.EscapeDataString(lastChecked.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss.sZ")),
 												channel_id);
 
-				var data = await new WebClient().DownloadDataTaskAsync(request);
+				var data = await Web.DownloadBytes(request);
 
 				JObject obj = JObject.Parse(Encoding.UTF8.GetString(data));
 
@@ -134,7 +133,7 @@ namespace den0bot.Modules
 												Uri.EscapeDataString("items(contentDetails/upload,snippet/title)"),
 												channel_id);
 
-				var data = await new WebClient().DownloadDataTaskAsync(request);
+				var data = await Web.DownloadBytes(request);
 
 				JObject obj = JObject.Parse(Encoding.UTF8.GetString(data));
 				for (int i = 0; i < 3; i++)

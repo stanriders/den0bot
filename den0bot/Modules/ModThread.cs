@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
@@ -75,7 +74,7 @@ namespace den0bot.Modules
 			try
 			{
 				string request = $"https://2ch.hk/a/res/{threadID}.json";
-				var data = await new WebClient().DownloadDataTaskAsync(request);
+				var data = await Web.DownloadBytes(request);
 
 				JToken obj = JObject.Parse(Encoding.UTF8.GetString(data))["threads"][0];
 

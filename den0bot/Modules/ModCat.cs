@@ -1,6 +1,5 @@
 ﻿// den0bot (c) StanR 2019 - MIT License
 using System;
-using System.Net;
 using System.Linq;
 using Telegram.Bot.Types;
 using Newtonsoft.Json.Linq;
@@ -38,9 +37,9 @@ namespace den0bot.Modules
 					string json = string.Empty;
 					try
 					{
-						json = new WebClient().DownloadString(api_link);
+						json = await Web.DownloadString(api_link);
 					}
-					catch (Exception) { }
+					catch (Exception) {}
 
 					if (!string.IsNullOrEmpty(json))
 					{

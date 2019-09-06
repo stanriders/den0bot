@@ -1,6 +1,5 @@
 ﻿// den0bot (c) StanR 2019 - MIT License
 using System;
-using System.Net;
 using System.Threading.Tasks;
 using den0bot.Util;
 using den0bot.Modules.Osu.Osu.API;
@@ -31,18 +30,14 @@ namespace den0bot.Modules.Osu.Osu
 
 			try
 			{
-				using (var webClient = new WebClient())
-				{
-					string json =
-						await webClient.DownloadStringTaskAsync(
-							$"https://osu.ppy.sh/api/{request.Address}&k={Config.Params.osuToken}");
+				string json =
+					await Web.DownloadString($"https://osu.ppy.sh/api/{request.Address}&k={Config.Params.osuToken}");
 
-					dynamic deserializedObject = JsonConvert.DeserializeObject(json, request.ReturnType);
-					if (request.ShouldReturnSingle)
-						return deserializedObject[0];
+				dynamic deserializedObject = JsonConvert.DeserializeObject(json, request.ReturnType);
+				if (request.ShouldReturnSingle)
+					return deserializedObject[0];
 
-					return deserializedObject;
-				}
+				return deserializedObject;
 			}
 			catch (Exception ex)
 			{

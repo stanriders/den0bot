@@ -1,7 +1,5 @@
 ﻿// den0bot (c) StanR 2019 - MIT License
 using System;
-using System.Net;
-using System.Text;
 using Newtonsoft.Json;
 using den0bot.Util;
 
@@ -179,7 +177,7 @@ namespace den0bot.Modules.Osu.Osu.Types
 				try
 				{
 					if (string.IsNullOrEmpty(fileString))
-						fileString = new WebClient().DownloadString("https://osu.ppy.sh/osu/" + BeatmapID);
+						fileString = Web.DownloadString("https://osu.ppy.sh/osu/" + BeatmapID).Result;
 
 					return fileString;
 				}
@@ -200,8 +198,7 @@ namespace den0bot.Modules.Osu.Osu.Types
 				{
 					if (fileBytes == null)
 					{
-						var client = new WebClient {Encoding = Encoding.UTF8};
-						fileBytes = client.DownloadData("https://osu.ppy.sh/osu/" + BeatmapID);
+						fileBytes = Web.DownloadBytes("https://osu.ppy.sh/osu/" + BeatmapID).Result;
 					}
 					return fileBytes;
 				}

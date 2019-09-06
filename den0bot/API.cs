@@ -131,31 +131,8 @@ namespace den0bot
 			{
 				if (!string.IsNullOrEmpty(photo))
 				{
-					InputOnlineFile file = new InputOnlineFile(photo);
-					if (photo.StartsWith("http") && (photo.EndsWith(".jpg") || photo.EndsWith(".png")))
-					{
-						file = UriPhotoDownload(new Uri(photo));
-						if (file == null)
-						{
-							return await SendMessage(message, receiverId, mode, replyID, replyMarkup);
-						}
-					}
-
-					return await api.SendPhotoAsync(receiverId, file, message, mode, false, replyID, replyMarkup);
+					return await api.SendPhotoAsync(receiverId, new InputOnlineFile(photo), message, mode, false, replyID, replyMarkup);
 				}
-			}
-			catch (Exception ex)
-			{
-				Log.Error(ex.InnerMessageIfAny());
-			}
-			return null;
-		}
-		private static InputOnlineFile UriPhotoDownload(Uri link)
-		{
-			try
-			{
-				using(var client = new WebClient())
-					return new InputOnlineFile(client.OpenRead(link));
 			}
 			catch (Exception ex)
 			{
@@ -168,7 +145,7 @@ namespace den0bot
 		/// Send multiple photos in an album
 		/// </summary>
 		/// <param name="photos">Array of InputMediaPhoto photos</param>
-		/// <param name="receiverID">Chat to send photos to</param>
+		/// <param name="receiverId">Chat to send photos to</param>
 		public static async Task<Message[]> SendMultiplePhotos(List<InputMediaPhoto> photos, long receiverId)
 		{
 			try

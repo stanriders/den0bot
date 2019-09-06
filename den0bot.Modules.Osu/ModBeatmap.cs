@@ -3,7 +3,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Net;
 using System.Runtime.Caching;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -107,31 +106,30 @@ namespace den0bot.Modules.Osu
 				await API.AnswerCallbackQuery(callback.Id, "Ща всё будет");
 				var mapsetId = sentMapsCache.Remove(callback.Message.MessageId.ToString()) as uint?;
 
-				using (var web = new WebClient())
+				try
 				{
-					try
-					{
-						var data = web.DownloadData($"https://b.ppy.sh/preview/{mapsetId}.mp3");
-						File.WriteAllBytes($"./{mapsetId}.mp3", data);
-					}
-					catch (Exception e)
-					{
-						Log.Error(e.InnerMessageIfAny());
-						return string.Empty;
-					}
-
-					await new Engine("ffmpeg").ConvertAsync(new MediaFile($"./{mapsetId}.mp3"),
-						new MediaFile($"./{mapsetId}.ogg"));
-
-					using (FileStream fs = File.Open($"./{mapsetId}.ogg", FileMode.Open, FileAccess.Read))
-						await API.SendVoice(new InputOnlineFile(fs), callback.Message.Chat.Id, replyTo: callback.Message.MessageId);
-
-					File.Delete($"./{mapsetId}.mp3");
-					File.Delete($"./{mapsetId}.ogg");
+					var data = await Web.DownloadBytes($"https://b.ppy.sh/preview/{mapsetId}.mp3");
+					File.WriteAllBytes($"./{mapsetId}.mp3", data);
+				}
+				catch (Exception e)
+				{
+					Log.Error(e.InnerMessageIfAny());
+					return string.Empty;
 				}
 
-				await API.EditMediaCaption(callback.Message.Chat.Id, callback.Message.MessageId, callback.Message.Caption, parseMode: Telegram.Bot.Types.Enums.ParseMode.Html);
+				await new Engine("ffmpeg")
+					.ConvertAsync(new MediaFile($"./{mapsetId}.mp3"), new MediaFile($"./{mapsetId}.ogg"));
+
+				using (FileStream fs = File.Open($"./{mapsetId}.ogg", FileMode.Open, FileAccess.Read))
+					await API.SendVoice(new InputOnlineFile(fs), callback.Message.Chat.Id, replyTo: callback.Message.MessageId);
+
+				File.Delete($"./{mapsetId}.mp3");
+				File.Delete($"./{mapsetId}.ogg");
+
+				await API.EditMediaCaption(callback.Message.Chat.Id, callback.Message.MessageId,
+					callback.Message.Caption, parseMode: Telegram.Bot.Types.Enums.ParseMode.Html);
 			}
+
 			return string.Empty;
 		}
 

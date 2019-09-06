@@ -2,7 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
 using System.Threading.Tasks;
 using den0bot.Modules.Osu.Osu.API.Requests;
 using den0bot.Modules.Osu.Osu.Types;
@@ -40,7 +39,7 @@ namespace den0bot.Modules.Osu
 			{
 				string request = "https://sheets.googleapis.com/v4/spreadsheets/" + spreadsheet +
 				                 "/values/A2:B200?key=" + Config.Params.GoogleAPIToken;
-				var data = new WebClient().DownloadString(request);
+				var data = Web.DownloadString(request).Result;
 
 				JArray array = JToken.Parse(data)["values"] as JArray;
 
