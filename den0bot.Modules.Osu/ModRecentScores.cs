@@ -47,6 +47,13 @@ namespace den0bot.Modules.Osu
 					Reply = true,
 					ActionAsync = GetScores,
 					ParseMode = ParseMode.Html
+				},
+				new Command
+				{
+					Name = "score",
+					Reply = true,
+					ActionAsync = GetMapScores,
+					ParseMode = ParseMode.Html
 				}
 			});
 			Log.Debug("Enabled");
@@ -94,64 +101,65 @@ namespace den0bot.Modules.Osu
 					return Localization.Get("recentscores_no_scores", message.Chat.Id);
 
 				string result = string.Empty;
-				foreach (Score score in lastScores)
-				{
-					Mods enabledMods = score.EnabledMods ?? Mods.None;
-					string mods = string.Empty;
-					if (enabledMods > 0)
-						mods = " +" + enabledMods.ToString().Replace(", ", "");
+				foreach (var score in lastScores)
+                    result += await FormatScore(score, true);
 
-					TimeSpan ago = DateTime.Now.ToUniversalTime() - score.Date;
-					string date = $"{ago:hh\\:mm\\:ss} ago";
-
-					Map map = await Osu.WebApi.MakeAPIRequest(new GetBeatmap
-					{
-						ID = score.BeatmapID
-					});
-					if (map != null)
-					{
-						// html-filtered map title
-						string mapInfo = $"{map.Artist} - {map.Title} [{map.Difficulty}]".FilterToHTML();
-
-						string pp = string.Empty;
-						try
-						{
-							// Add pp values
-							double scorePP = Oppai.GetBeatmapPP(map, score);
-							string possiblePP = string.Empty;
-							if (score.Combo < map.MaxCombo - 1 || score.Misses > 0)
-							{
-								// Add possible pp value if they missed or dropped more than 1 combo
-								Score fcScore = (Score)score.Clone();
-								fcScore.Combo = map.MaxCombo ?? 0;
-								fcScore.Misses = 0;
-
-								double possiblePPval = Oppai.GetBeatmapPP(map, fcScore);
-								possiblePP = $"({possiblePPval:N2}pp if FC)";
-							}
-
-							pp = $"| ~{scorePP:N2}pp {possiblePP}";
-						}
-						catch (Exception e)
-						{
-							Log.Error($"Oppai failed: {e.InnerMessageIfAny()}");
-						}
-
-						result = $"<b>({score.Rank})</b> <a href=\"{map.Link}\">{mapInfo}</a><b>{mods} ({score.Accuracy:N2}%)</b>{Environment.NewLine}" +
-								 $"{score.Combo}/{map.MaxCombo}x ({score.Count300}/ {score.Count100} / {score.Count50} / {score.Misses}) {pp}{Environment.NewLine}" +
-								 $"{date}{Environment.NewLine}{Environment.NewLine}";
-					}
-					else
-					{
-						// Didn't get beatmap info, insert plain link instead
-						result = $"<b>({score.Rank})</b> https://osu.ppy.sh/b/{score.BeatmapID}<b>{mods} ({score.Accuracy:N2}%)</b>{Environment.NewLine}" +
-								 $"{score.Combo}x ({score.Count300}/ {score.Count100} / {score.Count50} / {score.Misses}){Environment.NewLine}" +
-								 $"{date}{Environment.NewLine}{Environment.NewLine}";
-					}
-				}
 				return result;
 			}
 			return string.Empty;
+		}
+
+		private async Task<string> GetMapScores(Telegram.Bot.Types.Message message)
+		{
+			int amount = 1;
+
+			List<string> msgSplit = message.Text.Split(' ').ToList();
+			msgSplit.RemoveAt(0);
+
+			if (msgSplit.Count > 0)
+			{
+				var mapId = Map.GetIdFromLink(msgSplit.First(), out var isSet);
+
+				var playerId = GetPlayerOsuIDFromDatabase(message.From.Id);
+				if (playerId == 0)
+					return Localization.Get("recentscores_unknown_player", message.Chat.Id);
+
+				if (isSet)
+				{
+					List<Map> set = await Osu.WebApi.MakeAPIRequest(new GetBeatmapSet
+					{
+						ID = mapId
+					});
+
+					if (set?.Count > 0)
+						mapId = set.OrderBy(x => x.StarRating).Last().BeatmapID;
+				}
+
+				List<Score> lastScores = await Osu.WebApi.MakeAPIRequest(new GetScores
+				{
+					Username = playerId.ToString(),
+					Amount = amount,
+					BeatmapId = mapId,
+					Mods = Mods.None
+				});
+
+				if (lastScores != null)
+				{
+					if (lastScores.Count == 0)
+						return Localization.Get("recentscores_no_scores", message.Chat.Id);
+
+					string result = string.Empty;
+					foreach (var score in lastScores)
+					{
+						score.BeatmapID = (uint) mapId;
+						result += await FormatScore(score, false);
+					}
+
+					return result;
+				}
+			}
+
+			return Localization.Get("generic_fail", message.Chat.Id);
 		}
 
 		private async Task<string> AddMe(Telegram.Bot.Types.Message message)
@@ -162,13 +170,13 @@ namespace den0bot.Modules.Osu
 				string player = regexMatch.Groups[1]?.Value;
 				if (!string.IsNullOrEmpty(player))
 				{
-                    if (!uint.TryParse(player, out var osuID))
+					if (!uint.TryParse(player, out var osuID))
 					{
 						// if they used /u/cookiezi instead of /u/124493 we ask osu API for an ID
 						Osu.Types.Player info = await Osu.WebApi.MakeAPIRequest(new GetUser
 						{
 							Username = player
-                        });
+						});
 
 						if (info == null)
 							return Localization.Get("recentscores_player_add_failed", message.Chat.Id);
@@ -202,6 +210,74 @@ namespace den0bot.Modules.Osu
 				return Localization.Get("recentscores_player_remove_success", message.Chat.Id);
 			}
 			return Localization.Get("recentscores_player_remove_failed", message.Chat.Id);
+		}
+
+		private async Task<string> FormatScore(Score score, bool useAgo)
+		{
+			string result;
+			Mods enabledMods = score.EnabledMods ?? Mods.None;
+			string mods = string.Empty;
+			if (enabledMods > 0)
+				mods = " +" + enabledMods.ToString().Replace(", ", "");
+
+			string date = score.Date.ToShortDateString();
+			if (useAgo)
+			{
+				TimeSpan ago = DateTime.Now.ToUniversalTime() - score.Date;
+				date = $"{ago:hh\\:mm\\:ss} ago";
+			}
+
+			Map map = await Osu.WebApi.MakeAPIRequest(new GetBeatmap
+			{
+				ID = score.BeatmapID
+			});
+			if (map != null)
+			{
+				// html-filtered map title
+				string mapInfo = $"{map.Artist} - {map.Title} [{map.Difficulty}]".FilterToHTML();
+
+				string pp = string.Empty;
+				try
+				{
+					// Add pp values
+					double scorePP = score.Pp;
+					if (scorePP == 0)
+						scorePP = Oppai.GetBeatmapPP(map, score);
+
+					string possiblePP = string.Empty;
+					if (score.Combo < map.MaxCombo - 1 || score.Misses > 0)
+					{
+						// Add possible pp value if they missed or dropped more than 1 combo
+						Score fcScore = (Score) score.Clone();
+						fcScore.Combo = map.MaxCombo ?? 0;
+						fcScore.Misses = 0;
+
+						double possiblePPval = Oppai.GetBeatmapPP(map, fcScore);
+						possiblePP = $"({possiblePPval:N2}pp if FC)";
+					}
+
+					pp = $"| ~{scorePP:N2}pp {possiblePP}";
+				}
+				catch (Exception e)
+				{
+					Log.Error($"Oppai failed: {e.InnerMessageIfAny()}");
+				}
+
+				result =
+					$"<b>({score.Rank})</b> <a href=\"{map.Link}\">{mapInfo}</a><b>{mods} ({score.Accuracy:N2}%)</b>{Environment.NewLine}" +
+					$"{score.Combo}/{map.MaxCombo}x ({score.Count300}/ {score.Count100} / {score.Count50} / {score.Misses}) {pp}{Environment.NewLine}" +
+					$"{date}{Environment.NewLine}{Environment.NewLine}";
+			}
+			else
+			{
+				// Didn't get beatmap info, insert plain link instead
+				result =
+					$"<b>({score.Rank})</b> https://osu.ppy.sh/b/{score.BeatmapID}<b>{mods} ({score.Accuracy:N2}%)</b>{Environment.NewLine}" +
+					$"{score.Combo}x ({score.Count300}/ {score.Count100} / {score.Count50} / {score.Misses}){Environment.NewLine}" +
+					$"{date}{Environment.NewLine}{Environment.NewLine}";
+			}
+
+			return result;
 		}
 
 		#region Database

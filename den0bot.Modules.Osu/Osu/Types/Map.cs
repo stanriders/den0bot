@@ -1,5 +1,8 @@
 ﻿// den0bot (c) StanR 2019 - MIT License
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text.RegularExpressions;
 using Newtonsoft.Json;
 using den0bot.Util;
 
@@ -50,6 +53,46 @@ namespace den0bot.Modules.Osu.Osu.Types
 
 		[JsonProperty("bpm")]
 		private double bpm { get; set; }
+
+		public static Regex LinkRegex = new Regex(@"(?>https?:\/\/)?(?>osu|old)\.ppy\.sh\/([b,s]|(?>beatmaps)|(?>beatmapsets))\/(\d+\/?\#osu\/)?(\d+)?\/?(?>[&,?].=\d)?\s?", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+
+		public static uint GetIdFromLink(string link, out bool isSet)
+		{
+			isSet = false;
+			Match regexMatch = Map.LinkRegex.Match(link);
+			if (regexMatch.Groups.Count > 1)
+			{
+				List<Group> regexGroups = regexMatch.Groups.Where(x => (x != null) && (x.Length > 0))
+					.ToList();
+
+				bool isNew = regexGroups[1].Value == "beatmapsets"; // are we using new website or not
+				uint beatmapId = 0;
+
+				if (isNew)
+				{
+					if (regexGroups[2].Value.Contains("#osu/"))
+					{
+						beatmapId = uint.Parse(regexGroups[3].Value);
+					}
+					else
+					{
+						isSet = true;
+						beatmapId = uint.Parse(regexGroups[2].Value);
+					}
+				}
+				else
+				{
+					if (regexGroups[1].Value == "s")
+						isSet = true;
+
+					beatmapId = uint.Parse(regexGroups[2].Value);
+				}
+
+				return beatmapId;
+			}
+
+			return 0;
+		}
 
 		public double BPM(Mods mods)
 		{
