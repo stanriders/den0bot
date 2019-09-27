@@ -62,7 +62,7 @@ namespace den0bot.Modules.Osu.Osu.Types
 			Match regexMatch = Map.LinkRegex.Match(link);
 			if (regexMatch.Groups.Count > 1)
 			{
-				List<Group> regexGroups = regexMatch.Groups.Where(x => (x != null) && (x.Length > 0))
+				List<Group> regexGroups = regexMatch.Groups.Values.Where(x => (x != null) && (x.Length > 0))
 					.ToList();
 
 				bool isNew = regexGroups[1].Value == "beatmapsets"; // are we using new website or not
