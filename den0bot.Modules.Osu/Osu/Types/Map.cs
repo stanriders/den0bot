@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Text.RegularExpressions;
 using Newtonsoft.Json;
 using den0bot.Util;
@@ -54,12 +55,13 @@ namespace den0bot.Modules.Osu.Osu.Types
 		[JsonProperty("bpm")]
 		private double bpm { get; set; }
 
-		public static Regex LinkRegex = new Regex(@"(?>https?:\/\/)?(?>osu|old)\.ppy\.sh\/([b,s]|(?>beatmaps)|(?>beatmapsets))\/(\d+\/?\#osu\/)?(\d+)?\/?(?>[&,?].=\d)?\s?", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+		private static readonly Regex linkRegex = new Regex(@"(?>https?:\/\/)?(?>osu|old)\.ppy\.sh\/([b,s]|(?>beatmaps)|(?>beatmapsets))\/(\d+\/?\#osu\/)?(\d+)?\/?(?>[&,?].=\d)?\s?(?>\+(\w+))?", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
-		public static uint GetIdFromLink(string link, out bool isSet)
+		public static uint GetIdFromLink(string link, out bool isSet, out Mods mods)
 		{
 			isSet = false;
-			Match regexMatch = Map.LinkRegex.Match(link);
+			mods = Mods.None;
+			Match regexMatch = linkRegex.Match(link);
 			if (regexMatch.Groups.Count > 1)
 			{
 				List<Group> regexGroups = regexMatch.Groups.Values.Where(x => (x != null) && (x.Length > 0))
@@ -73,11 +75,15 @@ namespace den0bot.Modules.Osu.Osu.Types
 					if (regexGroups[2].Value.Contains("#osu/"))
 					{
 						beatmapId = uint.Parse(regexGroups[3].Value);
+						if (regexGroups.Count > 4)
+							mods = ConvertToMods(regexGroups[4].Value);
 					}
 					else
 					{
 						isSet = true;
 						beatmapId = uint.Parse(regexGroups[2].Value);
+						if (regexGroups.Count > 3)
+							mods = ConvertToMods(regexGroups[3].Value);
 					}
 				}
 				else
@@ -86,12 +92,38 @@ namespace den0bot.Modules.Osu.Osu.Types
 						isSet = true;
 
 					beatmapId = uint.Parse(regexGroups[2].Value);
+					if (regexGroups.Count > 3)
+						mods = ConvertToMods(regexGroups[3].Value);
 				}
 
 				return beatmapId;
 			}
 
 			return 0;
+		}
+
+		private static Mods ConvertToMods(string mods)
+		{
+			if (Enum.TryParse(mods, true, out Mods result) || string.IsNullOrEmpty(mods) || mods.Length > 36) // every mod combination possible
+				return result;
+			else
+			{
+				StringBuilder builder = new StringBuilder(mods.Length * 2);
+				bool secondChar = false;
+				foreach (char c in mods)
+				{
+					builder.Append(c);
+					if (secondChar)
+					{
+						builder.Append(',');
+						builder.Append(' ');
+					}
+					secondChar = !secondChar;
+				}
+				builder.Remove(builder.Length - 2, 2);
+				Enum.TryParse(builder.ToString(), true, out result);
+				return result;
+			}
 		}
 
 		public double BPM(Mods mods)

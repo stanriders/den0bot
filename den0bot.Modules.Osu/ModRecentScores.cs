@@ -16,14 +16,17 @@ namespace den0bot.Modules.Osu
 {
 	public class ModRecentScores : IModule
 	{
-		private readonly Regex profileRegex = new Regex(@"(?>https?:\/\/)?(?>osu|old)\.ppy\.sh\/u(?>sers)?\/(\d+|\S+)", RegexOptions.Compiled | RegexOptions.IgnoreCase);
-		private const int score_amount = 5;
+		private readonly Regex profileRegex = new Regex(@"(?>https?:\/\/)?(?>osu|old)\.ppy\.sh\/u(?>sers)?\/(\d+|\S+)",
+			RegexOptions.Compiled | RegexOptions.IgnoreCase);
+
+		private const int recent_amount = 5;
+		private const int score_amount = 3;
 
 		public ModRecentScores()
 		{
 			Database.CreateTable<Player>();
 
-			AddCommands(new [] 
+			AddCommands(new[]
 			{
 				new Command
 				{
@@ -71,9 +74,10 @@ namespace den0bot.Modules.Osu
 			{
 				if (int.TryParse(msgSplit.Last(), out amount))
 				{
-					if (amount > score_amount)
-						amount = score_amount;
+					if (amount > recent_amount)
+						amount = recent_amount;
 				}
+
 				msgSplit.Remove(msgSplit.Last());
 			}
 
@@ -90,7 +94,8 @@ namespace den0bot.Modules.Osu
 				playerID = id.ToString();
 			}
 
-			List<Score> lastScores = await Osu.WebApi.MakeAPIRequest(new GetRecentScores {
+			List<Score> lastScores = await Osu.WebApi.MakeAPIRequest(new GetRecentScores
+			{
 				Username = playerID,
 				Amount = amount
 			});
@@ -102,23 +107,22 @@ namespace den0bot.Modules.Osu
 
 				string result = string.Empty;
 				foreach (var score in lastScores)
-                    result += await FormatScore(score, true);
+					result += await FormatScore(score, true);
 
 				return result;
 			}
+
 			return string.Empty;
 		}
 
 		private async Task<string> GetMapScores(Telegram.Bot.Types.Message message)
 		{
-			int amount = 1;
-
 			List<string> msgSplit = message.Text.Split(' ').ToList();
 			msgSplit.RemoveAt(0);
 
 			if (msgSplit.Count > 0)
 			{
-				var mapId = Map.GetIdFromLink(msgSplit.First(), out var isSet);
+				var mapId = Map.GetIdFromLink(msgSplit.First(), out var isSet, out var mods);
 
 				var playerId = GetPlayerOsuIDFromDatabase(message.From.Id);
 				if (playerId == 0)
@@ -138,9 +142,9 @@ namespace den0bot.Modules.Osu
 				List<Score> lastScores = await Osu.WebApi.MakeAPIRequest(new GetScores
 				{
 					Username = playerId.ToString(),
-					Amount = amount,
+					Amount = score_amount,
 					BeatmapId = mapId,
-					Mods = Mods.None
+					Mods = mods
 				});
 
 				if (lastScores != null)
@@ -148,11 +152,15 @@ namespace den0bot.Modules.Osu
 					if (lastScores.Count == 0)
 						return Localization.Get("recentscores_no_scores", message.Chat.Id);
 
+					var map = await Osu.WebApi.MakeAPIRequest(new GetBeatmap
+					{
+						ID = mapId
+					});
+
 					string result = string.Empty;
 					foreach (var score in lastScores)
 					{
-						score.BeatmapID = (uint) mapId;
-						result += await FormatScore(score, false);
+						result += await FormatScore(score, false, map);
 					}
 
 					return result;
@@ -183,6 +191,7 @@ namespace den0bot.Modules.Osu
 						else
 							osuID = info.ID;
 					}
+
 					if (osuID != 0)
 					{
 						AddPlayerToDatabase(message.From.Id, osuID);
@@ -190,7 +199,7 @@ namespace den0bot.Modules.Osu
 					}
 				}
 			}
-			
+
 			return Localization.Get("recentscores_player_add_failed", message.Chat.Id);
 		}
 
@@ -209,12 +218,12 @@ namespace den0bot.Modules.Osu
 				RemovePlayerFromDatabase(Database.GetUserID(name));
 				return Localization.Get("recentscores_player_remove_success", message.Chat.Id);
 			}
+
 			return Localization.Get("recentscores_player_remove_failed", message.Chat.Id);
 		}
 
-		private async Task<string> FormatScore(Score score, bool useAgo)
+		private async Task<string> FormatScore(Score score, bool useAgo, Map map = null)
 		{
-			string result;
 			Mods enabledMods = score.EnabledMods ?? Mods.None;
 			string mods = string.Empty;
 			if (enabledMods > 0)
@@ -227,10 +236,15 @@ namespace den0bot.Modules.Osu
 				date = $"{ago:hh\\:mm\\:ss} ago";
 			}
 
-			Map map = await Osu.WebApi.MakeAPIRequest(new GetBeatmap
+			if (map == null)
 			{
-				ID = score.BeatmapID
-			});
+				map = await Osu.WebApi.MakeAPIRequest(new GetBeatmap
+				{
+					ID = score.BeatmapID
+				});
+			}
+
+			string result;
 			if (map != null)
 			{
 				// html-filtered map title
@@ -281,6 +295,7 @@ namespace den0bot.Modules.Osu
 		}
 
 		#region Database
+
 		private class Player
 		{
 			[PrimaryKey]
@@ -303,8 +318,10 @@ namespace den0bot.Modules.Osu
 				});
 				return true;
 			}
+
 			return false;
 		}
+
 		private void RemovePlayerFromDatabase(int tgID)
 		{
 			Database.Remove<Player>(x => x.TelegramID == tgID);

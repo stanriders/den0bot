@@ -9,7 +9,7 @@ namespace den0bot.Modules.Osu.Osu.API.Requests
 		public APIVersion API => APIVersion.V1;
 
 		public string Address =>
-			$"get_scores?b={BeatmapId}&u={Username}&limit={Amount}&mods={(int) (Mods & Mods.DifficultyChanging)}";
+			$"get_scores?b={BeatmapId}&u={Username}&limit={Amount}{(Mods != Mods.None ? "&mods=" + (int)Mods : "")}";
 
 		public Type ReturnType => typeof(List<Score>);
 
