@@ -17,6 +17,5 @@ namespace den0bot.Modules.Osu.Osu.API.Requests
 		public uint ID { get; set; }
 
 		public Mods Mods { get; set; }
-
 	}
 }

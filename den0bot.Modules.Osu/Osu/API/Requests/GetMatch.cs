@@ -14,6 +14,5 @@ namespace den0bot.Modules.Osu.Osu.API.Requests
 		public bool ShouldReturnSingle => false;
 
 		public ulong ID { get; set; }
-
 	}
 }

@@ -135,7 +135,6 @@ namespace den0bot.Modules.Osu
 				var map = await Osu.WebApi.MakeAPIRequest(new GetBeatmap
 				{
 					ID = game.BeatmapID
-
 				});
 				if (game.TeamMode >= MultiplayerMatch.TeamMode.Team)
 				{

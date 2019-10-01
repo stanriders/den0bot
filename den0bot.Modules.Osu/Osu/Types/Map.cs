@@ -171,16 +171,16 @@ namespace den0bot.Modules.Osu.Osu.Types
 				finalAR *= 0.5;
 			}
 
-			double ms = (11700.0 - 900 * finalAR) / 6.0;
+			double ms = (11700.0 - (900 * finalAR)) / 6.0;
 			if (mods.HasFlag(Mods.DT) || mods.HasFlag(Mods.NC))
 			{
 				ms /= 1.5;
-				finalAR = (11700.0 - 6 * ms) / 900.0;
+				finalAR = (11700.0 - (6 * ms)) / 900.0;
 			}
 			else if (mods.HasFlag(Mods.HT))
 			{
 				ms /= 0.75;
-				finalAR = (11700.0 - 6 * ms) / 900.0;
+				finalAR = (11700.0 - (6 * ms)) / 900.0;
 			}
 
 			return finalAR;
@@ -199,14 +199,14 @@ namespace den0bot.Modules.Osu.Osu.Types
 				finalOD *= 0.5;
 			}
 
-			double ms = (79.5 - 6 * finalOD);
+			double ms = 79.5 - (6 * finalOD);
 			if (mods.HasFlag(Mods.DT) || mods.HasFlag(Mods.NC))
 			{
-				finalOD = (79.5 - ms / 1.5) / 6;
+				finalOD = (79.5 - (ms / 1.5)) / 6;
 			}
 			else if (mods.HasFlag(Mods.HT))
 			{
-				finalOD = (79.5 - ms / 0.75) / 6;
+				finalOD = (79.5 - (ms / 0.75)) / 6;
 			}
 			return finalOD;
 		}
