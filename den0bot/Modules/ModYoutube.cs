@@ -12,7 +12,7 @@ namespace den0bot.Modules
 	class ModYoutube : IModule
 	{
 		private DateTime nextCheck;
-		private bool isEnabled = false;
+		private readonly bool isEnabled = false;
 
 		private readonly string api_key = Config.Params.GoogleAPIToken;
 		private const string channel_id = "UCt1GKXk_zkcBUEwAeXZ43RA";  // circle people again

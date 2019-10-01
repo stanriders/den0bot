@@ -114,20 +114,19 @@ namespace den0bot
 
 		private bool TryEvent(long chatID, out string text)
 		{
-			switch (RNG.NextNoMemory(0, 1000))
+			text = (RNG.NextNoMemory(0, 1000)) switch
 			{
-				case 9: text = Localization.Get("event_1", chatID); break;
-				case 99: text = Localization.Get("event_2", chatID); break;
-				case 999: text = Localization.Get("event_3", chatID); break;
-				case 8: text = Localization.Get("event_4", chatID); break;
-				case 88: text = Localization.Get("event_5", chatID); break;
-				case 888: text = Localization.Get("event_6", chatID); break;
-				case 7: text = Localization.Get("event_7", chatID); break;
-				case 77: text = Localization.Get("event_8", chatID); break;
-				case 777: text = Localization.Get("event_9", chatID); break;
-				default: text = string.Empty; break;
-			}
-
+				9 => Localization.Get("event_1", chatID),
+				99 => Localization.Get("event_2", chatID),
+				999 => Localization.Get("event_3", chatID),
+				8 => Localization.Get("event_4", chatID),
+				88 => Localization.Get("event_5", chatID),
+				888 => Localization.Get("event_6", chatID),
+				7 => Localization.Get("event_7", chatID),
+				77 => Localization.Get("event_8", chatID),
+				777 => Localization.Get("event_9", chatID),
+				_ => string.Empty,
+			};
 			if (text != string.Empty)
 				return true;
 

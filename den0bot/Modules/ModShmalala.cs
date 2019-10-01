@@ -214,7 +214,7 @@ namespace den0bot.Modules
 
 			// Use Markov chain to generate random message, composed of one or more sentences.
 			for (int i = 0; i < RNG.NextNoMemory(1, 4); i++)
-				textBuilder.Append(GenerateRandomSentence(default(string)));
+				textBuilder.Append(GenerateRandomSentence(default));
 
 			return textBuilder.ToString();
 		}

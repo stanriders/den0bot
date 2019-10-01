@@ -11,13 +11,11 @@ namespace den0bot.Modules.Osu.Osu
 	{
 		public static async Task<dynamic> MakeAPIRequest(IRequest request)
 		{
-			switch (request.API)
+			return request.API switch
 			{
-				case APIVersion.V1:
-					return await V1APIRequest(request);
-				default:
-					throw new NotImplementedException();
-			}
+				APIVersion.V1 => await V1APIRequest(request),
+				_ => throw new NotImplementedException(),
+			};
 		}
 
 		private static async Task<dynamic> V1APIRequest(IRequest request)

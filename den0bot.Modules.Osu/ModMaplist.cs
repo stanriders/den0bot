@@ -64,7 +64,7 @@ namespace den0bot.Modules.Osu
 			{
 				int num = RNG.Next(max: maplist.Count);
 				string link = maplist[num][1].Substring(19);
-				Map map = null;
+				Map map;
 				if (link[0] == 's')
 				{
 					List<Map> set = await Osu.WebApi.MakeAPIRequest(new GetBeatmapSet
