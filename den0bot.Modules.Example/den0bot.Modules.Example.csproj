@@ -1,12 +1,20 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netcoreapp3.0</TargetFramework>
     <OutputType>Library</OutputType>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <OutputPath>..\den0bot\bin\$(Configuration)\$(TargetFramework.ToLowerInvariant())\Modules</OutputPath>
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\den0bot\den0bot.csproj" />
+    <ProjectReference Include="..\den0bot\den0bot.csproj">
+      <Private>false</Private>
+    </ProjectReference>
   </ItemGroup>
 
 </Project>

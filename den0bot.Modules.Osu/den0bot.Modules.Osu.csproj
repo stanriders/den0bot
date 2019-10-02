@@ -3,22 +3,18 @@
   <PropertyGroup>
     <TargetFramework>netcoreapp3.0</TargetFramework>
     <OutputType>Library</OutputType>
-    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
-    <GenerateBindingRedirectsOutputType>true</GenerateBindingRedirectsOutputType>
     <LangVersion>latest</LangVersion>
     <RootNamespace>den0bot.Modules.Osu</RootNamespace>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <OutputPath>bin\Debug</OutputPath>
+  <PropertyGroup>
+    <OutputPath>..\den0bot\bin\$(Configuration)\$(TargetFramework.ToLowerInvariant())\Modules</OutputPath>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Newtonsoft.Json" Version="12.0.2" />
     <PackageReference Include="OppaiSharp" Version="3.2.0" />
-    <PackageReference Include="sqlite-net-pcl" Version="1.6.292" />
-    <PackageReference Include="System.Runtime.Caching" Version="4.6.0" />
-    <PackageReference Include="Telegram.Bot" Version="15.0.0" />
     <PackageReference Include="xFFmpeg.NET" Version="3.3.3" />
   </ItemGroup>
 
