@@ -1,4 +1,5 @@
-﻿using den0bot.Analytics.Data.Types;
+﻿// den0bot (c) StanR 2019 - MIT License
+using den0bot.Analytics.Data.Types;
 using Microsoft.EntityFrameworkCore;
 
 namespace den0bot.Analytics.Data

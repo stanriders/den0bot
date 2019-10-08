@@ -1,4 +1,5 @@
-﻿using System;
+﻿// den0bot (c) StanR 2019 - MIT License
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using den0bot.Analytics.Data;

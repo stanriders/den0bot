@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿// den0bot (c) StanR 2019 - MIT License
+using System.ComponentModel.DataAnnotations;
 
 namespace den0bot.Analytics.Data.Types
 {
