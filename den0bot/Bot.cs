@@ -153,16 +153,12 @@ namespace den0bot
 			if (msg.NewChatMembers != null && msg.NewChatMembers.Length > 0)
 			{
 				string greeting = Localization.NewMemberGreeting(senderChatId, msg.NewChatMembers[0].FirstName, msg.NewChatMembers[0].Id);
-                if (msg.NewChatMembers[0].Id == API.BotUser.Id)
+				if (msg.NewChatMembers[0].Id == API.BotUser.Id)
 					greeting = Localization.Get("generic_added_to_chat", senderChatId);
 
-                await API.SendMessage(greeting, senderChatId, ParseMode.Html);
+				await API.SendMessage(greeting, senderChatId, ParseMode.Html);
 				return;
 			}
-
-			if (msg.Type != MessageType.Text &&
-				msg.Type != MessageType.Photo)
-				return;
 
 			if (Config.Params.UseEvents && msg.Text != null && msg.Text[0] == command_trigger)
 			{
@@ -181,25 +177,14 @@ namespace den0bot
 			foreach (IModule m in modules)
 			{
 				if (msg.Type == MessageType.Photo)
-				{
-					if (!(m is IReceivePhotos))
-						continue;
-
 					msg.Text = msg.Caption; // for consistency
-				}
 
-				// FIXME: move to trigger check?
-				if (msg.Text == null)
-					continue;
-
-				// not a command
-				if (msg.Text[0] != command_trigger)
+				if (m is IReceiveAllMessages messages)
 				{
-					// send all messages to modules that need them
-					if (m is IReceiveAllMessages messages)
+					if (!(msg.Text != null && msg.Text[0] == command_trigger))
+					{
 						await messages.ReceiveMessage(msg);
-
-					continue;
+					}
 				}
 
 				var command = m.GetCommand(msg.Text);
@@ -224,6 +209,18 @@ namespace den0bot
 					// send result if we got any
 					if (!string.IsNullOrEmpty(result))
 					{
+						// add command to statistics
+						ModAnalytics.AddMessage(new Analytics.Data.Types.Message
+						{
+							TelegramId = msg.MessageId,
+							ChatId = msg.Chat.Id,
+							UserId = msg.From.Id,
+							Timestamp = msg.Date.ToUniversalTime().Ticks,
+							Type = msg.Type.ToDbType(),
+							Command = msg.Text?.Split(' ')[0].Replace("@den0bot", ""),
+							Length = msg.Text?.Length ?? 0
+						});
+
 						parseMode = command.ParseMode;
 						if (command.Reply)
 							replyID = msg.MessageId;

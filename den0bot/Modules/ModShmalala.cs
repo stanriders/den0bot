@@ -244,54 +244,57 @@ namespace den0bot.Modules
 
 		public async Task ReceiveMessage(Message message)
 		{
-			if (markovChain.Ready)
+			if (!string.IsNullOrEmpty(message.Text))
 			{
-				var text = message.Text.ToLower();
-				text = cleanWordRegex.Replace(text, string.Empty);
-				if (text.StartsWith(Localization.Get("shmalala_trigger", message.Chat.Id)))
+				if (markovChain.Ready)
 				{
-					if (markovChain.Nodes.Count == 0)
+					var text = message.Text.ToLower();
+					text = cleanWordRegex.Replace(text, string.Empty);
+					if (text.StartsWith(Localization.Get("shmalala_trigger", message.Chat.Id)))
+					{
+						if (markovChain.Nodes.Count == 0)
+							return;
+
+						// use random word from message to start our response from
+						var words = text.Split(' ');
+						if (words.Length > 1)
+						{
+							var textBuilder = new StringBuilder();
+
+							// Use Markov chain to generate random message, composed of one or more sentences.
+							for (int i = 0; i < RNG.NextNoMemory(1, 4); i++)
+								textBuilder.Append(GenerateRandomSentence(words[RNG.NextNoMemory(1, words.Length)]));
+
+							await API.SendMessage(textBuilder.ToString(), message.Chat.Id);
+						}
+
 						return;
-
-					// use random word from message to start our response from
-					var words = text.Split(' ');
-					if (words.Length > 1)
-					{
-						var textBuilder = new StringBuilder();
-
-						// Use Markov chain to generate random message, composed of one or more sentences.
-						for (int i = 0; i < RNG.NextNoMemory(1, 4); i++)
-							textBuilder.Append(GenerateRandomSentence(words[RNG.NextNoMemory(1, words.Length)]));
-
-						await API.SendMessage(textBuilder.ToString(), message.Chat.Id);
 					}
 
-					return;
-				}
-
-				// Train Markov generator from received message text.
-				// Assume it is composed of one or more coherent sentences that are themselves are composed of words.
-				var sentences = text.ToLower().Split(sentenceSeparators);
-				foreach (var s in sentences)
-				{
-					string lastWord = null;
-					foreach (var w in s.Split(' '))
+					// Train Markov generator from received message text.
+					// Assume it is composed of one or more coherent sentences that are themselves are composed of words.
+					var sentences = text.ToLower().Split(sentenceSeparators);
+					foreach (var s in sentences)
 					{
-						if (string.IsNullOrEmpty(w))
-							continue;
+						string lastWord = null;
+						foreach (var w in s.Split(' '))
+						{
+							if (string.IsNullOrEmpty(w))
+								continue;
 
-						markovChain.Train(lastWord, w);
-						lastWord = w;
+							markovChain.Train(lastWord, w);
+							lastWord = w;
+						}
+
+						markovChain.Train(lastWord, null);
 					}
 
-					markovChain.Train(lastWord, null);
+					numTrainingMessagesReceived++;
+
+					// save whole chain every 10 messages
+					if (numTrainingMessagesReceived % 10 == 0)
+						markovChain.SaveToFile();
 				}
-
-				numTrainingMessagesReceived++;
-
-				// save whole chain every 10 messages
-				if (numTrainingMessagesReceived % 10 == 0)
-					markovChain.SaveToFile();
 			}
 		}
 	}

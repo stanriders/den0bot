@@ -29,7 +29,7 @@ namespace den0bot.Modules.Osu
 		private readonly Regex regex = new Regex(@"(?>https?:\/\/)?osu\.ppy\.sh\/community\/matches\/(\d+)", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
 		private readonly int update_time = 5; //seconds
-	
+
 		public ModMatchFollow()
 		{
 			AddCommands(new [] 
@@ -106,20 +106,23 @@ namespace den0bot.Modules.Osu
 
 		public async Task ReceiveMessage(Message message)
 		{
-			Match regexMatch = regex.Match(message.Text);
-			if (regexMatch.Groups.Count > 1)
+			if (!string.IsNullOrEmpty(message.Text))
 			{
-				List<Group> regexGroups = regexMatch.Groups.OfType<Group>().Where(x => x.Length > 0).ToList();
-				if (regexGroups.Count > 0 && ulong.TryParse(regexGroups[1].Value, out var matchID))
+				Match regexMatch = regex.Match(message.Text);
+				if (regexMatch.Groups.Count > 1)
 				{
-					var match = await Osu.WebApi.MakeAPIRequest(new GetMatch
+					List<Group> regexGroups = regexMatch.Groups.OfType<Group>().Where(x => x.Length > 0).ToList();
+					if (regexGroups.Count > 0 && ulong.TryParse(regexGroups[1].Value, out var matchID))
 					{
-						ID = matchID
-					});
+						var match = await Osu.WebApi.MakeAPIRequest(new GetMatch
+						{
+							ID = matchID
+						});
 
-					if (match?.Games.Count > 0)
-						await API.SendMessage(await formatMatchInfo(match), message.Chat.Id,
-							Telegram.Bot.Types.Enums.ParseMode.Html);
+						if (match?.Games.Count > 0)
+							await API.SendMessage(await formatMatchInfo(match), message.Chat.Id,
+								Telegram.Bot.Types.Enums.ParseMode.Html);
+					}
 				}
 			}
 		}

@@ -13,7 +13,7 @@ using SQLite;
 
 namespace den0bot.Modules
 {
-	public class ModGirls : IModule, IReceiveAllMessages, IReceiveCallback, IReceivePhotos
+	public class ModGirls : IModule, IReceiveAllMessages, IReceiveCallback
 	{
 		private class CachedGirl
 		{
@@ -94,14 +94,18 @@ namespace den0bot.Modules
 			});
 			Log.Debug("Enabled");
 		}
-		public Task ReceiveMessage(Message message)
-		{
-			if (message.Type == MessageType.Photo && message.Caption == Localization.Get("girls_tag", message.Chat.Id))
-			{
-				AddGirl(message.Photo[0].FileId, message.Chat.Id);
-			}
 
-			return Task.CompletedTask;
+		public async Task ReceiveMessage(Message message)
+		{
+			if (!string.IsNullOrEmpty(message.Text))
+			{
+				if (message.Type == MessageType.Photo &&
+				    message.Caption == Localization.Get("girls_tag", message.Chat.Id))
+				{
+					AddGirl(message.Photo[0].FileId, message.Chat.Id);
+					await ModAnalytics.AddGirl(message.Chat.Id,message.From.Id);
+				}
+			}
 		}
 
 		private async Task<string> GetRandomGirl(Message msg, bool seasonal = false)
@@ -372,21 +376,20 @@ namespace den0bot.Modules
 		}
 		private Girl GetGirl(long chatID)
 		{
-			List<Girl> girls = Database.Get<Girl>(x => x.ChatID == chatID);
+			List<Girl> girls = Database.Get<Girl>(x => x.ChatID == chatID && !x.Used);
 			if (girls != null)
 			{
-				girls.RemoveAll(x => x.Used == true);
-				if (girls.Count == 0)
-				{
-					ResetUsedGirl(chatID);
-					return GetGirl(chatID);
-				}
-				else
+				if (girls.Any())
 				{
 					int num = RNG.Next(max: girls.Count);
 
 					SetUsedGirl(girls[num].Id);
 					return girls[num];
+				}
+				else
+				{
+					ResetUsedGirl(chatID);
+					return GetGirl(chatID);
 				}
 			}
 			return null;

@@ -27,38 +27,42 @@ namespace den0bot.Modules.Osu
 
 		public async Task ReceiveMessage(Message message)
 		{
-			var beatmapId = Map.GetIdFromLink(message.Text, out var isSet, out var mods);
-			if (beatmapId != 0)
+			if (!string.IsNullOrEmpty(message.Text))
 			{
-				Map map = null;
-				if (isSet)
+				var beatmapId = Map.GetIdFromLink(message.Text, out var isSet, out var mods);
+				if (beatmapId != 0)
 				{
-					List<Map> set = await Osu.WebApi.MakeAPIRequest(new GetBeatmapSet
+					Map map = null;
+					if (isSet)
 					{
-						ID = beatmapId
-					});
+						List<Map> set = await Osu.WebApi.MakeAPIRequest(new GetBeatmapSet
+						{
+							ID = beatmapId
+						});
 
-					if (set?.Count > 0)
-						map = set.Last();
-				}
-				else
-				{
-					map = await Osu.WebApi.MakeAPIRequest(new GetBeatmap
+						if (set?.Count > 0)
+							map = set.Last();
+					}
+					else
 					{
-						ID = beatmapId,
-						Mods = mods
-					});
-				}
+						map = await Osu.WebApi.MakeAPIRequest(new GetBeatmap
+						{
+							ID = beatmapId,
+							Mods = mods
+						});
+					}
 
-				if (map != null)
-				{
-					var sentMessage = await API.SendPhoto(map.Thumbnail, message.Chat.Id, map.GetFormattedMapInfo(mods),
-						Telegram.Bot.Types.Enums.ParseMode.Html, 0, buttons);
-					if (sentMessage != null)
+					if (map != null)
 					{
-						// we only store mapset id to spare the memory a bit
-						sentMapsCache.Add(sentMessage.MessageId.ToString(), map.BeatmapSetID,
-							DateTimeOffset.Now.AddDays(days_to_keep_messages));
+						var sentMessage = await API.SendPhoto(map.Thumbnail, message.Chat.Id,
+							map.GetFormattedMapInfo(mods),
+							Telegram.Bot.Types.Enums.ParseMode.Html, 0, buttons);
+						if (sentMessage != null)
+						{
+							// we only store mapset id to spare the memory a bit
+							sentMapsCache.Add(sentMessage.MessageId.ToString(), map.BeatmapSetID,
+								DateTimeOffset.Now.AddDays(days_to_keep_messages));
+						}
 					}
 				}
 			}

@@ -2,6 +2,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
 using den0bot.DB.Types;
 using den0bot.Util;
@@ -60,7 +61,7 @@ namespace den0bot.DB
 
 		public static bool Exist<T>(Expression<Func<T, bool>> predicate) where T : new()
 		{
-			return db.Table<T>().FirstOrDefault(predicate) != null;
+			return db.Table<T>().Where(predicate).Any();
 		}
 
 		public static void Remove(object obj)
@@ -90,7 +91,7 @@ namespace den0bot.DB
 		#region Users
 		public static void AddUser(int id, string username)
 		{
-			if (userCache.Find(x => x.Username == username) == null)
+			if (!userCache.Any(x => x.Username == username))
 			{
 				var user = new User
 				{
@@ -116,11 +117,7 @@ namespace den0bot.DB
 		public static string GetUsername(int id)
 		{
 			User user = userCache.Find(x => x.TelegramID == id);
-			if (user != null)
-			{
-				return user.Username;
-			}
-			return null;
+			return user?.Username;
 		}
 
 		#endregion
@@ -129,7 +126,7 @@ namespace den0bot.DB
 		public static List<Chat> GetAllChats() => chatCache;
 		public static void AddChat(long chatID)
 		{
-			if (chatCache.Find(x => x.Id == chatID) == null)
+			if (!chatCache.Any(x => x.Id == chatID))
 			{
 				var chat = new Chat
 				{
@@ -258,10 +255,7 @@ namespace den0bot.DB
 				{
 					return table.GirlSeasonStart;
 				}
-				else
-				{
-					return default(DateTime);
-				}
+				return default;
 			}
 		}
 		#endregion

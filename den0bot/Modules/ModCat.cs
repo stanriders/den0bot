@@ -21,37 +21,44 @@ namespace den0bot.Modules
 			if (string.IsNullOrEmpty(Config.Params.CatToken))
 				return;
 
-			if (!nextPost.ContainsKey(message.Chat.Id))
-				nextPost.Add(message.Chat.Id, DateTime.Now);
-
-			if (nextPost[message.Chat.Id] < DateTime.Now)
+			if (!string.IsNullOrEmpty(message.Text))
 			{
-				var trigger = Localization.Get("cat_trigger", message.Chat.Id);
-				string cat = message.Text.ToLower()
-					.Split(' ')
-					.FirstOrDefault(x => x.Contains(trigger) && !x.Contains("котор")) // fixme: add exceptions to database as well?
-					?.Replace(trigger, trigger.ToUpperInvariant());
+				if (!nextPost.ContainsKey(message.Chat.Id))
+					nextPost.Add(message.Chat.Id, DateTime.Now);
 
-				if (cat != null)
+				if (nextPost[message.Chat.Id] < DateTime.Now)
 				{
-					string json = string.Empty;
-					try
-					{
-						json = await Web.DownloadString(api_link);
-					}
-					catch (Exception) {}
+					var trigger = Localization.Get("cat_trigger", message.Chat.Id);
+					string cat = message.Text.ToLower()
+						.Split(' ')
+						.FirstOrDefault(x =>
+							x.Contains(trigger) && !x.Contains("котор")) // fixme: add exceptions to database as well?
+						?.Replace(trigger, trigger.ToUpperInvariant());
 
-					if (!string.IsNullOrEmpty(json))
+					if (cat != null)
 					{
-						JArray obj = JArray.Parse(json);
-						await API.SendPhoto(obj[0]["url"].ToString(), message.Chat.Id, string.Format(Localization.Get("cat_reply", message.Chat.Id), cat));
-					}
-					else
-					{
-						await API.SendMessage(Localization.Get("cat_fail", message.Chat.Id), message.Chat.Id);
-					}
+						string json = string.Empty;
+						try
+						{
+							json = await Web.DownloadString(api_link);
+						}
+						catch (Exception)
+						{
+						}
 
-					nextPost[message.Chat.Id] = DateTime.Now.AddMinutes(cooldown);
+						if (!string.IsNullOrEmpty(json))
+						{
+							JArray obj = JArray.Parse(json);
+							await API.SendPhoto(obj[0]["url"].ToString(), message.Chat.Id,
+								string.Format(Localization.Get("cat_reply", message.Chat.Id), cat));
+						}
+						else
+						{
+							await API.SendMessage(Localization.Get("cat_fail", message.Chat.Id), message.Chat.Id);
+						}
+
+						nextPost[message.Chat.Id] = DateTime.Now.AddMinutes(cooldown);
+					}
 				}
 			}
 		}

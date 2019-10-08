@@ -18,12 +18,16 @@ namespace den0bot.Modules.Osu
 
 		public async Task ReceiveMessage(Message message)
 		{
-			Match regexMatch = regex.Match(message.Text);
-			if (regexMatch.Groups.Count > 1)
+			if (!string.IsNullOrEmpty(message.Text))
 			{
-				string playerID = regexMatch.Groups[1]?.Value;
-				if (!string.IsNullOrEmpty(playerID))
-					await API.SendMessage( await FormatPlayerInfo(playerID), message.Chat.Id, ParseMode.Html, message.MessageId, null, false);
+				Match regexMatch = regex.Match(message.Text);
+				if (regexMatch.Groups.Count > 1)
+				{
+					string playerID = regexMatch.Groups[1]?.Value;
+					if (!string.IsNullOrEmpty(playerID))
+						await API.SendMessage(await FormatPlayerInfo(playerID), message.Chat.Id, ParseMode.Html,
+							message.MessageId, null, false);
+				}
 			}
 		} 
 
