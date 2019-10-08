@@ -11,8 +11,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "den0bot.Modules.Osu", "den0
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "den0bot.Analytics.Data", "den0bot.Analytics.Data\den0bot.Analytics.Data.csproj", "{A2A8CCE8-E898-4997-85CD-208CC2C35407}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "den0bot.Analytics.Web", "den0bot.Analytics.Web\den0bot.Analytics.Web.csproj", "{6EADF4BF-3DCB-44EC-9F2D-963F368DBB4E}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -35,10 +33,6 @@ Global
 		{A2A8CCE8-E898-4997-85CD-208CC2C35407}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A2A8CCE8-E898-4997-85CD-208CC2C35407}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A2A8CCE8-E898-4997-85CD-208CC2C35407}.Release|Any CPU.Build.0 = Release|Any CPU
-		{6EADF4BF-3DCB-44EC-9F2D-963F368DBB4E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{6EADF4BF-3DCB-44EC-9F2D-963F368DBB4E}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{6EADF4BF-3DCB-44EC-9F2D-963F368DBB4E}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{6EADF4BF-3DCB-44EC-9F2D-963F368DBB4E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
