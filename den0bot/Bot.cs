@@ -206,17 +206,20 @@ namespace den0bot
 					else
 						continue;
 
-					// add command to statistics
-					ModAnalytics.AddMessage(new Analytics.Data.Types.Message
+					if (msg.Chat.Type != ChatType.Private)
 					{
-						TelegramId = msg.MessageId,
-						ChatId = msg.Chat.Id,
-						UserId = msg.From.Id,
-						Timestamp = msg.Date.ToUniversalTime().Ticks,
-						Type = msg.Type.ToDbType(),
-						Command = msg.Text?.Split(' ')[0].Replace("@den0bot", ""),
-						Length = msg.Text?.Length ?? 0
-					});
+						// add command to statistics
+						ModAnalytics.AddMessage(new Analytics.Data.Types.Message
+						{
+							TelegramId = msg.MessageId,
+							ChatId = msg.Chat.Id,
+							UserId = msg.From.Id,
+							Timestamp = msg.Date.ToUniversalTime().Ticks,
+							Type = msg.Type.ToDbType(),
+							Command = msg.Text?.Split(' ')[0].Replace("@den0bot", ""),
+							Length = msg.Text?.Length ?? 0
+						});
+					}
 
 					// send result if we got any
 					if (!string.IsNullOrEmpty(result))
