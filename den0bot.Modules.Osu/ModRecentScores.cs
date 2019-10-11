@@ -76,9 +76,9 @@ namespace den0bot.Modules.Osu
 				{
 					if (amount > recent_amount)
 						amount = recent_amount;
-				}
 
-				msgSplit.Remove(msgSplit.Last());
+					msgSplit.Remove(msgSplit.Last());
+				}
 			}
 
 			if (msgSplit.Count > 0)
