@@ -76,10 +76,7 @@ namespace den0bot.Modules.Osu
 			if (currentMatch >= followList.Count)
 				currentMatch = 0;
 
-			var match = await Osu.WebApi.MakeAPIRequest(new GetMatch
-			{
-				ID = followList[currentMatch].MatchID
-			});
+			var match = await Osu.WebApi.MakeAPIRequest(new GetMatch(followList[currentMatch].MatchID));
 			if (match.Games.Count > 0)
 			{
 				if (match.Info.EndTime != null)
@@ -114,11 +111,7 @@ namespace den0bot.Modules.Osu
 					List<Group> regexGroups = regexMatch.Groups.OfType<Group>().Where(x => x.Length > 0).ToList();
 					if (regexGroups.Count > 0 && ulong.TryParse(regexGroups[1].Value, out var matchID))
 					{
-						var match = await Osu.WebApi.MakeAPIRequest(new GetMatch
-						{
-							ID = matchID
-						});
-
+						var match = await Osu.WebApi.MakeAPIRequest(new GetMatch(matchID));
 						if (match?.Games.Count > 0)
 							await API.SendMessage(await formatMatchInfo(match), message.Chat.Id,
 								Telegram.Bot.Types.Enums.ParseMode.Html);
@@ -135,10 +128,7 @@ namespace den0bot.Modules.Osu
 			var game = games.Last(x => x.EndTime != null);
 			if (game?.Scores != null)
 			{
-				var map = await Osu.WebApi.MakeAPIRequest(new GetBeatmap
-				{
-					ID = game.BeatmapID
-				});
+				var map = await Osu.WebApi.MakeAPIRequest(new GetBeatmap(game.BeatmapID));
 				if (game.TeamMode >= MultiplayerMatch.TeamMode.Team)
 				{
 					List<Score> allScores = game.Scores;
@@ -150,10 +140,7 @@ namespace den0bot.Modules.Osu
 					{
 						if (score.ScorePoints != 0)
 						{
-							var player = await Osu.WebApi.MakeAPIRequest(new GetUser
-							{
-								Username = score.UserID.ToString()
-							});
+							var player = await Osu.WebApi.MakeAPIRequest(new GetUser(score.UserID.ToString()));
 							string teamSymbol = score.Team > 1 ? "🔴" : "🔵";
 							string pass = score.IsPass == 1 ? "" : ", failed";
 							gamesString += $" {teamSymbol} <b>{player.Username}</b>: {score.ScorePoints} ({score.Combo}x, {score.Accuracy:N2}%{pass}){Environment.NewLine}";
@@ -174,10 +161,7 @@ namespace den0bot.Modules.Osu
 					{
 						if (game.Scores[i].ScorePoints != 0)
 						{
-							var player = await Osu.WebApi.MakeAPIRequest(new GetUser
-							{
-								Username = game.Scores[i].UserID.ToString()
-							});
+							var player = await Osu.WebApi.MakeAPIRequest(new GetUser(game.Scores[i].UserID.ToString()));
 							string pass = game.Scores[i].IsPass == 1 ? "" : ", failed";
 							gamesString += $"{i + 1}. <b>{player.Username}</b>: {game.Scores[i].ScorePoints} ({game.Scores[i].Combo}x, {game.Scores[i].Accuracy:N2}%{pass}){Environment.NewLine}";
 						}

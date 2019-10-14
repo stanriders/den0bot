@@ -35,21 +35,13 @@ namespace den0bot.Modules.Osu
 					Map map = null;
 					if (isSet)
 					{
-						List<Map> set = await Osu.WebApi.MakeAPIRequest(new GetBeatmapSet
-						{
-							ID = beatmapId
-						});
-
+						List<Map> set = await Osu.WebApi.MakeAPIRequest(new GetBeatmapSet(beatmapId));
 						if (set?.Count > 0)
 							map = set.Last();
 					}
 					else
 					{
-						map = await Osu.WebApi.MakeAPIRequest(new GetBeatmap
-						{
-							ID = beatmapId,
-							Mods = mods
-						});
+						map = await Osu.WebApi.MakeAPIRequest(new GetBeatmap(beatmapId,mods));
 					}
 
 					if (map != null)

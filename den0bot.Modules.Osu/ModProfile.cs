@@ -33,19 +33,12 @@ namespace den0bot.Modules.Osu
 
 		private async Task<string> FormatPlayerInfo(string playerID)
 		{
-			Player info = await Osu.WebApi.MakeAPIRequest(new GetUser
-			{
-				Username = playerID
-			});
+			Player info = await Osu.WebApi.MakeAPIRequest(new GetUser(playerID));
 
 			if (info == null)
 				return string.Empty;
 
-			List<Score> topscores = await Osu.WebApi.MakeAPIRequest(new GetTopscores
-			{
-				Amount = topscores_to_show,
-				Username = info.ID.ToString()
-			});
+			List<Score> topscores = await Osu.WebApi.MakeAPIRequest(new GetTopscores(info.ID.ToString(), topscores_to_show));
 
 			if (topscores == null || topscores.Count <= 0)
 				return string.Empty;
@@ -55,7 +48,7 @@ namespace den0bot.Modules.Osu
 			for (int i = 0; i < topscores.Count; i++)
 			{
 				Score score = topscores[i];
-				Map map = await Osu.WebApi.MakeAPIRequest(new GetBeatmap { ID = score.BeatmapID});
+				Map map = await Osu.WebApi.MakeAPIRequest(new GetBeatmap(score.BeatmapID));
 
 				string mods = string.Empty;
 				Mods enabledMods = score.EnabledMods ?? Mods.None;

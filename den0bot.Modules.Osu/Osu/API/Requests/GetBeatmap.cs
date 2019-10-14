@@ -4,18 +4,23 @@ using den0bot.Modules.Osu.Osu.Types;
 
 namespace den0bot.Modules.Osu.Osu.API.Requests
 {
-	class GetBeatmap : IRequest
+	public class GetBeatmap : IRequest
 	{
 		public APIVersion API => APIVersion.V1;
 
-		public string Address => $"get_beatmaps?limit=1&b={ID}&mods={(int)(Mods & Mods.DifficultyChanging)}";
+		public string Address => $"get_beatmaps?limit=1&b={id}&mods={(int)(mods & Mods.DifficultyChanging)}";
 
 		public Type ReturnType => typeof(List<Map>);
 
 		public bool ShouldReturnSingle => true;
 
-		public uint ID { get; set; }
+		private uint id;
+		private Mods mods;
 
-		public Mods Mods { get; set; }
+		public GetBeatmap(uint id, Mods mods = Mods.None)
+		{
+			this.id = id;
+			this.mods = mods;
+		}
 	}
 }

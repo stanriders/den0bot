@@ -94,12 +94,7 @@ namespace den0bot.Modules.Osu
 				playerID = id.ToString();
 			}
 
-			List<Score> lastScores = await Osu.WebApi.MakeAPIRequest(new GetRecentScores
-			{
-				Username = playerID,
-				Amount = amount
-			});
-
+			List<Score> lastScores = await Osu.WebApi.MakeAPIRequest(new GetRecentScores(playerID,amount));
 			if (lastScores != null)
 			{
 				if (lastScores.Count == 0)
@@ -130,32 +125,19 @@ namespace den0bot.Modules.Osu
 
 				if (isSet)
 				{
-					List<Map> set = await Osu.WebApi.MakeAPIRequest(new GetBeatmapSet
-					{
-						ID = mapId
-					});
-
+					List<Map> set = await Osu.WebApi.MakeAPIRequest(new GetBeatmapSet(mapId));
 					if (set?.Count > 0)
 						mapId = set.OrderBy(x => x.StarRating).Last().BeatmapID;
 				}
 
-				List<Score> lastScores = await Osu.WebApi.MakeAPIRequest(new GetScores
-				{
-					Username = playerId.ToString(),
-					Amount = score_amount,
-					BeatmapId = mapId,
-					Mods = mods
-				});
+				List<Score> lastScores = await Osu.WebApi.MakeAPIRequest(new GetScores(playerId.ToString(), mapId, mods, score_amount));
 
 				if (lastScores != null)
 				{
 					if (lastScores.Count == 0)
 						return Localization.Get("recentscores_no_scores", message.Chat.Id);
 
-					var map = await Osu.WebApi.MakeAPIRequest(new GetBeatmap
-					{
-						ID = mapId
-					});
+					var map = await Osu.WebApi.MakeAPIRequest(new GetBeatmap(mapId));
 
 					string result = string.Empty;
 					foreach (var score in lastScores)
@@ -181,10 +163,7 @@ namespace den0bot.Modules.Osu
 					if (!uint.TryParse(player, out var osuID))
 					{
 						// if they used /u/cookiezi instead of /u/124493 we ask osu API for an ID
-						Osu.Types.Player info = await Osu.WebApi.MakeAPIRequest(new GetUser
-						{
-							Username = player
-						});
+						Osu.Types.Player info = await Osu.WebApi.MakeAPIRequest(new GetUser(player));
 
 						if (info == null)
 							return Localization.Get("recentscores_player_add_failed", message.Chat.Id);
@@ -238,10 +217,7 @@ namespace den0bot.Modules.Osu
 
 			if (map == null)
 			{
-				map = await Osu.WebApi.MakeAPIRequest(new GetBeatmap
-				{
-					ID = score.BeatmapID
-				});
+				map = await Osu.WebApi.MakeAPIRequest(new GetBeatmap(score.BeatmapID));
 			}
 
 			string result;

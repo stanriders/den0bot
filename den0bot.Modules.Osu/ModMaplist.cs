@@ -67,18 +67,12 @@ namespace den0bot.Modules.Osu
 				Map map;
 				if (link[0] == 's')
 				{
-					List<Map> set = await Osu.WebApi.MakeAPIRequest(new GetBeatmapSet
-					{
-						ID = uint.Parse(link.Substring(2))
-					});
+					List<Map> set = await Osu.WebApi.MakeAPIRequest(new GetBeatmapSet(uint.Parse(link.Substring(2))));
 					map = set?.Last();
 				}
 				else if (link[0] == 'b')
 				{
-					map = await Osu.WebApi.MakeAPIRequest(new GetBeatmap
-					{
-						ID = uint.Parse(link.Substring(2))
-					});
+					map = await Osu.WebApi.MakeAPIRequest(new GetBeatmap(uint.Parse(link.Substring(2))));
 				}
 				else
 				{
