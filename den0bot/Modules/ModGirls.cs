@@ -90,7 +90,7 @@ namespace den0bot.Modules
 				{
 					Names = { "seasonaltopdevok", "seasonaltopgirls" },
 					ActionAsync = TopGirlsSeasonal
-				},
+				}
 			});
 			Log.Debug("Enabled");
 		}
@@ -102,7 +102,7 @@ namespace den0bot.Modules
 				if (message.Type == MessageType.Photo &&
 				    message.Caption == Localization.Get("girls_tag", message.Chat.Id))
 				{
-					AddGirl(message.Photo[0].FileId, message.Chat.Id);
+					AddGirl(message.Photo.Last().FileId, message.Chat.Id);
 					await ModAnalytics.AddGirl(message.Chat.Id,message.From.Id);
 				}
 			}
