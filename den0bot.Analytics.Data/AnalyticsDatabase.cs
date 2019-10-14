@@ -19,9 +19,12 @@ namespace den0bot.Analytics.Data
 
 		protected override void OnModelCreating(ModelBuilder modelBuilder)
 		{
-			modelBuilder.Entity<Message>()
-				.HasIndex(p => new { p.UserId, p.ChatId });
+			modelBuilder.Entity<Message>().HasIndex(p => new { p.UserId, p.ChatId });
+
+			modelBuilder.Entity<UserStatsQuery>(eb => { eb.HasNoKey(); });
 		}
+
+		public DbSet<UserStatsQuery> UserStatsQuery { get; set; }
 
 		public DbSet<Message> Messages { get; set; }
 
