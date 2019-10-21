@@ -22,9 +22,12 @@ namespace den0bot.Analytics.Data
 			modelBuilder.Entity<Message>().HasIndex(p => new { p.UserId, p.ChatId });
 
 			modelBuilder.Entity<UserStatsQuery>(eb => { eb.HasNoKey(); });
+			modelBuilder.Entity<UserStatsAverageQuery>(eb => { eb.HasNoKey(); });
 		}
 
 		public DbSet<UserStatsQuery> UserStatsQuery { get; set; }
+
+		public DbSet<UserStatsAverageQuery> UserStatsAverageQuery { get; set; }
 
 		public DbSet<Message> Messages { get; set; }
 
