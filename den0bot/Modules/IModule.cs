@@ -74,7 +74,7 @@ namespace den0bot.Modules
 
 		public Command GetCommand(string name)
 		{
-			if (string.IsNullOrEmpty(name) || commands.Count <= 0)
+			if (string.IsNullOrEmpty(name) || commands.Count <= 0 || !name.StartsWith(Bot.command_trigger))
 				return null;
 
 			int nameEndIndex = name.IndexOf(' ');

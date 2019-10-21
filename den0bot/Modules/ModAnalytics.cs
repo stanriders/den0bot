@@ -13,7 +13,7 @@ namespace den0bot.Modules
 		private static readonly List<Message> messageBuffer = new List<Message>();
 
 		private DateTime nextFlush = DateTime.Now;
-		private const int buffer_flush_interval = 1; // minute
+		private const int buffer_flush_interval = 3; // minutes
 
 		public ModAnalytics()
 		{

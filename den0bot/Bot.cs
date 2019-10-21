@@ -19,6 +19,7 @@ namespace den0bot
 	{
 		private readonly List<IModule> modules = new List<IModule>();
 		private readonly string module_path = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + Path.DirectorySeparatorChar + "Modules";
+		public const char command_trigger = '/';
 
 		private static bool IsOwner(string username) => (username == Config.Params.OwnerUsername);
 		private static async Task<bool> IsAdmin(long chatID, string username)
@@ -33,16 +34,17 @@ namespace den0bot
 		private static bool shouldShutdown;
 		public static void Shutdown() { shouldShutdown = true; }
 
-		private const char command_trigger = '/';
+		public static void Main()
+		{
+			var bot = new Bot();
+			bot.Run();
+		}
 
-		public static void Main() => new Bot();
-
-		private Bot()
+		public void Run()
 		{
 			Log.Info("________________");
 			Config.Init();
 			Database.Init();
-			Localization.Init();
 
 			Log.Info("Starting modules...");
 
