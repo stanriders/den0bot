@@ -20,7 +20,7 @@ namespace den0bot.Modules
 			AddCommand(new Command
 			{
 				Name = "compot",
-				Action = (msg) => $"https://stats.stanr.info/home/chat?chatId={msg.Chat.Id}",
+				Action = (msg) => $"https://stats.stanr.info/chat/{msg.Chat.Id}",
 				Reply = true
 			});
 
