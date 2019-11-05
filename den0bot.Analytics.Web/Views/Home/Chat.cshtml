@@ -1,0 +1,116 @@
+﻿@using System.Globalization
+@model den0bot.Analytics.Web.Models.ChatModel
+
+@section Styles
+{
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/css/bootstrap-datepicker.min.css" type="text/css" />
+	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" type="text/css" />
+	<link rel="stylesheet" href="https://unpkg.com/bootstrap-table@1.15.5/dist/bootstrap-table.min.css" type="text/css" />
+}
+
+<h1><img src="@ViewData["Image"]" width="64px" /> @ViewData["Title"]</h1>
+<table class="table table-bordered table-striped table-sm" data-toggle="bootstrap-table" id="maintable">
+	<tbody>
+		@foreach (var user in Model.UsersTable.Users)
+		{
+			<tr>
+				<td><img src="@user.Avatar" width="24px" class="border border-secondary rounded-circle" /> @user.Name</td>
+				<td>@user.Messages</td>
+				<td>@user.AverageLength.ToString("F1")</td>
+				<td>@user.Stickers</td>
+				<td>@user.GirlsRequested</td>
+				<td>@user.GirlsAdded</td>
+				<td>@user.LastMessageTime.ToString(CultureInfo.InvariantCulture)</td>
+			</tr>
+		}
+	</tbody>
+</table>
+<hr/>
+<form class="form-row align-items-right" method="get" data-ajax="true" data-ajax-url="/TimesChart/@Model.ChatId" data-ajax-update="#time-chart" data-ajax-method="get" data-ajax-loading="#spinner" data-ajax-complete="createChartchart">
+	<div class="col-auto"><input type="text" id="startDatePicker" name="startTime" class="form-control" placeholder="Start date" /></div>
+	<div class="col-auto"><input type="text" id="endDatePicker" name="endTime" class="form-control" placeholder="End date" /></div>
+	<input type="submit" class="btn btn-secondary" title="Update"/>
+	<span id="spinner" class="col"><i class="fa fa-spinner fa-spin"></i></span>
+</form>
+
+<div id="time-chart"></div>
+
+@section Scripts
+{
+	<script src="https://ajax.aspnetcdn.com/ajax/jquery.unobtrusive-ajax/3.2.5/jquery.unobtrusive-ajax.min.js"></script>
+	<script src="https://code.highcharts.com/highcharts.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/js/bootstrap-datepicker.min.js" type="text/javascript"></script>
+	<script src="https://unpkg.com/bootstrap-table@1.15.5/dist/bootstrap-table.min.js"></script>
+	<script>
+		$(function() {
+
+			$.ajax({
+				url: '/TimesChart/@Model.ChatId',
+				dataType: 'html',
+				success: function(data) {
+					$('#time-chart').html(data);
+					createChartchart();
+				},
+				complete: () => {
+					$("#spinner").hide();
+				}
+			});
+
+			$('[id*=startDatePicker]').datepicker({
+				startDate: '10/02/2019',
+				endDate: '0d',
+				title: 'Start date',
+				todayHighlight: true,
+				weekStart: 1
+			});
+			$('[id*=endDatePicker]').datepicker({
+				startDate: '10/02/2019',
+				endDate: '0d',
+				title: 'End date',
+				todayHighlight: true,
+				weekStart: 1
+			});
+
+			$('#maintable').bootstrapTable({
+				columns: [
+					[
+						{
+							title: 'Name',
+							field: 'name',
+							sortable: true
+						}, {
+							title: 'Messages',
+							field: 'messages',
+							sortable: true,
+							align: 'center'
+						}, {
+							title: 'Average Length',
+							field: 'length',
+							sortable: true,
+							align: 'center'
+						}, {
+							title: 'Stickers',
+							field: 'stickers',
+							sortable: true,
+							align: 'center'
+						}, {
+							title: 'Girls requested',
+							field: 'girlsreq',
+							sortable: true,
+							align: 'center'
+						}, {
+							title: 'Girls added',
+							field: 'girlsadd',
+							align: 'center',
+							sortable: true
+						}, {
+							title: 'Last message time',
+							field: 'lastmsgtime',
+							align: 'center'
+						}
+					]
+				]
+			});
+		});
+	</script>
+}

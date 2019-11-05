@@ -1,0 +1,25 @@
+﻿
+@model den0bot.Analytics.Web.Models.ShortChatModel[]
+@{
+	ViewData["Title"] = "Home Page";
+}
+<h1>den0bot statistics</h1>
+<table class="table table-bordered table-striped table-sm">
+	<thead>
+	<tr>
+		<th>Chat Name</th>
+		<th>Messages</th>
+		<th>Details</th>
+	</tr>
+	</thead>
+	<tbody>
+	@foreach (var chat in Model)
+	{
+		<tr>
+			<td><img src="@chat.Avatar" width="32px" class="border border-secondary rounded-circle" /> @chat.Name</td>
+			<td>@chat.Messages</td>
+			<td>@Html.ActionLink("Details", "Chat", "Home", new {chatId = chat.Id}, new {@class = "btn btn-primary"})</td>
+		</tr>
+	}
+	</tbody>
+</table>

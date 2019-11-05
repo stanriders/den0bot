@@ -288,3 +288,5 @@ __pycache__/
 *.xsd.cs
 
 /den0bot.Analytics.Web/wwwroot/img
+/den0bot.Analytics.Web/analytics.db
+/den0bot.Analytics.Web/appsettings.Development.json

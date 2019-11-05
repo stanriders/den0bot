@@ -1,0 +1,18 @@
+﻿@model den0bot.Analytics.Web.Models.ChartModel
+@using Highsoft.Web.Mvc.Charts
+@using Highsoft.Web.Mvc.Charts.Rendering
+
+@{
+	var chartOptions = new Highcharts
+	{
+		Title = new Title { Text = "Messages per day" },
+		XAxis = new List<XAxis> { Model.Times.XAxis },
+		YAxis = new List<YAxis> { Model.Times.YAxis },
+		Series = Model.Times.Series,
+		ID = "chart"
+	};
+
+	var renderer = new HighchartsRenderer(chartOptions, "OTkxOTk5OTAxMDExMDAwMDAwMDE="); // key isn't exclusive
+}
+
+@Html.Raw(renderer.RenderHtml())
