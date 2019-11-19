@@ -1,6 +1,7 @@
 ﻿// den0bot (c) StanR 2019 - MIT License
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -36,6 +37,7 @@ namespace den0bot
 
 		public static void Main()
 		{
+			Thread.CurrentThread.CurrentCulture = new CultureInfo("ru-RU", false);
 			var bot = new Bot();
 			bot.Run();
 		}
