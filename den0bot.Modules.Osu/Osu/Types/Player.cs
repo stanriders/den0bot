@@ -1,4 +1,6 @@
 ﻿// den0bot (c) StanR 2019 - MIT License
+
+using System;
 using Newtonsoft.Json;
 
 namespace den0bot.Modules.Osu.Osu.Types
@@ -11,9 +13,13 @@ namespace den0bot.Modules.Osu.Osu.Types
 		public string Username;
 		[JsonProperty("country")]
 		public string Country;
-
+		[JsonProperty("join_date")]
+		public DateTime JoinDate;
+		
 		[JsonProperty("playcount")]
 		public uint Playcount;
+		[JsonProperty("total_seconds_played")]
+		public uint PlaytimeSeconds;
 
 		[JsonProperty("pp_raw")]
 		public double Pp;

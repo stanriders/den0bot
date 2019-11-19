@@ -62,7 +62,11 @@ namespace den0bot.Modules.Osu
 					$"<b>{(i + 1)}</b>. {mapName}{mods} (<b>{score.Rank}</b>, {score.Accuracy:N2}%) - <b>{score.Pp}</b>pp\n";
 			}
 
-			return $"<b>{info.Username}</b> <a href=\"https://a.ppy.sh/{info.ID}_0.jpeg\">-</a> #{info.Rank} ({info.Pp}pp)\nPlaycount: {info.Playcount}\n__________\n{formatedTopscores}";
+			return $"<b>{info.Username}</b> <a href=\"https://a.ppy.sh/{info.ID}_0.jpeg\">-</a> #{info.Rank} ({info.Pp}pp)\n" +
+			       $"Playcount: {info.Playcount} ({info.PlaytimeSeconds/60.0/60.0:F2} hours)\n" +
+			       $"Joined on: {info.JoinDate}\n" +
+			       $"__________\n" +
+			       $"{formatedTopscores}";
 		}
 	}
 }
