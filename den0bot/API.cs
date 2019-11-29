@@ -255,11 +255,11 @@ namespace den0bot
 		/// </summary>
 		/// <param name="audio">Audio to send</param>
 		/// <param name="chatID">Chat ID to send photo to</param>
-		public static async Task<Message> SendVoice(InputOnlineFile audio, long chatID, string caption = null, ParseMode parseMode = ParseMode.Default, int replyTo = 0)
+		public static async Task<Message> SendVoice(InputOnlineFile audio, long chatID, string caption = null, ParseMode parseMode = ParseMode.Default, int replyTo = 0, int duration = 0)
 		{
 			try
 			{
-				return await api.SendVoiceAsync(chatID, audio, caption, parseMode, replyToMessageId: replyTo);
+				return await api.SendVoiceAsync(chatID, audio, caption, parseMode, duration, replyToMessageId: replyTo);
 			}
 			catch (Exception ex)
 			{

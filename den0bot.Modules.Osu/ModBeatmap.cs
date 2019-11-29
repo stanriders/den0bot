@@ -82,7 +82,7 @@ namespace den0bot.Modules.Osu
 					.ConvertAsync(new MediaFile($"./{mapsetId}.mp3"), new MediaFile($"./{mapsetId}.ogg"));
 
 				using (FileStream fs = File.Open($"./{mapsetId}.ogg", FileMode.Open, FileAccess.Read))
-					await API.SendVoice(new InputOnlineFile(fs), callback.Message.Chat.Id, replyTo: callback.Message.MessageId);
+					await API.SendVoice(new InputOnlineFile(fs), callback.Message.Chat.Id, replyTo: callback.Message.MessageId, duration: 10);
 
 				File.Delete($"./{mapsetId}.mp3");
 				File.Delete($"./{mapsetId}.ogg");
