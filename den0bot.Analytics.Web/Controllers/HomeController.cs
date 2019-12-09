@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Telegram.Bot;
 using Telegram.Bot.Types;
+using Telegram.Bot.Types.Enums;
 
 namespace den0bot.Analytics.Web.Controllers
 {
@@ -38,7 +39,7 @@ namespace den0bot.Analytics.Web.Controllers
 				foreach (var chat in chats)
 				{
 					var tgChat = await TelegramCache.GetChat(telegramClient, chat.Id);
-					if (tgChat != null)
+					if (tgChat != null && tgChat.Type != ChatType.Private)
 					{
 						model.Add(new ShortChatModel
 						{
