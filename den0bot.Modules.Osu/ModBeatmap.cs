@@ -9,6 +9,7 @@ using den0bot.Modules.Osu.Osu.API.Requests;
 using den0bot.Modules.Osu.Osu.Types;
 using den0bot.Util;
 using FFmpeg.NET;
+using Newtonsoft.Json;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.InputFiles;
 using Telegram.Bot.Types.ReplyMarkups;
@@ -24,6 +25,23 @@ namespace den0bot.Modules.Osu
 		private readonly InlineKeyboardMarkup buttons = new InlineKeyboardMarkup(
 			new[] {new InlineKeyboardButton {Text = "Preview", CallbackData = "preview"},}
 		);
+
+		private class RebalanceMap
+		{
+			public int? BeatmapSetId { get; set; }
+			public string Title { get; set; }
+			public double Stars { get; set; }
+			public double[] PP { get; set; }
+		}
+
+		public ModBeatmap()
+		{
+			AddCommand(new Command
+			{
+				Name = "newpp",
+				ActionAsync = GetRebalancePp
+			});
+		}
 
 		public async Task ReceiveMessage(Message message)
 		{
@@ -89,6 +107,33 @@ namespace den0bot.Modules.Osu
 
 				await API.EditMediaCaption(callback.Message.Chat.Id, callback.Message.MessageId,
 					callback.Message.Caption, parseMode: Telegram.Bot.Types.Enums.ParseMode.Html);
+			}
+
+			return string.Empty;
+		}
+
+		private async Task<string> GetRebalancePp(Message msg)
+		{
+			if (!string.IsNullOrEmpty(msg.Text))
+			{
+				var beatmapId = Map.GetIdFromLink(msg.Text, out var isSet, out var mods);
+				if (beatmapId != 0 && !isSet)
+				{
+					var json = new { Map = beatmapId.ToString(), Mods = Array.Empty<string>() };
+					var mapJson = await Web.PostJson("https://newpp.stanr.info/api/CalculateMap", JsonConvert.SerializeObject(json));
+					if (!string.IsNullOrEmpty(mapJson))
+					{
+						var map = JsonConvert.DeserializeObject<RebalanceMap>(
+							JsonConvert.DeserializeObject<string>(mapJson));
+
+						await API.SendPhoto($"https://assets.ppy.sh/beatmaps/{map.BeatmapSetId}/covers/card@2x.jpg",
+							msg.Chat.Id,
+							$"{map.Title}\n{map.Stars:F2}*\n100% - {map.PP[10]}pp | 98% - {map.PP[8]}pp | 95% - {map.PP[5]}pp",
+							replyID: msg.MessageId);
+					}
+				}
+
+				return Localization.Get("generic_badrequest", msg.Chat.Id);
 			}
 
 			return string.Empty;

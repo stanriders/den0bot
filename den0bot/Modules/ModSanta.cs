@@ -10,7 +10,7 @@ using SQLite;
 
 namespace den0bot.Modules
 {
-	// 2018 secret santa event
+	// 2018, 2019 secret santa event
 	class ModSanta : IModule
 	{
 		public readonly List<string> senders = new List<string>()
@@ -20,9 +20,7 @@ namespace den0bot.Modules
 			"orinel",
 			"dusomlyser",
 			"Wladek",
-			"slam3085",
-			"noyasine",
-			"machine_ka"
+			"slam3085"
 		};
 		public ModSanta()
 		{

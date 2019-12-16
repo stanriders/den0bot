@@ -7,6 +7,7 @@ using den0bot.DB;
 using den0bot.Util;
 using Telegram.Bot;
 using Telegram.Bot.Args;
+using Telegram.Bot.Exceptions;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.InputFiles;
@@ -125,14 +126,23 @@ namespace den0bot
 		/// <param name="photo">Photo to send. Can be both internal telegram photo ID or a link</param>
 		/// <param name="receiverId">Chat ID to send photo to</param>
 		/// <param name="message">Photo caption if any</param>
+		/// <param name="mode">ParseMode</param>
+		/// <param name="replyID">Message to reply to</param>
+		/// <param name="replyMarkup"></param>
 		public static async Task<Message> SendPhoto(string photo, long receiverId, string message = "", ParseMode mode = ParseMode.Default, int replyID = 0, IReplyMarkup replyMarkup = null)
 		{
 			try
 			{
 				if (!string.IsNullOrEmpty(photo))
 				{
-					return await api.SendPhotoAsync(receiverId, new InputOnlineFile(photo), message, mode, false, replyID, replyMarkup);
+					return await api.SendPhotoAsync(receiverId, new InputOnlineFile(photo), message, mode, false,
+						replyID, replyMarkup);
 				}
+			}
+			catch (ApiRequestException ex)
+			{
+				Log.Error(ex.InnerMessageIfAny());
+				return await api.SendTextMessageAsync(receiverId, message, mode, false, false, replyID, replyMarkup);
 			}
 			catch (Exception ex)
 			{
