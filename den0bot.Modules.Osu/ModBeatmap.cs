@@ -119,24 +119,32 @@ namespace den0bot.Modules.Osu
 				var beatmapId = Map.GetIdFromLink(msg.Text, out var isSet, out var mods);
 				if (beatmapId != 0 && !isSet)
 				{
-					var json = new { Map = beatmapId.ToString(), Mods = Array.Empty<string>() };
-					var mapJson = await Web.PostJson("https://newpp.stanr.info/api/CalculateMap", JsonConvert.SerializeObject(json));
-					if (!string.IsNullOrEmpty(mapJson))
+					var json = new { Map = beatmapId.ToString(), Mods = mods.ToString().Split(", ") };
+					try
 					{
-						var map = JsonConvert.DeserializeObject<RebalanceMap>(
-							JsonConvert.DeserializeObject<string>(mapJson));
+						var mapJson = await Web.PostJson("https://newpp.stanr.info/api/CalculateMap",
+							JsonConvert.SerializeObject(json));
+						if (!string.IsNullOrEmpty(mapJson))
+						{
+							var map = JsonConvert.DeserializeObject<RebalanceMap>(
+								JsonConvert.DeserializeObject<string>(mapJson));
 
-						await API.SendPhoto($"https://assets.ppy.sh/beatmaps/{map.BeatmapSetId}/covers/card@2x.jpg",
-							msg.Chat.Id,
-							$"{map.Title}\n{map.Stars:F2}*\n100% - {map.PP[10]}pp | 98% - {map.PP[8]}pp | 95% - {map.PP[5]}pp",
-							replyID: msg.MessageId);
+							await API.SendPhoto($"https://assets.ppy.sh/beatmaps/{map.BeatmapSetId}/covers/card@2x.jpg",
+								msg.Chat.Id,
+								$"{map.Title}\n{map.Stars:F2}*\n100% - {map.PP[10]}pp | 98% - {map.PP[8]}pp | 95% - {map.PP[5]}pp",
+								replyID: msg.MessageId);
+
+							return string.Empty;
+						}
+					}
+					catch (Exception)
+					{
+						return Localization.Get("generic_fail", msg.Chat.Id);
 					}
 				}
-
-				return Localization.Get("generic_badrequest", msg.Chat.Id);
 			}
 
-			return string.Empty;
+			return Localization.Get("generic_badrequest", msg.Chat.Id);
 		}
 	}
 }
