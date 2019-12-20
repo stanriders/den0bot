@@ -26,7 +26,8 @@ namespace den0bot.Modules.Osu
 		private int currentMatch = 0;
 		private bool updating = false;
 
-		private readonly Regex regex = new Regex(@"(?>https?:\/\/)?osu\.ppy\.sh\/community\/matches\/(\d+)", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+		private readonly Regex matchLinkRegex = new Regex(@"(?>https?:\/\/)?osu\.ppy\.sh\/community\/matches\/(\d+)", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+		private readonly Regex matchNameRegex = new Regex(@".+: ?\((.+)\) ?vs ?\((.+)\)", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
 		private readonly int update_time = 5; //seconds
 
@@ -43,10 +44,10 @@ namespace den0bot.Modules.Osu
 		}
 		private string StartFollowing(Message msg)
 		{
-			Match regexMatch = regex.Match(msg.Text);
+			Match regexMatch = matchLinkRegex.Match(msg.Text);
 			if (regexMatch.Groups.Count > 1)
 			{
-				List<Group> regexGroups = regexMatch.Groups.OfType<Group>().Where(x => (x != null) && (x.Length > 0)).ToList();
+				List<Group> regexGroups = regexMatch.Groups.OfType<Group>().Where(x => x.Length > 0).ToList();
 
 				ulong matchID = ulong.Parse(regexGroups[1].Value);
 				var match = new FollowedMatch()
@@ -105,7 +106,7 @@ namespace den0bot.Modules.Osu
 		{
 			if (!string.IsNullOrEmpty(message.Text))
 			{
-				Match regexMatch = regex.Match(message.Text);
+				Match regexMatch = matchLinkRegex.Match(message.Text);
 				if (regexMatch.Groups.Count > 1)
 				{
 					List<Group> regexGroups = regexMatch.Groups.OfType<Group>().Where(x => x.Length > 0).ToList();
@@ -128,19 +129,41 @@ namespace den0bot.Modules.Osu
 			var game = games.Last(x => x.EndTime != null);
 			if (game?.Scores != null)
 			{
-				var map = await Osu.WebApi.MakeAPIRequest(new GetBeatmap(game.BeatmapID));
+				Map map = await Osu.WebApi.MakeAPIRequest(new GetBeatmap(game.BeatmapID));
 				if (game.TeamMode >= MultiplayerMatch.TeamMode.Team)
 				{
-					List<Score> allScores = game.Scores;
+					int blueTotalScore = 0, redTotalScore = 0;
+					string blueTeamName = "Blue team", redTeamName = "Red team";
+
+					Match regexMatch = matchNameRegex.Match(match.Info.Name);
+					if (regexMatch.Groups.Count == 3)
+					{
+						redTeamName = regexMatch.Groups[1].Value;
+						blueTeamName = regexMatch.Groups[2].Value;
+					}
+
+					foreach (var g in match.Games)
+					{
+						var redGameScore = g.Scores.Sum(x => (x.Team == 2) ? x.ScorePoints : 0);
+						var blueGameScore = g.Scores.Sum(x => (x.Team == 1) ? x.ScorePoints : 0);
+						if (redGameScore > blueGameScore)
+							redTotalScore++;
+						else
+							blueTotalScore++;
+					}
+
+					gamesString += $"{redTeamName} {redTotalScore} | {blueTeamName} {blueTotalScore}{Environment.NewLine}{Environment.NewLine}";
+
+					List <Score> allScores = game.Scores;
 					allScores = allScores.OrderByDescending(x => x.ScorePoints).ToList();
 					allScores = allScores.OrderByDescending(x => x.Team).ToList();
 
-					gamesString += $"<b>{map.Artist} - {map.Title}[{map.Difficulty}]{Environment.NewLine}</b>";
+					gamesString += $"<b>{map.Artist} - {map.Title} [{map.Difficulty}]</b>{Environment.NewLine}";
 					foreach (var score in allScores)
 					{
 						if (score.ScorePoints != 0)
 						{
-							var player = await Osu.WebApi.MakeAPIRequest(new GetUser(score.UserID.ToString()));
+							Player player = await Osu.WebApi.MakeAPIRequest(new GetUser(score.UserID.ToString()));
 							string teamSymbol = score.Team > 1 ? "🔴" : "🔵";
 							string pass = score.IsPass == 1 ? "" : ", failed";
 							gamesString += $" {teamSymbol} <b>{player.Username}</b>: {score.ScorePoints} ({score.Combo}x, {score.Accuracy:N2}%{pass}){Environment.NewLine}";
@@ -149,14 +172,14 @@ namespace den0bot.Modules.Osu
 					var redScore = allScores.Sum(x => (x.Team == 2) ? x.ScorePoints : 0);
 					var blueScore = allScores.Sum(x => (x.Team == 1) ? x.ScorePoints : 0);
 					if (redScore > blueScore)
-						gamesString += "Red team wins!";
+						gamesString += $"{redTeamName} wins!";
 					else
-						gamesString += "Blue team wins!";
+						gamesString += $"{blueTeamName} wins!";
 				}
 				else
 				{
 					game.Scores = game.Scores.OrderByDescending(x => x.ScorePoints).ToList();
-					gamesString += $"{map.Artist} - {map.Title}[{map.Difficulty}]{Environment.NewLine}";
+					gamesString += $"{Environment.NewLine}{map.Artist} - {map.Title}[{map.Difficulty}]{Environment.NewLine}";
 					for (int i = 0; i < game.Scores.Count(); i++)
 					{
 						if (game.Scores[i].ScorePoints != 0)
@@ -168,7 +191,7 @@ namespace den0bot.Modules.Osu
 					}
 				}
 			}
-			return $"<a href=\"https://osu.ppy.sh/community/matches/{match.Info.ID}\">{match.Info.Name}</a>{Environment.NewLine}{Environment.NewLine}{gamesString}";
+			return $"<a href=\"https://osu.ppy.sh/community/matches/{match.Info.ID}\">{match.Info.Name}</a>{Environment.NewLine}{gamesString}";
 		}
 	}
 }
