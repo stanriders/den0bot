@@ -14,7 +14,7 @@ namespace den0bot.Modules.Osu
 	{
 		private readonly Regex regex = new Regex(@"(?>https?:\/\/)?(?>osu|old)\.ppy\.sh\/u(?>sers)?\/(\d+|\S+)", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 		private readonly int topscores_to_show = 3;
-		public ModProfile() { Log.Debug("Enabled"); }
+		public ModProfile() => Log.Debug("Enabled");
 
 		public async Task ReceiveMessage(Message message)
 		{

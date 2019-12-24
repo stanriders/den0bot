@@ -7,50 +7,52 @@ namespace den0bot.Modules.Osu.Osu.Types
 	public class Score : ICloneable
 	{
 		[JsonProperty("beatmap_id")]
-		public uint BeatmapID;
+		public uint BeatmapID { get; set; }
 		[JsonProperty("score_id")]
-		public uint ScoreID;
+		public uint ScoreID { get; set; }
 		[JsonProperty("user_id")]
-		public uint UserID;
+		public uint UserID { get; set; }
 
 		[JsonProperty("date")]
-		public DateTime Date;
+		public DateTime Date { get; set; }
 
 		[JsonProperty("maxcombo")]
-		public uint Combo;
+		public uint Combo { get; set; }
 
 		[JsonProperty("perfect")]
-		public short Perfect;
+		public short Perfect { get; set; }
 
 		[JsonProperty("score")]
-		public uint ScorePoints;
+		public uint ScorePoints { get; set; }
 		[JsonProperty("count300")]
-		public uint Count300;
+		public uint Count300 { get; set; }
 		[JsonProperty("count100")]
-		public uint Count100;
+		public uint Count100 { get; set; }
 		[JsonProperty("count50")]
-		public uint Count50;
+		public uint Count50 { get; set; }
 		[JsonProperty("countmiss")]
-		public uint Misses;
+		public uint Misses { get; set; }
 		[JsonProperty("countkatu")]
-		public uint CountKatu;
+		public uint CountKatu { get; set; }
 		[JsonProperty("countgeki")]
-		public uint CountGeki;
+		public uint CountGeki { get; set; }
 
 		[JsonProperty("enabled_mods")]
-		public Mods? EnabledMods;
+		public Mods? EnabledMods { get; set; }
 		[JsonProperty("rank")]
-		public string Rank;
+		public string Rank { get; set; }
 		[JsonProperty("pp")]
-		public double Pp;
+		public double Pp { get; set; }
 
 		// multiplayer
 		[JsonProperty("slot")]
-		public uint Slot;
+		public uint Slot { get; set; }
 		[JsonProperty("team")]
-		public uint Team; // FIXME: make it into enum
-		[JsonProperty("pass")]
-		public short IsPass;
+		public Team Team { get; set; }
+		[JsonProperty("pass")] 
+		private short isPass { get; set; }
+
+		public bool IsPass => isPass != 0;
 
 		public double Accuracy
 		{

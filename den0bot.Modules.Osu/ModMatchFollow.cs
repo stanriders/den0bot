@@ -62,17 +62,19 @@ namespace den0bot.Modules.Osu
 			return string.Empty;
 		}
 
-		public override void Think()
+		public override async void Think()
 		{
 			if (followList.Count > 0 && nextCheck < DateTime.Now && !updating)
 			{
-				Update();
+				updating = true;
+				await Update();
+				updating = false;
 			}
 		}
 
-		private async void Update()
+		private async Task Update()
 		{
-			updating = true; // thread racing :(
+			nextCheck = DateTime.Now.AddSeconds(update_time);
 
 			if (currentMatch >= followList.Count)
 				currentMatch = 0;
@@ -97,9 +99,6 @@ namespace den0bot.Modules.Osu
 				}
 			}
 			currentMatch++;
-			nextCheck = DateTime.Now.AddSeconds(update_time);
-
-			updating = false;
 		}
 
 		public async Task ReceiveMessage(Message message)
@@ -144,49 +143,48 @@ namespace den0bot.Modules.Osu
 
 					foreach (var g in match.Games)
 					{
-						var redGameScore = g.Scores.Sum(x => (x.Team == 2) ? x.ScorePoints : 0);
-						var blueGameScore = g.Scores.Sum(x => (x.Team == 1) ? x.ScorePoints : 0);
+						var redGameScore = g.Scores.Where(x => x.Team == Team.Red).Sum(x => x.ScorePoints);
+						var blueGameScore = g.Scores.Where(x => x.Team == Team.Blue).Sum(x => x.ScorePoints);
+
 						if (redGameScore > blueGameScore)
 							redTotalScore++;
 						else
 							blueTotalScore++;
 					}
 
-					gamesString += $"{redTeamName} {redTotalScore} | {blueTeamName} {blueTotalScore}{Environment.NewLine}{Environment.NewLine}";
+					List <Score> allScores = game.Scores
+						.OrderByDescending(x => x.ScorePoints)
+						.ThenByDescending(x => x.Team)
+						.ToList();
 
-					List <Score> allScores = game.Scores;
-					allScores = allScores.OrderByDescending(x => x.ScorePoints).ToList();
-					allScores = allScores.OrderByDescending(x => x.Team).ToList();
+					gamesString += $"{redTeamName} {redTotalScore} | {blueTeamName} {blueTotalScore}{Environment.NewLine}{Environment.NewLine}" +
+					               $"<b>{map.Artist} - {map.Title} [{map.Difficulty}]</b>{Environment.NewLine}";
 
-					gamesString += $"<b>{map.Artist} - {map.Title} [{map.Difficulty}]</b>{Environment.NewLine}";
 					foreach (var score in allScores)
 					{
-						if (score.ScorePoints != 0)
+						if (score.ScorePoints > 0)
 						{
 							Player player = await Osu.WebApi.MakeAPIRequest(new GetUser(score.UserID.ToString()));
-							string teamSymbol = score.Team > 1 ? "🔴" : "🔵";
-							string pass = score.IsPass == 1 ? "" : ", failed";
-							gamesString += $" {teamSymbol} <b>{player.Username}</b>: {score.ScorePoints} ({score.Combo}x, {score.Accuracy:N2}%{pass}){Environment.NewLine}";
+							gamesString += $" {(score.Team == Team.Red ? "🔴" : "🔵")} <b>{player.Username}</b>: {score.ScorePoints} ({score.Combo}x, {score.Accuracy:N2}%{(score.IsPass ? "" : ", failed")}){Environment.NewLine}";
 						}
 					}
-					var redScore = allScores.Sum(x => (x.Team == 2) ? x.ScorePoints : 0);
-					var blueScore = allScores.Sum(x => (x.Team == 1) ? x.ScorePoints : 0);
-					if (redScore > blueScore)
-						gamesString += $"{redTeamName} wins!";
-					else
-						gamesString += $"{blueTeamName} wins!";
+
+					var redScore = allScores.Where(x => x.Team == Team.Red).Sum(x => x.ScorePoints);
+					var blueScore = allScores.Where(x => x.Team == Team.Blue).Sum(x => x.ScorePoints);
+
+					gamesString += $"<b>{(redScore > blueScore ? redTeamName : blueTeamName)}</b> wins by <b>{Math.Abs(redScore - blueScore)}</b> points!";
 				}
-				else
+				else if(game.TeamMode >= MultiplayerMatch.TeamMode.HeadToHead)
 				{
-					game.Scores = game.Scores.OrderByDescending(x => x.ScorePoints).ToList();
+					var scores = game.Scores.OrderByDescending(x => x.ScorePoints).ToList();
+
 					gamesString += $"{Environment.NewLine}{map.Artist} - {map.Title}[{map.Difficulty}]{Environment.NewLine}";
-					for (int i = 0; i < game.Scores.Count(); i++)
+					for (int i = 0; i < scores.Count; i++)
 					{
-						if (game.Scores[i].ScorePoints != 0)
+						if (scores[i].ScorePoints != 0)
 						{
-							var player = await Osu.WebApi.MakeAPIRequest(new GetUser(game.Scores[i].UserID.ToString()));
-							string pass = game.Scores[i].IsPass == 1 ? "" : ", failed";
-							gamesString += $"{i + 1}. <b>{player.Username}</b>: {game.Scores[i].ScorePoints} ({game.Scores[i].Combo}x, {game.Scores[i].Accuracy:N2}%{pass}){Environment.NewLine}";
+							Player player = await Osu.WebApi.MakeAPIRequest(new GetUser(scores[i].UserID.ToString()));
+							gamesString += $"{i + 1}. <b>{player.Username}</b>: {scores[i].ScorePoints} ({scores[i].Combo}x, {scores[i].Accuracy:N2}%{(scores[i].IsPass ? "" : ", failed")}){Environment.NewLine}";
 						}
 					}
 				}
