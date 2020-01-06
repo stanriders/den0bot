@@ -1,7 +1,6 @@
 ﻿// den0bot (c) StanR 2019 - MIT License
 using System;
 using System.Collections.Generic;
-using System.Net;
 using System.Threading.Tasks;
 using den0bot.DB;
 using den0bot.Util;

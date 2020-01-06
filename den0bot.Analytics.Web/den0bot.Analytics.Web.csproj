@@ -6,8 +6,8 @@
 
   <ItemGroup>
     <PackageReference Include="Highsoft.Highcharts" Version="7.2.0" />
-    <PackageReference Include="System.Runtime.Caching" Version="4.6.0" />
-    <PackageReference Include="Telegram.Bot" Version="15.0.0" />
+    <PackageReference Include="System.Runtime.Caching" Version="4.7.0" />
+    <PackageReference Include="Telegram.Bot" Version="15.1.0" />
   </ItemGroup>
 
   <ItemGroup>
