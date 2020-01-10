@@ -128,7 +128,7 @@ namespace den0bot.Modules
 
 					result += $"<code>{post.name}({post.num})</code> {images}\n" +
 					          $"{FilterPost(post.comment)}\n" +
-					          $"_______\n";
+					          $"________\n";
 				}
 
 				return result + $"[<a href=\"https://2ch.hk/a/res/{threadID}.html\">Thread</a>]";

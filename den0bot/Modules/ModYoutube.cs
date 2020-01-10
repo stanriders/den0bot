@@ -1,10 +1,9 @@
-﻿// den0bot (c) StanR 2019 - MIT License
+﻿// den0bot (c) StanR 2020 - MIT License
 using System;
-using System.Text;
 using System.Threading.Tasks;
-using Newtonsoft.Json.Linq;
 using den0bot.DB;
 using den0bot.Util;
+using Newtonsoft.Json;
 
 namespace den0bot.Modules
 {
@@ -99,20 +98,14 @@ namespace den0bot.Modules
 												Uri.EscapeDataString(lastChecked.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss.sZ")),
 												channel_id);
 
-				var data = await Web.DownloadBytes(request);
+				var data = await Web.DownloadString(request);
 
-				JObject obj = JObject.Parse(Encoding.UTF8.GetString(data));
+				dynamic items = JsonConvert.DeserializeObject(data);
 
-				if (obj["items"].HasValues)
+				foreach (var vid in items.items)
 				{
-					foreach (var vid in obj["items"])
-					{
-						string title = vid["snippet"]["title"].ToString();
-						string id = vid["contentDetails"]["upload"]["videoId"].ToString();
-
-						string result = $"❗️ {title}{Environment.NewLine}http://youtu.be/{id}";
-						await API.SendMessageToAllChats(result);
-					}
+					await API.SendMessageToAllChats(
+						$"❗️ {vid.snippet.title}{Environment.NewLine}http://youtu.be/{vid.contentDetails.upload.videoId}");
 				}
 			}
 			catch (Exception ex) { Log.Error(ex.InnerMessageIfAny()); }
@@ -133,14 +126,14 @@ namespace den0bot.Modules
 												Uri.EscapeDataString("items(contentDetails/upload,snippet/title)"),
 												channel_id);
 
-				var data = await Web.DownloadBytes(request);
+				var data = await Web.DownloadString(request);
 
-				JObject obj = JObject.Parse(Encoding.UTF8.GetString(data));
+				dynamic items = JsonConvert.DeserializeObject(data);
+
 				for (int i = 0; i < 3; i++)
 				{
-					string title = obj["items"][i]["snippet"]["title"].ToString();
-					string id = obj["items"][i]["contentDetails"]["upload"]["videoId"].ToString();
-					result += title + Environment.NewLine + "http://youtu.be/" + id + Environment.NewLine + Environment.NewLine;
+					var vid = items.items[i];
+					result += $"{vid.snippet.title}\nhttp://youtu.be/{vid.contentDetails.upload.videoId}";
 				}
 			}
 			catch (Exception ex) { Log.Error(ex.InnerMessageIfAny()); }
