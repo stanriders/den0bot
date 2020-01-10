@@ -9,11 +9,7 @@
     <RootNamespace>den0bot</RootNamespace>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <OutputPath>bin\Debug\</OutputPath>
-  </PropertyGroup>
-
-  <ItemGroup>
+	<ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
     <PackageReference Include="OppaiSharp" Version="3.2.0" />
     <PackageReference Include="sqlite-net-pcl" Version="1.7.302-beta" />

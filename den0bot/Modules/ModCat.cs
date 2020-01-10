@@ -44,6 +44,7 @@ namespace den0bot.Modules
 						}
 						catch (Exception)
 						{
+							return;
 						}
 
 						if (!string.IsNullOrEmpty(json))

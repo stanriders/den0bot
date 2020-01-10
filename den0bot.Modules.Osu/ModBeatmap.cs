@@ -119,7 +119,7 @@ namespace den0bot.Modules.Osu
 				var beatmapId = Map.GetIdFromLink(msg.Text, out var isSet, out var mods);
 				if (beatmapId != 0 && !isSet)
 				{
-					var json = new { Map = beatmapId.ToString(), Mods = mods.ToString().Split(", ") };
+					var json = new { Map = beatmapId.ToString(), Mods = mods == Mods.None ? new string[0] : mods.ToString().Split(", ") };
 					try
 					{
 						var mapJson = await Web.PostJson("https://newpp.stanr.info/api/CalculateMap",
