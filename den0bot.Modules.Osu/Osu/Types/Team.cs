@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
+﻿// den0bot (c) StanR 2020 - MIT License
 namespace den0bot.Modules.Osu.Osu.Types
 {
 	public enum Team

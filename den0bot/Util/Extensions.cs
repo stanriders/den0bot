@@ -7,19 +7,6 @@ namespace den0bot.Util
 {
 	public static class Extensions
 	{
-		public static string FilterHTML(this string value)
-		{
-			var step1 = value.Replace("<br>", Environment.NewLine);
-
-			var step2 = Regex.Replace(step1, @"<[^>]+>", "").Trim();
-
-			return Regex.Replace(step2, @"\s{2,}", " ")
-						.Replace("&gt;", ">")
-						.Replace("&nbsp;", " ")
-						.Replace("&quot;", "\"")
-						.Replace("&#47;", "/");
-		}
-
 		public static string FilterToHTML(this string value)
 		{
 			return value.Replace("&", "&amp;")

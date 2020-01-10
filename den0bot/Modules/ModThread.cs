@@ -1,17 +1,40 @@
-﻿// den0bot (c) StanR 2019 - MIT License
+﻿// den0bot (c) StanR 2020 - MIT License
 #define ENDLESSTHREAD
 
 using System;
 using System.Collections.Generic;
-using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using Newtonsoft.Json.Linq;
 using den0bot.Util;
+using Newtonsoft.Json;
+using Telegram.Bot.Types.Enums;
 
 namespace den0bot.Modules
 {
 	class ModThread : IModule
 	{
+		private class Board
+		{
+			public class Thread
+			{
+				public class Post
+				{
+					public class File
+					{
+						public string displayname { get; set; }
+						public string path { get; set; }
+					}
+					public List<File> files { get; set; }
+					public int num { get; set; }
+					public string name { get; set; }
+					public string comment { get; set; }
+				}
+				public List<Post> posts { get; set; }
+			}
+			public List<Thread> threads { get; set; }
+		}
+
+		private const int max_post_amount = 15;
 		private const int default_post_amount = 1;
 
 		public ModThread()
@@ -19,12 +42,13 @@ namespace den0bot.Modules
 			AddCommand(new Command()
 			{
 				Name = "thread",
+				ParseMode = ParseMode.Html,
 				ActionAsync = (msg) =>
 				{
 					try
 					{
 						int amount = int.Parse(msg.Text.Remove(0, 7));
-						if (amount > 20)
+						if (amount > max_post_amount)
 							return GetLastPosts(default_post_amount);
 						else
 							return GetLastPosts(amount);
@@ -65,6 +89,20 @@ namespace den0bot.Modules
 #endif
 		}
 
+		private string FilterPost(string value)
+		{
+			var step1 = value.Replace("/a/res/", "http://2ch.hk/a/res/")
+				.Replace("<br>", "\n")
+				.Replace(@"</span>", "</code>");
+
+			return Regex.Replace(step1, @"<span[^>]+>", "<code>")
+				.Replace(@"\s{2,}", " ")
+				.Replace("&gt;", ">")
+				.Replace("&nbsp;", " ")
+				.Replace("&quot;", "\"")
+				.Replace("&#47;", "/");
+		}
+
 		private async Task<string> GetLastPosts(int amount)
 		{
 			int threadID = FindThread();
@@ -74,33 +112,26 @@ namespace den0bot.Modules
 			try
 			{
 				string request = $"https://2ch.hk/a/res/{threadID}.json";
-				var data = await Web.DownloadBytes(request);
+				var data = await Web.DownloadString(request);
+				Board thread = JsonConvert.DeserializeObject<Board>(data);
 
-				JToken obj = JObject.Parse(Encoding.UTF8.GetString(data))["threads"][0];
-
-				string result = $"https://2ch.hk/a/res/{threadID}.html{Environment.NewLine}";
-
-				List<string> posts = new List<string>();
-
-				foreach (JToken o in obj["posts"])
-				{
-					string msg = o["comment"].ToString();
-
-					if (o["files"].HasValues)
-						msg = "http://2ch.hk" + o["files"][0]["path"].ToString() + Environment.NewLine + o["comment"].ToString();
-
-					posts.Add(msg);
-				}
-
+				var posts = thread.threads[0].posts;
 				if (posts.Count > amount)
 					posts.RemoveRange(0, posts.Count - amount);
 
-				foreach (string post in posts)
+				string result = string.Empty;
+				foreach (var post in posts)
 				{
-					result += "___________" + Environment.NewLine + post.FilterHTML() + Environment.NewLine;
+					var images = string.Empty;
+					foreach (var file in post.files)
+						images += $"[<a href=\"https://2ch.hk{file.path}\">{file.displayname}</a>]";
+
+					result += $"<code>{post.name}({post.num})</code> {images}\n" +
+					          $"{FilterPost(post.comment)}\n" +
+					          $"_______\n";
 				}
 
-				return result;
+				return result + $"[<a href=\"https://2ch.hk/a/res/{threadID}.html\">Thread</a>]";
 			}
 			catch (Exception ex) { Log.Error(ex.InnerMessageIfAny()); }
 
