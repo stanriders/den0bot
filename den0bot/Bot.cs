@@ -220,7 +220,7 @@ namespace den0bot
 							UserId = msg.From.Id,
 							Timestamp = msg.Date.ToUniversalTime().Ticks,
 							Type = msg.Type.ToDbType(),
-							Command = msg.Text?.Split(' ')[0].Replace("@den0bot", ""),
+							Command = msg.Text?.Split(' ')[0].Replace($"@{API.BotUser.Username}", ""),
 							Length = msg.Text?.Length ?? 0
 						});
 					}

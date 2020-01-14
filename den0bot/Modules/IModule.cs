@@ -81,8 +81,8 @@ namespace den0bot.Modules
 			if (nameEndIndex != -1)
 				name = name.Remove(nameEndIndex, name.Length - nameEndIndex);
 
-			if (name.EndsWith("@den0bot"))
-				name = name.Replace("@den0bot", "");
+			if (name.EndsWith($"@{API.BotUser.Username}"))
+				name = name.Replace($"@{API.BotUser.Username}", "");
 
 			return commands.Find(x => x.ContainsName(name.ToLowerInvariant()));
 		}

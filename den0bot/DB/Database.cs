@@ -131,7 +131,6 @@ namespace den0bot.DB
 				var chat = new Chat
 				{
 					Id = chatID,
-					Banlist = string.Empty,
 					DisableAnnouncements = false,
 					Locale = "ru"
 				};

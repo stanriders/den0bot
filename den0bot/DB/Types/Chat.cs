@@ -10,10 +10,6 @@ namespace den0bot.DB.Types
 
 		public bool DisableAnnouncements { get; set; }
 
-		public string Admins { get; set; }
-
-		public string Banlist { get; set; }
-
 		public string Locale { get; set; }
 	}
 }
