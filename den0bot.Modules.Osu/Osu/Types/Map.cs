@@ -51,6 +51,12 @@ namespace den0bot.Modules.Osu.Osu.Types
 		private uint drainLength { get; set; }
 		[JsonProperty("total_length")]
 		public uint TotalLength;
+		[JsonProperty("count_normal")]
+		public uint? CountCircles;
+		[JsonProperty("count_slider")]
+		public uint? CountSliders;
+		[JsonProperty("count_spinner")]
+		public uint? CountSpinners;
 
 		[JsonProperty("bpm")]
 		private double bpm { get; set; }

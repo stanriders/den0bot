@@ -1,4 +1,4 @@
-﻿// den0bot (c) StanR 2019 - MIT License
+﻿// den0bot (c) StanR 2020 - MIT License
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -151,6 +151,8 @@ namespace den0bot.Modules
 			}
 		}
 
+		private bool useTranslation = true;
+
 		private readonly char[] sentenceSeparators = { '.', '.', '.', '!', '!', '?', '(', ')', '\n' };
 		private readonly Regex cleanWordRegex = 
 			new Regex(@"[()\[\]{}'""`~\\\/\-*\d]|(http|ftp|https):\/\/([\w_-]+(?:(?:\.[\w_-]+)+))([\w.,@?^=%&:\/~+#-]*[\w@?^=%&\/~+#-])?", RegexOptions.Compiled | RegexOptions.IgnoreCase);
@@ -166,7 +168,8 @@ namespace den0bot.Modules
 				new Command
 				{
 					Name = "talk",
-					Action = SendRandomMessage
+					Reply = true,
+					ActionAsync = SendRandomMessage
 				},
 				new Command
 				{
@@ -205,7 +208,7 @@ namespace den0bot.Modules
 			});
 		}
 
-		private string SendRandomMessage(Message msg)
+		private async Task<string> SendRandomMessage(Message msg)
 		{
 			if (!markovChain.Ready || markovChain.Nodes.Count == 0)
 				return Localization.Get("shmalala_notready", msg.Chat.Id);
@@ -216,7 +219,39 @@ namespace den0bot.Modules
 			for (int i = 0; i < RNG.NextNoMemory(1, 4); i++)
 				textBuilder.Append(GenerateRandomSentence(default));
 
-			return textBuilder.ToString();
+			var completeMessage = textBuilder.ToString();
+
+			if (useTranslation)
+			{
+				var ruenTranslate = await Translate(completeMessage, "en");
+				if (!string.IsNullOrEmpty(ruenTranslate))
+				{
+					var enruTranslate = await Translate(ruenTranslate, "ru");
+					if (!string.IsNullOrEmpty(enruTranslate))
+					{
+						return enruTranslate;
+					}
+				}
+			}
+
+			return completeMessage;
+		}
+
+		private async Task<string> Translate(string text, string lang)
+		{
+			var translate = await Web.DownloadString(
+				$"https://translate.yandex.net/api/v1.5/tr.json/translate?key={Config.Params.YandexTranslateToken}&text={text}&lang={lang}");
+
+			if (!string.IsNullOrEmpty(translate))
+			{
+				dynamic json = JsonConvert.DeserializeObject(translate);
+				if (json.code == 200)
+				{
+					return json.text[0];
+				}
+			}
+
+			return string.Empty;
 		}
 
 		private string GenerateRandomSentence(string startNode)
@@ -265,7 +300,28 @@ namespace den0bot.Modules
 							for (int i = 0; i < RNG.NextNoMemory(1, 4); i++)
 								textBuilder.Append(GenerateRandomSentence(words[RNG.NextNoMemory(1, words.Length)]));
 
-							await API.SendMessage(textBuilder.ToString(), message.Chat.Id);
+							var completeMessage = textBuilder.ToString();
+							if (!string.IsNullOrEmpty(completeMessage))
+							{
+								var transSuccess = false;
+
+								if (useTranslation && RNG.NextNoMemory(1, 3) == 2)
+								{
+									var ruenTranslate = await Translate(completeMessage, "en");
+									if (!string.IsNullOrEmpty(ruenTranslate))
+									{
+										var enruTranslate = await Translate(ruenTranslate, "ru");
+										if (!string.IsNullOrEmpty(enruTranslate))
+										{
+											await API.SendMessage(enruTranslate, message.Chat.Id, replyID: message.MessageId);
+											transSuccess = true;
+										}
+									}
+								}
+
+								if (!transSuccess)
+									await API.SendMessage(completeMessage, message.Chat.Id, replyID: message.MessageId);
+							}
 						}
 
 						return;

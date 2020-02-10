@@ -231,7 +231,7 @@ namespace den0bot.Modules.Osu
 				{
 					// Add pp values
 					double scorePP = score.Pp;
-					if (scorePP == 0)
+					if (scorePP == 0.0)
 						scorePP = Oppai.GetBeatmapPP(map, score);
 
 					string possiblePP = string.Empty;
@@ -253,10 +253,13 @@ namespace den0bot.Modules.Osu
 					Log.Error($"Oppai failed: {e.InnerMessageIfAny()}");
 				}
 
+				var completion = (double)(score.Count300 + score.Count100 + score.Count50 + score.Misses) /
+				                    (map.CountCircles + map.CountSliders + map.CountSpinners) * 100.0;
+
 				result =
 					$"<b>({score.Rank})</b> <a href=\"{map.Link}\">{mapInfo}</a><b>{mods} ({score.Accuracy:N2}%)</b>{Environment.NewLine}" +
 					$"{score.Combo}/{map.MaxCombo}x ({score.Count300}/ {score.Count100} / {score.Count50} / {score.Misses}) {pp}{Environment.NewLine}" +
-					$"{date}{Environment.NewLine}{Environment.NewLine}";
+					$"{date} | {completion:N1}% completion{Environment.NewLine}{Environment.NewLine}";
 			}
 			else
 			{

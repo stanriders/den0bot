@@ -32,6 +32,8 @@ namespace den0bot.Util
 
 			// http://thecatapi.com/api-key-registration.html
 			public string CatToken { get; set; }
+
+			public string YandexTranslateToken { get; set; }
 		}
 
 		private const string config_file = "./config.json";
