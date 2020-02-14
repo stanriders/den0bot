@@ -11,5 +11,7 @@ namespace den0bot.DB.Types
 		public bool DisableAnnouncements { get; set; }
 
 		public string Locale { get; set; }
+
+		public string Introduction { get; set; }
 	}
 }

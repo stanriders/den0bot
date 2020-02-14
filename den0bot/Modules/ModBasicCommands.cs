@@ -56,7 +56,18 @@ namespace den0bot.Modules
 							return "😡";
 						}
 					}
-				}
+				},
+				new Command()
+				{
+					Name = "setintroduction",
+					IsAdminOnly = true,
+					Action = (message) =>
+					{
+						var text = message.Text.Substring(17);
+						Database.SetChatIntroduction(message.Chat.Id, text);
+						return "👌";
+					}
+				},
 			});
 			Log.Debug("Enabled");
 		}

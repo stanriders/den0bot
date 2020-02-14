@@ -189,6 +189,26 @@ namespace den0bot.DB
 					cachedChat.Locale = locale;
 			}
 		}
+
+		public static string GetChatIntroduction(long chatID)
+		{
+			return chatCache.Find(x => x.Id == chatID)?.Introduction;
+		}
+
+		public static void SetChatIntroduction(long chatID, string introduction)
+		{
+			Chat chat = db.Table<Chat>().FirstOrDefault(x => x.Id == chatID);
+			if (chat != null)
+			{
+				chat.Introduction = introduction;
+				db.Update(chat);
+
+				// Update cache as well
+				var cachedChat = chatCache.Find(x => x.Id == chatID);
+				if (cachedChat != null)
+					cachedChat.Introduction = introduction;
+			}
+		}
 		#endregion
 
 		#region Misc
