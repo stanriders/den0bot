@@ -9,7 +9,6 @@ using den0bot.Modules.Osu.Osu;
 using den0bot.Modules.Osu.Osu.API.Requests;
 using den0bot.Modules.Osu.Osu.Types;
 using den0bot.Util;
-using SQLite;
 using Telegram.Bot.Types.Enums;
 
 namespace den0bot.Modules.Osu
@@ -44,14 +43,21 @@ namespace den0bot.Modules.Osu
 				},
 				new Command
 				{
-					Name = "last",
+					Names = {"last", "l"},
 					Reply = true,
 					ActionAsync = GetScores,
 					ParseMode = ParseMode.Html
 				},
 				new Command
 				{
-					Name = "score",
+					Names = {"lastpass", "lp"},
+					Reply = true,
+					ActionAsync = GetPass,
+					ParseMode = ParseMode.Html
+				},
+				new Command
+				{
+					Names = {"score", "s"},
 					Reply = true,
 					ActionAsync = GetMapScores,
 					ParseMode = ParseMode.Html
@@ -92,7 +98,7 @@ namespace den0bot.Modules.Osu
 				playerID = id.ToString();
 			}
 
-			List<Score> lastScores = await Osu.WebApi.MakeAPIRequest(new GetRecentScores(playerID,amount));
+			List<Score> lastScores = await WebApi.MakeAPIRequest(new GetRecentScores(playerID,amount));
 			if (lastScores != null)
 			{
 				if (lastScores.Count == 0)
@@ -106,6 +112,34 @@ namespace den0bot.Modules.Osu
 			}
 
 			return string.Empty;
+		}
+
+		private async Task<string> GetPass(Telegram.Bot.Types.Message message)
+		{
+			string playerID;
+
+			List<string> msgSplit = message.Text.Split(' ').ToList();
+			msgSplit.RemoveAt(0);
+
+			if (msgSplit.Count > 0)
+			{
+				playerID = string.Join(" ", msgSplit);
+			}
+			else
+			{
+				var id = DatabaseOsu.GetPlayerOsuIDFromDatabase(message.From.Id);
+				if (id == 0)
+					return Localization.Get("recentscores_unknown_player", message.Chat.Id);
+
+				playerID = id.ToString();
+			}
+
+			List<Score> lastScores = await WebApi.MakeAPIRequest(new GetRecentScores(playerID, 50));
+			var lastPass = lastScores?.FirstOrDefault(x => x.IsPass);
+			if (lastPass == null)
+				return Localization.Get("recentscores_no_scores", message.Chat.Id);
+
+			return await FormatScore(lastPass, true);
 		}
 
 		private async Task<string> GetMapScores(Telegram.Bot.Types.Message message)
@@ -123,19 +157,19 @@ namespace den0bot.Modules.Osu
 
 				if (isSet)
 				{
-					List<Map> set = await Osu.WebApi.MakeAPIRequest(new GetBeatmapSet(mapId));
+					List<Map> set = await WebApi.MakeAPIRequest(new GetBeatmapSet(mapId));
 					if (set?.Count > 0)
 						mapId = set.OrderBy(x => x.StarRating).Last().BeatmapID;
 				}
 
-				List<Score> lastScores = await Osu.WebApi.MakeAPIRequest(new GetScores(playerId.ToString(), mapId, mods, score_amount));
+				List<Score> lastScores = await WebApi.MakeAPIRequest(new GetScores(playerId.ToString(), mapId, mods, score_amount));
 
 				if (lastScores != null)
 				{
 					if (lastScores.Count == 0)
 						return Localization.Get("recentscores_no_scores", message.Chat.Id);
 
-					var map = await Osu.WebApi.MakeAPIRequest(new GetBeatmap(mapId));
+					var map = await WebApi.MakeAPIRequest(new GetBeatmap(mapId));
 
 					string result = string.Empty;
 					foreach (var score in lastScores)
@@ -221,9 +255,7 @@ namespace den0bot.Modules.Osu
 			}
 
 			if (map == null)
-			{
-				map = await Osu.WebApi.MakeAPIRequest(new GetBeatmap(score.BeatmapID));
-			}
+				map = await WebApi.MakeAPIRequest(new GetBeatmap(score.BeatmapID));
 
 			string result;
 			if (map != null)
