@@ -1,4 +1,4 @@
-﻿// den0bot (c) StanR 2018 - MIT License
+﻿// den0bot (c) StanR 2020 - MIT License
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -38,9 +38,10 @@ namespace den0bot.Modules.Osu
 		{
 			AddCommand(new Command
 			{
-				Name = "newpp",
+				Name = "newppmap",
 				ActionAsync = GetRebalancePp
 			});
+			Log.Debug("Enabled");
 		}
 
 		public async Task ReceiveMessage(Message message)
@@ -126,8 +127,7 @@ namespace den0bot.Modules.Osu
 							JsonConvert.SerializeObject(json));
 						if (!string.IsNullOrEmpty(mapJson))
 						{
-							var map = JsonConvert.DeserializeObject<RebalanceMap>(
-								JsonConvert.DeserializeObject<string>(mapJson));
+							var map = JsonConvert.DeserializeObject<RebalanceMap>(mapJson);
 
 							await API.SendPhoto($"https://assets.ppy.sh/beatmaps/{map.BeatmapSetId}/covers/card@2x.jpg",
 								msg.Chat.Id,

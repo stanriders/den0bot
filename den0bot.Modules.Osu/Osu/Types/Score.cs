@@ -1,10 +1,10 @@
-﻿// den0bot (c) StanR 2019 - MIT License
+﻿// den0bot (c) StanR 2020 - MIT License
 using System;
 using Newtonsoft.Json;
 
 namespace den0bot.Modules.Osu.Osu.Types
 {
-	public class Score : ICloneable
+	public class Score
 	{
 		[JsonProperty("beatmap_id")]
 		public uint BeatmapID { get; set; }
@@ -58,7 +58,7 @@ namespace den0bot.Modules.Osu.Osu.Types
 		{
 			get
 			{
-				if (accuracy <= 0)
+				if (accuracy <= 0.0)
 				{
 					/*
 					 * Accuracy = Total points of hits / (Total number of hits * 300)
@@ -81,10 +81,6 @@ namespace den0bot.Modules.Osu.Osu.Types
 		}
 		private double accuracy = 0.0;
 
-		public object Clone()
-		{
-			return MemberwiseClone();
-		}
 		public override bool Equals(object obj)
 		{
 			Score b = obj as Score;

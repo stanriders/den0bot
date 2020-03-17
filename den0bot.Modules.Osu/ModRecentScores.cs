@@ -1,4 +1,4 @@
-﻿// den0bot (c) StanR 2019 - MIT License
+﻿// den0bot (c) StanR 2020 - MIT License
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -24,8 +24,6 @@ namespace den0bot.Modules.Osu
 
 		public ModRecentScores()
 		{
-			Database.CreateTable<Player>();
-
 			AddCommands(new[]
 			{
 				new Command
@@ -87,7 +85,7 @@ namespace den0bot.Modules.Osu
 			}
 			else
 			{
-				var id = GetPlayerOsuIDFromDatabase(message.From.Id);
+				var id = DatabaseOsu.GetPlayerOsuIDFromDatabase(message.From.Id);
 				if (id == 0)
 					return Localization.Get("recentscores_unknown_player", message.Chat.Id);
 
@@ -119,7 +117,7 @@ namespace den0bot.Modules.Osu
 			{
 				var mapId = Map.GetIdFromLink(msgSplit.First(), out var isSet, out var mods);
 
-				var playerId = GetPlayerOsuIDFromDatabase(message.From.Id);
+				var playerId = DatabaseOsu.GetPlayerOsuIDFromDatabase(message.From.Id);
 				if (playerId == 0)
 					return Localization.Get("recentscores_unknown_player", message.Chat.Id);
 
@@ -154,16 +152,21 @@ namespace den0bot.Modules.Osu
 
 		private async Task<string> AddMe(Telegram.Bot.Types.Message message)
 		{
-			Match regexMatch = profileRegex.Match(message.Text);
-			if (regexMatch.Groups.Count > 1)
+			if (message.Text.Length > 6)
 			{
-				string player = regexMatch.Groups[1]?.Value;
+				string player;
+				Match regexMatch = profileRegex.Match(message.Text);
+				if (regexMatch.Groups.Count > 1)
+					player = regexMatch.Groups[1]?.Value;
+				else
+					player = message.Text.Substring(7);
+
 				if (!string.IsNullOrEmpty(player))
 				{
 					if (!uint.TryParse(player, out var osuID))
 					{
 						// if they used /u/cookiezi instead of /u/124493 we ask osu API for an ID
-						Osu.Types.Player info = await Osu.WebApi.MakeAPIRequest(new GetUser(player));
+						Player info = await WebApi.MakeAPIRequest(new GetUser(player));
 
 						if (info == null)
 							return Localization.Get("recentscores_player_add_failed", message.Chat.Id);
@@ -173,7 +176,7 @@ namespace den0bot.Modules.Osu
 
 					if (osuID != 0)
 					{
-						AddPlayerToDatabase(message.From.Id, osuID);
+						DatabaseOsu.AddPlayerToDatabase(message.From.Id, osuID);
 						return Localization.Get("recentscores_player_add_success", message.Chat.Id);
 					}
 				}
@@ -184,8 +187,10 @@ namespace den0bot.Modules.Osu
 
 		private string RemoveMe(Telegram.Bot.Types.Message message)
 		{
-			RemovePlayerFromDatabase(message.From.Id);
-			return Localization.Get("recentscores_player_remove_success", message.Chat.Id);
+			if (DatabaseOsu.RemovePlayerFromDatabase(message.From.Id))
+				return Localization.Get("recentscores_player_remove_success", message.Chat.Id);
+			else
+				return Localization.Get("generic_fail", message.Chat.Id);
 		}
 
 		private string RemovePlayer(Telegram.Bot.Types.Message message)
@@ -194,7 +199,7 @@ namespace den0bot.Modules.Osu
 
 			if (!string.IsNullOrEmpty(name))
 			{
-				RemovePlayerFromDatabase(Database.GetUserID(name));
+				DatabaseOsu.RemovePlayerFromDatabase(Database.GetUserID(name));
 				return Localization.Get("recentscores_player_remove_success", message.Chat.Id);
 			}
 
@@ -226,6 +231,8 @@ namespace den0bot.Modules.Osu
 				// html-filtered map title
 				string mapInfo = $"{map.Artist} - {map.Title} [{map.Difficulty}]".FilterToHTML();
 
+				var mapObjCount = map.CountCircles + map.CountSliders + map.CountSpinners ?? 0;
+
 				string pp = string.Empty;
 				try
 				{
@@ -238,9 +245,14 @@ namespace den0bot.Modules.Osu
 					if (score.Combo < map.MaxCombo - 1 || score.Misses > 0)
 					{
 						// Add possible pp value if they missed or dropped more than 1 combo
-						Score fcScore = (Score) score.Clone();
-						fcScore.Combo = map.MaxCombo ?? 0;
-						fcScore.Misses = 0;
+						var fcScore = new Score
+						{
+							Count300 = mapObjCount - score.Count100 - score.Count50,
+							Count100 = score.Count100,
+							Count50 = score.Count50,
+							Combo = map.MaxCombo ?? 0,
+							EnabledMods = score.EnabledMods
+						};
 
 						double possiblePPval = Oppai.GetBeatmapPP(map, fcScore);
 						possiblePP = $"({possiblePPval:N2}pp if FC)";
@@ -253,8 +265,7 @@ namespace den0bot.Modules.Osu
 					Log.Error($"Oppai failed: {e.InnerMessageIfAny()}");
 				}
 
-				var completion = (double)(score.Count300 + score.Count100 + score.Count50 + score.Misses) /
-				                    (map.CountCircles + map.CountSliders + map.CountSpinners) * 100.0;
+				var completion = (double)(score.Count300 + score.Count100 + score.Count50 + score.Misses) / mapObjCount * 100.0;
 
 				result =
 					$"<b>({score.Rank})</b> <a href=\"{map.Link}\">{mapInfo}</a><b>{mods} ({score.Accuracy:N2}%)</b>{Environment.NewLine}" +
@@ -272,40 +283,5 @@ namespace den0bot.Modules.Osu
 
 			return result;
 		}
-
-		#region Database
-
-		private class Player
-		{
-			[PrimaryKey]
-			public int TelegramID { get; set; }
-			public uint OsuID { get; set; }
-		}
-
-		private Player GetPlayerFromDatabase(int ID) => Database.GetFirst<Player>(x => x.TelegramID == ID);
-
-		private uint GetPlayerOsuIDFromDatabase(int ID) => GetPlayerFromDatabase(ID)?.OsuID ?? 0;
-
-		private bool AddPlayerToDatabase(int tgID, uint osuID)
-		{
-			if (!Database.Exist<Player>(x => x.TelegramID == tgID))
-			{
-				Database.Insert(new Player
-				{
-					TelegramID = tgID,
-					OsuID = osuID,
-				});
-				return true;
-			}
-
-			return false;
-		}
-
-		private void RemovePlayerFromDatabase(int tgID)
-		{
-			Database.Remove<Player>(x => x.TelegramID == tgID);
-		}
-
-		#endregion
 	}
 }
