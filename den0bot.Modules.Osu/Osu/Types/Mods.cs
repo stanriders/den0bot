@@ -22,6 +22,7 @@ namespace den0bot.Modules.Osu.Osu.Types
 		FL = 1024,
 		SO = 4096,
 		PF = 16384, // Only set along with SuddenDeath. i.e: PF only gives 16416  
+		V2 = 536870912,
 
 		DifficultyChanging = NC | HT | DT | HR | EZ, // FL changes difficulty but osu! api doesn't think so
 
