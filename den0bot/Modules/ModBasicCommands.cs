@@ -1,4 +1,4 @@
-﻿// den0bot (c) StanR 2019 - MIT License
+﻿// den0bot (c) StanR 2020 - MIT License
 
 using den0bot.DB;
 using Telegram.Bot.Types.Enums;
@@ -65,6 +65,16 @@ namespace den0bot.Modules
 					{
 						var text = message.Text.Substring(17);
 						Database.SetChatIntroduction(message.Chat.Id, text);
+						return "👌";
+					}
+				},
+				new Command()
+				{
+					Name = "toggleevents",
+					IsOwnerOnly = true,
+					Action = (message) =>
+					{
+						Database.ToggleEvents(message.Chat.Id);
 						return "👌";
 					}
 				},

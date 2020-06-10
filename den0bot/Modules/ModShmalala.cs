@@ -1,4 +1,5 @@
 ﻿// den0bot (c) StanR 2020 - MIT License
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,6 +9,7 @@ using System.Threading.Tasks;
 using den0bot.Util;
 using Newtonsoft.Json;
 using Telegram.Bot.Types;
+using Telegram.Bot.Types.Enums;
 
 namespace den0bot.Modules
 {
@@ -16,14 +18,39 @@ namespace den0bot.Modules
 		// Based on https://github.com/IrcDotNet/IrcDotNet/tree/master/samples/IrcDotNet.Samples.MarkovTextBot
 		private class MarkovChain
 		{
-			public class MarkovChainNode
+			public class MarkovChainNode : IEquatable<MarkovChainNode>
 			{
 				public List<MarkovChainNode> Links { get; } = new List<MarkovChainNode>();
-				public string Word { get; set; }
+				public string Word { get; }
+
+				public MarkovChainNode(string w)
+				{
+					Word = w;
+				}
 
 				public void AddLink(MarkovChainNode toNode)
 				{
 					Links.Add(toNode);
+				}
+
+				public bool Equals(MarkovChainNode other)
+				{
+					if (ReferenceEquals(null, other)) return false;
+					if (ReferenceEquals(this, other)) return true;
+					return Equals(Links, other.Links) && Word == other.Word;
+				}
+
+				public override bool Equals(object obj)
+				{
+					if (ReferenceEquals(null, obj)) return false;
+					if (ReferenceEquals(this, obj)) return true;
+					if (obj.GetType() != this.GetType()) return false;
+					return Equals((MarkovChainNode) obj);
+				}
+
+				public override int GetHashCode()
+				{
+					return HashCode.Combine(Links, Word);
 				}
 			}
 
@@ -42,10 +69,7 @@ namespace den0bot.Modules
 					foreach (var word in packedChain)
 					{
 						// first add all nodes without links
-						Nodes.Add(new MarkovChainNode
-						{
-							Word = word.Key
-						});
+						Nodes.Add(new MarkovChainNode(word.Key));
 					}
 
 					// if chain is getting really big it might take a while to unpack
@@ -110,7 +134,7 @@ namespace den0bot.Modules
 				MarkovChainNode node = Nodes.SingleOrDefault(n => n.Word == value);
 				if (node == null)
 				{
-					node = new MarkovChainNode { Word = value };
+					node = new MarkovChainNode(value);
 					Nodes.Add(node);
 				}
 				return node;
@@ -121,7 +145,7 @@ namespace den0bot.Modules
 				MarkovChainNode node = null;
 				if (!string.IsNullOrEmpty(value))
 				{
-					node = Nodes.SingleOrDefault(n => n.Word == value);
+					node = Nodes.SingleOrDefault(n => n.Word == value && n.Links.Distinct().Count() > 2);
 				}
 
 				if (node == null)
@@ -158,6 +182,8 @@ namespace den0bot.Modules
 			new Regex(@"[()\[\]{}'""`~\\\/\-*\d]|(http|ftp|https):\/\/([\w_-]+(?:(?:\.[\w_-]+)+))([\w.,@?^=%&:\/~+#-]*[\w@?^=%&\/~+#-])?", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
 		private int numTrainingMessagesReceived;
+
+		private const int min_nodes = 100;
 
 		private MarkovChain markovChain = new MarkovChain();
 
@@ -210,7 +236,7 @@ namespace den0bot.Modules
 
 		private async Task<string> SendRandomMessage(Message msg)
 		{
-			if (!markovChain.Ready || markovChain.Nodes.Count == 0)
+			if (!markovChain.Ready || markovChain.Nodes.Count <= min_nodes)
 				return Localization.Get("shmalala_notready", msg.Chat.Id);
 
 			var textBuilder = new StringBuilder();
@@ -279,7 +305,7 @@ namespace den0bot.Modules
 
 		public async Task ReceiveMessage(Message message)
 		{
-			if (!string.IsNullOrEmpty(message.Text))
+			if (!string.IsNullOrEmpty(message.Text) && message.Chat.Type != ChatType.Private)
 			{
 				if (markovChain.Ready)
 				{
@@ -287,7 +313,7 @@ namespace den0bot.Modules
 					text = cleanWordRegex.Replace(text, string.Empty);
 					if (text.StartsWith(Localization.Get("shmalala_trigger", message.Chat.Id)))
 					{
-						if (markovChain.Nodes.Count == 0)
+						if (markovChain.Nodes.Count <= min_nodes)
 							return;
 
 						// use random word from message to start our response from

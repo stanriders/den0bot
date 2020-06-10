@@ -1,4 +1,4 @@
-﻿// den0bot (c) StanR 2019 - MIT License
+﻿// den0bot (c) StanR 2020 - MIT License
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -164,7 +164,10 @@ namespace den0bot
 				return;
 			}
 
-			if (Config.Params.UseEvents && msg.Text != null && msg.Text[0] == command_trigger)
+			if (Config.Params.UseEvents && 
+			    !Database.ShouldDisableEvents(senderChatId) && 
+			    msg.Text != null && 
+			    msg.Text[0] == command_trigger)
 			{
 				// random events
 				if (TryEvent(senderChatId, out var e))

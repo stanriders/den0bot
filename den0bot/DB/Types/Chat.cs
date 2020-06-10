@@ -1,4 +1,4 @@
-﻿// den0bot (c) StanR 2018 - MIT License
+﻿// den0bot (c) StanR 2020 - MIT License
 using SQLite;
 
 namespace den0bot.DB.Types
@@ -9,6 +9,8 @@ namespace den0bot.DB.Types
 		public long Id { get; set; }
 
 		public bool DisableAnnouncements { get; set; }
+
+		public bool DisableEvents { get; set; }
 
 		public string Locale { get; set; }
 

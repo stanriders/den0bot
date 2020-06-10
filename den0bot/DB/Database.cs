@@ -1,4 +1,4 @@
-﻿// den0bot (c) StanR 2019 - MIT License
+﻿// den0bot (c) StanR 2020 - MIT License
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -132,6 +132,7 @@ namespace den0bot.DB
 				{
 					Id = chatID,
 					DisableAnnouncements = false,
+					DisableEvents = true,
 					Locale = "ru"
 				};
 				db.Insert(chat);
@@ -156,6 +157,19 @@ namespace den0bot.DB
 				chat.DisableAnnouncements = !enable;
 				db.Update(chat);
 			}
+		}
+		public static void ToggleEvents(long chatID)
+		{
+			Chat chat = db.Table<Chat>().FirstOrDefault(x => x.Id == chatID);
+			if (chat != null)
+			{
+				chat.DisableEvents = !chat.DisableEvents;
+				db.Update(chat);
+			}
+		}
+		public static bool ShouldDisableEvents(long chatID)
+		{
+			return db.Table<Chat>().FirstOrDefault(x => x.Id == chatID)?.DisableEvents ?? true;
 		}
 		public static string GetChatLocale(long chatID)
 		{
