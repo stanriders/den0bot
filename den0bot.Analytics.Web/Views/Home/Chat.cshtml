@@ -13,15 +13,16 @@
 	<tbody>
 		@foreach (var user in Model.UsersTable.Users)
 		{
-			<tr>
-				<td><img src="@user.Avatar" width="24px" class="border border-secondary rounded-circle" /> @user.Name</td>
-				<td>@user.Messages</td>
-				<td>@user.AverageLength.ToString("F1")</td>
-				<td>@user.Stickers</td>
-				<td>@user.GirlsRequested</td>
-				<td>@user.GirlsAdded</td>
-				<td>@user.LastMessageTime.ToString(CultureInfo.InvariantCulture)</td>
-			</tr>
+		<tr>
+			<td><img src="@user.Avatar" width="24px" class="border border-secondary rounded-circle" /> @user.Name</td>
+			<td>@user.Messages</td>
+			<td>@user.Commands</td>
+			<td>@user.AverageLength.ToString("F1")</td>
+			<td>@user.Stickers</td>
+			<td>@user.GirlsRequested</td>
+			<td>@user.GirlsAdded</td>
+			<td>@user.LastMessageTime.ToString(CultureInfo.InvariantCulture)</td>
+		</tr>
 		}
 	</tbody>
 </table>
@@ -81,6 +82,11 @@
 						}, {
 							title: 'Messages',
 							field: 'messages',
+							sortable: true,
+							align: 'center'
+						}, {
+							title: 'Commands',
+							field: 'commands',
 							sortable: true,
 							align: 'center'
 						}, {

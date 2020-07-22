@@ -79,6 +79,7 @@ namespace den0bot.Analytics.Web.Controllers
 
 				var dbUsers = await db.UserStatsQuery.FromSqlInterpolated($@"SELECT UserId as Id, 
 					COUNT(*) as Messages,
+					SUM(CASE WHEN Command != '' THEN 1 ELSE 0 END) as Commands,
 					SUM(CASE WHEN Command = '/devka' OR Command = '/seasonaldevka' THEN 1 ELSE 0 END) as GirlsRequested,
 					SUM(CASE WHEN Type = 2 THEN 1 ELSE 0 END) as Stickers,
 					MAX(Timestamp) as LastMessageTimestamp
@@ -96,7 +97,7 @@ namespace den0bot.Analytics.Web.Controllers
 
 					var avgLength = await db.UserStatsAverageQuery.FromSqlInterpolated($@"SELECT AVG(Length) as AverageLength
 					FROM (SELECT Length, NTILE(4) OVER (ORDER BY Length) n
-						FROM (SELECT Length FROM Messages WHERE UserId = {user.Id} AND ChatId = {chatId})
+						FROM (SELECT Length FROM Messages WHERE UserId = {user.Id} AND ChatId = {chatId} AND Command = '')
 						)
 					WHERE n IN (2,3)").SingleAsync();
 
@@ -104,7 +105,8 @@ namespace den0bot.Analytics.Web.Controllers
 					{
 						Name = name,
 						Avatar = await TelegramCache.GetAvatar(telegramClient, user.Id),
-						Messages = user.Messages,
+						Messages = user.Messages - user.Commands,
+						Commands = user.Commands,
 						Stickers = user.Stickers,
 						AverageLength = avgLength?.AverageLength ?? 0.0,
 						LastMessageTime = TimeAgo(new DateTime(user.LastMessageTimestamp)),
@@ -137,6 +139,10 @@ namespace den0bot.Analytics.Web.Controllers
 				var days = (endTime - startTime).Days;
 				for (var i = 0; i <= days; i++)
 				{
+					// count weeks if we have more 30 days
+					if (days > 30 && i % 7 != 0)
+						continue;
+
 					times.Add(endTime.AddDays(-i));
 				}
 
@@ -154,10 +160,13 @@ namespace den0bot.Analytics.Web.Controllers
 				foreach (var time in times)
 				{
 					var dateTicks = time.Ticks;
+					var endTicks = dateTicks + TimeSpan.TicksPerDay;
+					if (days > 30)
+						endTicks = dateTicks + TimeSpan.TicksPerDay * 7;
+
 					var tuple = await db.Messages.Where(x => x.ChatId == chatId &&
 															 x.Timestamp >= dateTicks &&
-															 x.Timestamp <
-															 dateTicks + TimeSpan.TicksPerDay)
+															 x.Timestamp < endTicks)
 						.GroupBy(x => x.UserId)
 						.Select(x => new Tuple<long, long>(x.Key, x.LongCount()))
 						.ToArrayAsync();

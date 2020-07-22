@@ -5,6 +5,7 @@ namespace den0bot.Analytics.Data.Types
 	{
 		public long Id { get; set; }
 		public long Messages { get; set; }
+		public long Commands { get; set; }
 		public long GirlsRequested { get; set; }
 		public long Stickers { get; set; }
 		public long LastMessageTimestamp { get; set; }

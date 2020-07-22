@@ -10,6 +10,7 @@ namespace den0bot.Analytics.Web.Models
 				public string Name { get; set; }
 				public string Avatar { get; set; }
 				public long Messages { get; set; }
+				public long Commands { get; set; }
 				public long Stickers { get; set; }
 				public double AverageLength { get; set; }
 				public long GirlsRequested { get; set; }
