@@ -29,7 +29,7 @@ namespace den0bot
 				return true;
 
 			var admins = await API.GetAdmins(chatID);
-			return admins.FirstOrDefault(x => x.User.Username == username) != null;
+			return admins.FirstOrDefault(x => x.User.Username == username && (x.CanPromoteMembers ?? true)) != null;
 		}
 
 		private static bool shouldShutdown;
