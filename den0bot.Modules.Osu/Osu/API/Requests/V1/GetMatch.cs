@@ -1,8 +1,9 @@
 ﻿// den0bot (c) StanR 2020 - MIT License
-using System;
-using den0bot.Modules.Osu.Osu.Types;
 
-namespace den0bot.Modules.Osu.Osu.API.Requests
+using System;
+using den0bot.Modules.Osu.Osu.Types.V1;
+
+namespace den0bot.Modules.Osu.Osu.API.Requests.V1
 {
 	public class GetMatch : IRequest
 	{

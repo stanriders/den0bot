@@ -1,4 +1,4 @@
-﻿// den0bot (c) StanR 2019 - MIT License
+﻿// den0bot (c) StanR 2020 - MIT License
 using System;
 
 namespace den0bot.Modules.Osu.Osu.Types
@@ -7,7 +7,7 @@ namespace den0bot.Modules.Osu.Osu.Types
 	/// Bitwise list of all mods
 	/// </summary>
 	[Flags]
-	public enum Mods
+	public enum LegacyMods
 	{
 		None = 0,
 		NF = 1,

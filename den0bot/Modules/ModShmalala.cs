@@ -175,7 +175,7 @@ namespace den0bot.Modules
 			}
 		}
 
-		private bool useTranslation = true;
+		private const bool useTranslation = false;
 
 		private readonly char[] sentenceSeparators = { '.', '.', '.', '!', '!', '?', '(', ')', '\n' };
 		private readonly Regex cleanWordRegex = 

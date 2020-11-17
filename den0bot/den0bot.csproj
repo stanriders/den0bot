@@ -11,8 +11,8 @@
 
 	<ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
-    <PackageReference Include="OppaiSharp" Version="3.2.0" />
-    <PackageReference Include="sqlite-net-pcl" Version="1.7.302-beta" />
+    <PackageReference Include="OppaiSharp" Version="3.3.0" />
+    <PackageReference Include="sqlite-net-pcl" Version="1.7.335" />
     <PackageReference Include="System.Runtime.Caching" Version="4.7.0" />
     <PackageReference Include="Telegram.Bot" Version="15.7.1" />
     <PackageReference Include="xFFmpeg.NET" Version="3.4.0" />

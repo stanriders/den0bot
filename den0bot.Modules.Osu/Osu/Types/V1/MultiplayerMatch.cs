@@ -1,9 +1,10 @@
-﻿// den0bot (c) StanR 2019 - MIT License
+﻿// den0bot (c) StanR 2020 - MIT License
+
 using System;
 using System.Collections.Generic;
 using Newtonsoft.Json;
 
-namespace den0bot.Modules.Osu.Osu.Types
+namespace den0bot.Modules.Osu.Osu.Types.V1
 {
 	public class MultiplayerMatch
 	{
@@ -50,7 +51,7 @@ namespace den0bot.Modules.Osu.Osu.Types
 			public TeamMode TeamMode;
 
 			[JsonProperty("mods")]
-			public Mods? Mods;
+			public LegacyMods? Mods;
 
 			[JsonProperty("scores")]
 			public List<Score> Scores;

@@ -3,8 +3,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using den0bot.Modules.Osu.Osu.API.Requests;
+using den0bot.Modules.Osu.Osu.API.Requests.V2;
 using den0bot.Modules.Osu.Osu.Types;
+using den0bot.Modules.Osu.Osu.Types.V2;
 using den0bot.Util;
 using Newtonsoft.Json.Linq;
 using Telegram.Bot.Types.Enums;
@@ -64,15 +65,15 @@ namespace den0bot.Modules.Osu
 			{
 				int num = RNG.Next(max: maplist.Count);
 				string link = maplist[num][1].Substring(19);
-				Map map;
+				Beatmap map;
 				if (link[0] == 's')
 				{
-					List<Map> set = await Osu.WebApi.MakeAPIRequest(new GetBeatmapSet(uint.Parse(link.Substring(2))));
+					List<Beatmap> set = await Osu.WebApi.MakeApiRequest(new GetBeatmapSet(uint.Parse(link.Substring(2))));
 					map = set?.Last();
 				}
 				else if (link[0] == 'b')
 				{
-					map = await Osu.WebApi.MakeAPIRequest(new GetBeatmap(uint.Parse(link.Substring(2))));
+					map = await Osu.WebApi.MakeApiRequest(new GetBeatmap(uint.Parse(link.Substring(2))));
 				}
 				else
 				{
@@ -81,7 +82,7 @@ namespace den0bot.Modules.Osu
 
 				if (map != null)
 				{
-					string format = map.GetFormattedMapInfo(Mods.None);
+					string format = map.GetFormattedMapInfo(LegacyMods.None);
 					string caption = $"{maplist[num][0]} {format}";
 					if (caption.Length > 265) // 200 regular character limit + HTML
 					{
@@ -92,7 +93,7 @@ namespace den0bot.Modules.Osu
 							caption = $"{format}";
 					}
 
-					await API.SendPhoto(map.Thumbnail, message.Chat.Id, caption, ParseMode.Html);
+					await API.SendPhoto(map.BeatmapSet.Covers.Cover2X, message.Chat.Id, caption, ParseMode.Html);
 				}
 
 				return string.Empty;

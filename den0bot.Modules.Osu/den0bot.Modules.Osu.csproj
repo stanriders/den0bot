@@ -14,7 +14,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="OppaiSharp" Version="3.2.0" />
+    <PackageReference Include="OppaiSharp" Version="3.3.0" />
     <PackageReference Include="xFFmpeg.NET" Version="3.4.0" />
   </ItemGroup>
 

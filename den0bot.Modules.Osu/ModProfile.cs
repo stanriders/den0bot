@@ -1,14 +1,12 @@
 ﻿// den0bot (c) StanR 2020 - MIT License
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using den0bot.DB;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
-using den0bot.Modules.Osu.Osu.API.Requests;
-using den0bot.Modules.Osu.Osu.Types;
+using den0bot.Modules.Osu.Osu.API.Requests.V2;
+using den0bot.Modules.Osu.Osu.Types.V2;
 using den0bot.Util;
 using Newtonsoft.Json;
 
@@ -52,12 +50,12 @@ namespace den0bot.Modules.Osu
 
 		private async Task<string> FormatPlayerInfo(string playerID)
 		{
-			Player info = await Osu.WebApi.MakeAPIRequest(new GetUser(playerID));
+			Osu.Types.V2.User info = await Osu.WebApi.MakeApiRequest(new GetUser(playerID));
 
 			if (info == null)
 				return string.Empty;
 
-			List<Score> topscores = await Osu.WebApi.MakeAPIRequest(new GetTopscores(info.ID.ToString(), topscores_to_show));
+			List<Score> topscores = await Osu.WebApi.MakeApiRequest(new GetUserScores(info.Id.ToString(), ScoreType.Best));
 
 			if (topscores == null || topscores.Count <= 0)
 				return string.Empty;
@@ -67,22 +65,19 @@ namespace den0bot.Modules.Osu
 			for (int i = 0; i < topscores.Count; i++)
 			{
 				Score score = topscores[i];
-				Map map = await Osu.WebApi.MakeAPIRequest(new GetBeatmap(score.BeatmapID));
 
 				string mods = string.Empty;
-				Mods enabledMods = score.EnabledMods ?? Mods.None;
-				if (enabledMods > 0)
-					mods = " +" + enabledMods.ToString().Replace(", ", "");
+				if (score.Mods.Length > 0)
+					mods = $" +{string.Join("", score.Mods)}";
 
-				// 1. Artist - Title [Diffname] +Mods (Rank, Accuracy%) - 123pp
-				string mapName = $"{map.Artist} - {map.Title} [{map.Difficulty}]".FilterToHTML();
-
+				// 1. 123pp | Artist - Title [Diffname] +Mods (Rank, Accuracy%)
+				string mapName = $"{score.BeatmapSet.Artist} - {score.BeatmapSet.Title} [{score.Beatmap.Version}]".FilterToHTML();
 				formatedTopscores +=
-					$"<b>{(i + 1)}</b>. {mapName}{mods} (<b>{score.Rank}</b>, {score.Accuracy:N2}%) - <b>{score.Pp}</b>pp\n";
+					$"<b>{(i + 1)}</b>. <code>{score.Pp:N1}pp</code> | {mapName}{mods} (<b>{score.Grade}</b>, {score.Accuracy:N2}%)\n";
 			}
 
-			return $"<b>{info.Username}</b> <a href=\"https://a.ppy.sh/{info.ID}_0.jpeg\">-</a> #{info.Rank} ({info.Pp}pp)\n" +
-			       $"Playcount: {info.Playcount} ({info.PlaytimeSeconds/60.0/60.0:F2} hours)\n" +
+			return $"<b>{info.Username}</b> <a href=\"{info.AvatarUrl}\">-</a> <code>{info.Statistics.Pp}pp</code> - #{info.Statistics.Rank.Global} (#{info.Statistics.Rank.Country} {info.Country.Code})\n\n" +
+				   $"Playcount: {info.Statistics.Playcount} ({info.Statistics.PlaytimeSeconds / 60.0 / 60.0:F2} hours)\n" +
 			       $"Joined on: {info.JoinDate}\n" +
 			       $"__________\n" +
 			       $"{formatedTopscores}";

@@ -8,14 +8,15 @@ namespace den0bot.Modules.Osu.Osu.API
 		V1,
 		V2
 	}
+
 	public interface IRequest
 	{
-		 APIVersion API { get; }
+		APIVersion API { get; }
 
-		 string Address { get; }
+		string Address { get; }
 
-		 Type ReturnType { get; }
+		Type ReturnType { get; }
 
-		 bool ShouldReturnSingle { get; }
+		bool ShouldReturnSingle { get; }
 	}
 }

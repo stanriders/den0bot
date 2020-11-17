@@ -1,4 +1,4 @@
-﻿// den0bot (c) StanR 2019 - MIT License
+﻿// den0bot (c) StanR 2020 - MIT License
 using System;
 using System.Text.RegularExpressions;
 using den0bot.Analytics.Data.Types;
@@ -29,6 +29,11 @@ namespace den0bot.Util
 				Telegram.Bot.Types.Enums.MessageType.Sticker => MessageType.Sticker,
 				_ => MessageType.Other
 			};
+		}
+
+		public static string Capitalize(this string value)
+		{
+			return value.Substring(0, 1).ToUpperInvariant() + value.Substring(1);
 		}
 	}
 }

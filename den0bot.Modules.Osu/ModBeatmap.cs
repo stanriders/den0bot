@@ -1,15 +1,16 @@
 ﻿// den0bot (c) StanR 2020 - MIT License
+using den0bot.Modules.Osu.Osu.API.Requests.V2;
+using den0bot.Modules.Osu.Osu.Types;
+using den0bot.Modules.Osu.Osu.Types.V2;
+using den0bot.Util;
+using FFmpeg.NET;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.Caching;
 using System.Threading.Tasks;
-using den0bot.Modules.Osu.Osu.API.Requests;
-using den0bot.Modules.Osu.Osu.Types;
-using den0bot.Util;
-using FFmpeg.NET;
-using Newtonsoft.Json;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.InputFiles;
 using Telegram.Bot.Types.ReplyMarkups;
@@ -48,30 +49,30 @@ namespace den0bot.Modules.Osu
 		{
 			if (!string.IsNullOrEmpty(message.Text))
 			{
-				var beatmapId = Map.GetIdFromLink(message.Text, out var isSet, out var mods);
+				var beatmapId = IBeatmap.GetIdFromLink(message.Text, out var isSet, out var mods);
 				if (beatmapId != 0)
 				{
-					Map map = null;
+					Beatmap map = null;
 					if (isSet)
 					{
-						List<Map> set = await Osu.WebApi.MakeAPIRequest(new GetBeatmapSet(beatmapId));
+						List<Beatmap> set = await Osu.WebApi.MakeApiRequest(new GetBeatmapSet(beatmapId));
 						if (set?.Count > 0)
 							map = set.Last();
 					}
 					else
 					{
-						map = await Osu.WebApi.MakeAPIRequest(new GetBeatmap(beatmapId,mods));
+						map = await Osu.WebApi.MakeApiRequest(new GetBeatmap(beatmapId));
 					}
 
 					if (map != null)
 					{
-						var sentMessage = await API.SendPhoto(map.Thumbnail, message.Chat.Id,
+						var sentMessage = await API.SendPhoto(map.BeatmapSet.Covers.Cover2X, message.Chat.Id,
 							map.GetFormattedMapInfo(mods),
 							Telegram.Bot.Types.Enums.ParseMode.Html, 0, buttons);
 						if (sentMessage != null)
 						{
 							// we only store mapset id to spare the memory a bit
-							sentMapsCache.Add(sentMessage.MessageId.ToString(), map.BeatmapSetID,
+							sentMapsCache.Add(sentMessage.MessageId.ToString(), map.BeatmapSet.Id,
 								DateTimeOffset.Now.AddDays(days_to_keep_messages));
 						}
 					}
@@ -89,7 +90,7 @@ namespace den0bot.Modules.Osu
 				try
 				{
 					var data = await Web.DownloadBytes($"https://b.ppy.sh/preview/{mapsetId}.mp3");
-					File.WriteAllBytes($"./{mapsetId}.mp3", data);
+					await File.WriteAllBytesAsync($"./{mapsetId}.mp3", data);
 				}
 				catch (Exception e)
 				{
@@ -117,10 +118,10 @@ namespace den0bot.Modules.Osu
 		{
 			if (!string.IsNullOrEmpty(msg.Text))
 			{
-				var beatmapId = Map.GetIdFromLink(msg.Text, out var isSet, out var mods);
+				var beatmapId = IBeatmap.GetIdFromLink(msg.Text, out var isSet, out var mods);
 				if (beatmapId != 0 && !isSet)
 				{
-					var json = new { Map = beatmapId.ToString(), Mods = mods == Mods.None ? new string[0] : mods.ToString().Split(", ") };
+					var json = new { Map = beatmapId.ToString(), Mods = mods == LegacyMods.None ? new string[0] : mods.ToString().Split(", ") };
 					try
 					{
 						var mapJson = await Web.PostJson("https://newpp.stanr.info/api/CalculateMap",

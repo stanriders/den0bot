@@ -1,4 +1,4 @@
-﻿// den0bot (c) StanR 2019 - MIT License
+﻿// den0bot (c) StanR 2020 - MIT License
 using System.Collections.Generic;
 using System.IO;
 using Newtonsoft.Json;
@@ -19,6 +19,8 @@ namespace den0bot.Util
 
 			// https://osu.ppy.sh/p/api
 			public string osuToken { get; set; }
+			public string osuClientId { get; set; }
+			public string osuClientSecret { get; set; }
 
 			// https://osu.ppy.sh/p/irc
 			public string osuIRCUsername { get; set; }

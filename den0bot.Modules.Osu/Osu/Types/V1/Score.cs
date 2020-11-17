@@ -1,10 +1,11 @@
 ﻿// den0bot (c) StanR 2020 - MIT License
+
 using System;
 using Newtonsoft.Json;
 
-namespace den0bot.Modules.Osu.Osu.Types
+namespace den0bot.Modules.Osu.Osu.Types.V1
 {
-	public class Score
+	public class Score : IScore
 	{
 		[JsonProperty("beatmap_id")]
 		public uint BeatmapID { get; set; }
@@ -14,10 +15,10 @@ namespace den0bot.Modules.Osu.Osu.Types
 		public uint UserID { get; set; }
 
 		[JsonProperty("date")]
-		public DateTime Date { get; set; }
+		public override DateTime Date { get; set; }
 
 		[JsonProperty("maxcombo")]
-		public uint Combo { get; set; }
+		public override uint Combo { get; set; }
 
 		[JsonProperty("perfect")]
 		public short Perfect { get; set; }
@@ -25,24 +26,24 @@ namespace den0bot.Modules.Osu.Osu.Types
 		[JsonProperty("score")]
 		public uint ScorePoints { get; set; }
 		[JsonProperty("count300")]
-		public uint Count300 { get; set; }
+		public override uint Count300 { get; set; }
 		[JsonProperty("count100")]
-		public uint Count100 { get; set; }
+		public override uint Count100 { get; set; }
 		[JsonProperty("count50")]
-		public uint Count50 { get; set; }
+		public override uint Count50 { get; set; }
 		[JsonProperty("countmiss")]
-		public uint Misses { get; set; }
+		public override uint Misses { get; set; }
 		[JsonProperty("countkatu")]
 		public uint CountKatu { get; set; }
 		[JsonProperty("countgeki")]
 		public uint CountGeki { get; set; }
 
 		[JsonProperty("enabled_mods")]
-		public Mods? EnabledMods { get; set; }
+		public override LegacyMods? LegacyMods { get; set; }
 		[JsonProperty("rank")]
-		public string Rank { get; set; }
+		public override string Grade { get; set; }
 		[JsonProperty("pp")]
-		public double Pp { get; set; }
+		public override double? Pp { get; set; }
 
 		// multiplayer
 		[JsonProperty("slot")]
@@ -52,9 +53,11 @@ namespace den0bot.Modules.Osu.Osu.Types
 		[JsonProperty("pass")] 
 		private short isPass { get; set; }
 
+		public override IBeatmap Beatmap { get; set; }
+
 		public bool IsPass => isPass != 0;
 
-		public double Accuracy
+		public override double Accuracy
 		{
 			get
 			{

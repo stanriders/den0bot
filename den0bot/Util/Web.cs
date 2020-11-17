@@ -1,6 +1,8 @@
-﻿// den0bot (c) StanR 2019 - MIT License
+﻿// den0bot (c) StanR 2020 - MIT License
 
+using System;
 using System.IO;
+using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
@@ -20,6 +22,24 @@ namespace den0bot.Util
 		public static async Task<string> PostJson(string address, string json)
 		{
 			var response = await client.PostAsync(address, new StringContent(json, Encoding.UTF8, "application/json"));
+			if (response.IsSuccessStatusCode)
+				return await response.Content.ReadAsStringAsync();
+
+			return string.Empty;
+		}
+
+		public static async Task<string> DownloadString(string address, string bearer)
+		{
+			var request = new HttpRequestMessage()
+			{
+				RequestUri = new Uri(address),
+				Method = HttpMethod.Get,
+				Headers =
+				{
+					{HttpRequestHeader.Authorization.ToString(), $"Bearer {bearer}"}
+				}
+			};
+			var response = await client.SendAsync(request);
 			if (response.IsSuccessStatusCode)
 				return await response.Content.ReadAsStringAsync();
 

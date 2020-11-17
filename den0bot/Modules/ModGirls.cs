@@ -186,7 +186,9 @@ namespace den0bot.Modules
 				if (reverse)
 					topGirls.Reverse();
 
-				topGirls = topGirls.Take(top_girls_amount).ToList();
+				if (topGirls.Count > top_girls_amount)
+					topGirls = topGirls.Take(top_girls_amount).ToList();
+
 				foreach (var girl in topGirls)
 				{
 					if (girl.Rating < delete_rating_threshold)
