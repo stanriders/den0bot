@@ -74,6 +74,8 @@ namespace den0bot.Modules.Osu
 							// we only store mapset id to spare the memory a bit
 							sentMapsCache.Add(sentMessage.MessageId.ToString(), map.BeatmapSet.Id,
 								DateTimeOffset.Now.AddDays(days_to_keep_messages));
+
+							ChatBeatmapCache.StoreMap(message.Chat.Id, map.Id);
 						}
 					}
 				}
@@ -130,10 +132,13 @@ namespace den0bot.Modules.Osu
 						{
 							var map = JsonConvert.DeserializeObject<RebalanceMap>(mapJson);
 
-							await API.SendPhoto($"https://assets.ppy.sh/beatmaps/{map.BeatmapSetId}/covers/card@2x.jpg",
+							if (await API.SendPhoto($"https://assets.ppy.sh/beatmaps/{map.BeatmapSetId}/covers/card@2x.jpg",
 								msg.Chat.Id,
 								$"{map.Title}\n{map.Stars:F2}*\n100% - {map.PP[10]}pp | 98% - {map.PP[8]}pp | 95% - {map.PP[5]}pp",
-								replyID: msg.MessageId);
+								replyID: msg.MessageId) != null)
+							{
+								ChatBeatmapCache.StoreMap(msg.Chat.Id, beatmapId);
+							}
 
 							return string.Empty;
 						}

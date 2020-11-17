@@ -23,8 +23,6 @@ namespace den0bot.Modules.Osu
 		private const int recent_amount = 5;
 		private const int score_amount = 5;
 
-		private Dictionary<long, uint> lastMapCache = new Dictionary<long, uint>();
-
 		public ModRecentScores()
 		{
 			AddCommands(new[]
@@ -112,7 +110,7 @@ namespace den0bot.Modules.Osu
 				foreach (var score in lastScores.Take(amount))
 				{
 					if (amount == 1)
-						StoreMap(message.Chat.Id, score.BeatmapShort.Id);
+						ChatBeatmapCache.StoreMap(message.Chat.Id, score.BeatmapShort.Id);
 
 					score.Beatmap = await WebApi.MakeApiRequest(new Osu.API.Requests.V2.GetBeatmap(score.BeatmapShort.Id));
 					result += FormatScore(score, true);
@@ -148,7 +146,7 @@ namespace den0bot.Modules.Osu
 			if (lastScores.Count > 0)
 			{
 				var score = lastScores[0];
-				StoreMap(message.Chat.Id, score.BeatmapShort.Id);
+				ChatBeatmapCache.StoreMap(message.Chat.Id, score.BeatmapShort.Id);
 
 				score.Beatmap = await WebApi.MakeApiRequest(new Osu.API.Requests.V2.GetBeatmap(score.BeatmapShort.Id));
 				return FormatScore(score, true);
@@ -177,9 +175,8 @@ namespace den0bot.Modules.Osu
 			}
 			else
 			{
-				if (lastMapCache.ContainsKey(message.Chat.Id))
-					mapId = lastMapCache[message.Chat.Id];
-				else 
+				mapId = ChatBeatmapCache.GetMap(message.Chat.Id);
+				if (mapId == 0)
 					return Localization.Get("generic_fail", message.Chat.Id);
 			}
 
@@ -194,7 +191,7 @@ namespace den0bot.Modules.Osu
 				if (lastScores.Count == 0)
 					return Localization.Get("recentscores_no_scores", message.Chat.Id);
 
-				StoreMap(message.Chat.Id, mapId);
+				ChatBeatmapCache.StoreMap(message.Chat.Id, mapId);
 
 				string result = string.Empty;
 				foreach (var score in lastScores)
@@ -332,12 +329,6 @@ namespace den0bot.Modules.Osu
 			return result;
 		}
 
-		private void StoreMap(long chatId, uint mapId)
-		{
-			if (lastMapCache.ContainsKey(chatId))
-				lastMapCache[chatId] = mapId;
-			else
-				lastMapCache.Add(chatId, mapId);
-		}
+
 	}
 }
