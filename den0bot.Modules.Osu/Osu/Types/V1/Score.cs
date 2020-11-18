@@ -2,6 +2,7 @@
 
 using System;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 
 namespace den0bot.Modules.Osu.Osu.Types.V1
 {
@@ -40,8 +41,11 @@ namespace den0bot.Modules.Osu.Osu.Types.V1
 
 		[JsonProperty("enabled_mods")]
 		public override LegacyMods? LegacyMods { get; set; }
+
 		[JsonProperty("rank")]
-		public override string Grade { get; set; }
+		[JsonConverter(typeof(StringEnumConverter))]
+		public override ScoreGrade Grade { get; set; }
+
 		[JsonProperty("pp")]
 		public override double? Pp { get; set; }
 

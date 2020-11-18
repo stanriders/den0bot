@@ -1,6 +1,7 @@
 ﻿// den0bot (c) StanR 2020 - MIT License
 using System;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 
 namespace den0bot.Modules.Osu.Osu.Types.V2
 {
@@ -19,7 +20,8 @@ namespace den0bot.Modules.Osu.Osu.Types.V2
 		public BeatmapSetShort BeatmapSet { get; set; }
 
 		[JsonProperty("rank")]
-		public override string Grade { get; set; }
+		[JsonConverter(typeof(StringEnumConverter))]
+		public override ScoreGrade Grade { get; set; }
 
 		[JsonProperty("pp")]
 		public override double? Pp { get; set; }

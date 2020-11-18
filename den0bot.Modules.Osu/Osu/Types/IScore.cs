@@ -1,5 +1,6 @@
 ﻿// den0bot (c) StanR 2020 - MIT License
 
+using den0bot.Util;
 using System;
 
 namespace den0bot.Modules.Osu.Osu.Types
@@ -7,7 +8,7 @@ namespace den0bot.Modules.Osu.Osu.Types
 	public abstract class IScore
 	{
 		public abstract DateTime Date { get; set; }
-		public abstract string Grade { get; set; }
+		public abstract ScoreGrade Grade { get; set; }
 		public abstract uint Count300 { get; set; }
 		public abstract uint Count100 { get; set; }
 		public abstract uint Count50 { get; set; }
