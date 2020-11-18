@@ -72,6 +72,9 @@ namespace den0bot.Modules.Osu.Osu.Types.V2
 		[JsonProperty("replays_watched_counts")]
 		public TimeframeCount[] ReplaysWatched { get; set; }
 
+		[JsonProperty("rankHistory")]
+		public RankHistory Ranks { get; set; }
+
 		public class UserCover
 		{
 			[JsonProperty("custom_url")]
@@ -99,6 +102,15 @@ namespace den0bot.Modules.Osu.Osu.Types.V2
 			public string Url { get; set; }
 		}
 
+		public class RankHistory
+		{
+			[JsonProperty("mode")]
+			public string Mode { get; set; }
+
+			[JsonProperty("data")]
+			public int[] Ranks { get; set; }
+		}
+
 		/*
 	    "discord": "StanR#3012",
 	    "has_supported": true,
@@ -117,7 +129,6 @@ namespace den0bot.Modules.Osu.Osu.Types.V2
 	    "post_count": 42,
 	    "profile_order": [],
 	    "skype": null,
-	    "title": null,
 	    "twitter": "stanriders",
 	    "website": "http://StanR.info",
 	    "account_history": [],
@@ -139,11 +150,7 @@ namespace den0bot.Modules.Osu.Osu.Types.V2
 	            "achieved_at": "2019-08-22T17:11:15+00:00",
 	            "achievement_id": 38
 	        }
-	    ],
-	    "rankHistory": {
-	        "mode": "osu",
-	        "data": []
-	    }*/
+	    ]*/
 	}
 	public class UserStatistics
 	{

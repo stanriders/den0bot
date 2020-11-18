@@ -39,9 +39,27 @@ namespace den0bot.Util
 					{HttpRequestHeader.Authorization.ToString(), $"Bearer {bearer}"}
 				}
 			};
+
 			var response = await client.SendAsync(request);
 			if (response.IsSuccessStatusCode)
 				return await response.Content.ReadAsStringAsync();
+
+			if (response.StatusCode == HttpStatusCode.Found || response.StatusCode == HttpStatusCode.Unauthorized)
+			{
+				request = new HttpRequestMessage()
+				{
+					RequestUri = new Uri(response.RequestMessage.RequestUri.ToString()),
+					Method = HttpMethod.Get,
+					Headers =
+					{
+						{HttpRequestHeader.Authorization.ToString(), $"Bearer {bearer}"}
+					}
+				};
+
+				response = await client.SendAsync(request);
+				if (response.IsSuccessStatusCode)
+					return await response.Content.ReadAsStringAsync();
+			}
 
 			return string.Empty;
 		}

@@ -291,7 +291,7 @@ namespace den0bot.Modules.Osu
 
 				string possiblePP = string.Empty;
 
-				if (score.Combo < beatmap.MaxCombo - 2 || score.Misses > 0)
+				if (score.ComboBasedMissCount(beatmap.MaxCombo.Value, beatmap.Sliders.Value) > 0)
 				{
 					// Add possible pp value if they missed or dropped more than 2 combo
 					var fcScore = new Score
