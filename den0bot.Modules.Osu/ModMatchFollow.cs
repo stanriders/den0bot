@@ -5,9 +5,10 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Telegram.Bot.Types;
-using den0bot.Modules.Osu.Osu.API.Requests.V1;
-using den0bot.Modules.Osu.Osu.Types.V1;
+using den0bot.Modules.Osu.WebAPI.Requests.V1;
+using den0bot.Modules.Osu.Types.V1;
 using den0bot.Util;
+using den0bot.Modules.Osu.WebAPI;
 
 namespace den0bot.Modules.Osu
 {
@@ -79,7 +80,7 @@ namespace den0bot.Modules.Osu
 			if (currentMatch >= followList.Count)
 				currentMatch = 0;
 
-			var match = await Osu.WebApi.MakeApiRequest(new GetMatch(followList[currentMatch].MatchID));
+			var match = await WebApiHandler.MakeApiRequest(new GetMatch(followList[currentMatch].MatchID));
 			if (match.Games.Count > 0)
 			{
 				if (match.Info.EndTime != null)
@@ -111,7 +112,7 @@ namespace den0bot.Modules.Osu
 					List<Group> regexGroups = regexMatch.Groups.OfType<Group>().Where(x => x.Length > 0).ToList();
 					if (regexGroups.Count > 0 && ulong.TryParse(regexGroups[1].Value, out var matchID))
 					{
-						var match = await Osu.WebApi.MakeApiRequest(new GetMatch(matchID));
+						var match = await WebApiHandler.MakeApiRequest(new GetMatch(matchID));
 						if (match?.Games.Count > 0)
 							await API.SendMessage(await formatMatchInfo(match), message.Chat.Id,
 								Telegram.Bot.Types.Enums.ParseMode.Html);
@@ -128,7 +129,7 @@ namespace den0bot.Modules.Osu
 			var game = games.Last(x => x.EndTime != null);
 			if (game?.Scores != null)
 			{
-				Map map = await Osu.WebApi.MakeApiRequest(new GetBeatmap(game.BeatmapID));
+				Map map = await WebApiHandler.MakeApiRequest(new GetBeatmap(game.BeatmapID));
 				if (game.TeamMode >= MultiplayerMatch.TeamMode.Team)
 				{
 					int blueTotalScore = 0, redTotalScore = 0;
@@ -164,7 +165,7 @@ namespace den0bot.Modules.Osu
 					{
 						if (score.ScorePoints > 0)
 						{
-							Player player = await Osu.WebApi.MakeApiRequest(new GetUser(score.UserID.ToString()));
+							Player player = await WebApiHandler.MakeApiRequest(new GetUser(score.UserID.ToString()));
 							gamesString += $" {(score.Team == Team.Red ? "🔴" : "🔵")} <b>{player.Username}</b>: {score.ScorePoints} ({score.Combo}x, {score.Accuracy:N2}%{(score.IsPass ? "" : ", failed")}){Environment.NewLine}";
 						}
 					}
@@ -183,7 +184,7 @@ namespace den0bot.Modules.Osu
 					{
 						if (scores[i].ScorePoints != 0)
 						{
-							Player player = await Osu.WebApi.MakeApiRequest(new GetUser(scores[i].UserID.ToString()));
+							Player player = await WebApiHandler.MakeApiRequest(new GetUser(scores[i].UserID.ToString()));
 							gamesString += $"{i + 1}. <b>{player.Username}</b>: {scores[i].ScorePoints} ({scores[i].Combo}x, {scores[i].Accuracy:N2}%{(scores[i].IsPass ? "" : ", failed")}){Environment.NewLine}";
 						}
 					}

@@ -1,14 +1,15 @@
-﻿// den0bot (c) StanR 2019 - MIT License
+﻿// den0bot (c) StanR 2020 - MIT License
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using den0bot.Modules.Osu.Osu.API.Requests.V2;
-using den0bot.Modules.Osu.Osu.Types;
-using den0bot.Modules.Osu.Osu.Types.V2;
+using den0bot.Modules.Osu.WebAPI.Requests.V2;
+using den0bot.Modules.Osu.Types;
+using den0bot.Modules.Osu.Types.V2;
 using den0bot.Util;
 using Newtonsoft.Json.Linq;
 using Telegram.Bot.Types.Enums;
+using den0bot.Modules.Osu.WebAPI;
 
 namespace den0bot.Modules.Osu
 {
@@ -68,12 +69,12 @@ namespace den0bot.Modules.Osu
 				Beatmap map;
 				if (link[0] == 's')
 				{
-					List<Beatmap> set = await Osu.WebApi.MakeApiRequest(new GetBeatmapSet(uint.Parse(link.Substring(2))));
+					List<Beatmap> set = await WebApiHandler.MakeApiRequest(new GetBeatmapSet(uint.Parse(link.Substring(2))));
 					map = set?.Last();
 				}
 				else if (link[0] == 'b')
 				{
-					map = await Osu.WebApi.MakeApiRequest(new GetBeatmap(uint.Parse(link.Substring(2))));
+					map = await WebApiHandler.MakeApiRequest(new GetBeatmap(uint.Parse(link.Substring(2))));
 				}
 				else
 				{

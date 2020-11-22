@@ -1,7 +1,7 @@
 ﻿// den0bot (c) StanR 2020 - MIT License
-using den0bot.Modules.Osu.Osu.API.Requests.V2;
-using den0bot.Modules.Osu.Osu.Types;
-using den0bot.Modules.Osu.Osu.Types.V2;
+using den0bot.Modules.Osu.WebAPI.Requests.V2;
+using den0bot.Modules.Osu.Types;
+using den0bot.Modules.Osu.Types.V2;
 using den0bot.Util;
 using FFmpeg.NET;
 using Newtonsoft.Json;
@@ -15,6 +15,7 @@ using Telegram.Bot.Types;
 using Telegram.Bot.Types.InputFiles;
 using Telegram.Bot.Types.ReplyMarkups;
 using File = System.IO.File;
+using den0bot.Modules.Osu.WebAPI;
 
 namespace den0bot.Modules.Osu
 {
@@ -55,13 +56,13 @@ namespace den0bot.Modules.Osu
 					Beatmap map = null;
 					if (isSet)
 					{
-						List<Beatmap> set = await Osu.WebApi.MakeApiRequest(new GetBeatmapSet(beatmapId));
+						List<Beatmap> set = await WebApiHandler.MakeApiRequest(new GetBeatmapSet(beatmapId));
 						if (set?.Count > 0)
 							map = set.Last();
 					}
 					else
 					{
-						map = await Osu.WebApi.MakeApiRequest(new GetBeatmap(beatmapId));
+						map = await WebApiHandler.MakeApiRequest(new GetBeatmap(beatmapId));
 					}
 
 					if (map != null)

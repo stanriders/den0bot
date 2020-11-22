@@ -5,13 +5,13 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using den0bot.DB;
-using den0bot.Modules.Osu.Osu;
-using den0bot.Modules.Osu.Osu.API.Requests.V1;
-using den0bot.Modules.Osu.Osu.API.Requests.V2;
-using den0bot.Modules.Osu.Osu.Types;
-using den0bot.Modules.Osu.Osu.Types.V2;
+using den0bot.Modules.Osu.WebAPI.Requests.V1;
+using den0bot.Modules.Osu.WebAPI.Requests.V2;
+using den0bot.Modules.Osu.Types;
+using den0bot.Modules.Osu.Types.V2;
 using den0bot.Util;
 using Telegram.Bot.Types.Enums;
+using den0bot.Modules.Osu.WebAPI;
 
 namespace den0bot.Modules.Osu
 {
@@ -100,7 +100,7 @@ namespace den0bot.Modules.Osu
 				playerID = id.ToString();
 			}
 
-			List<Score> lastScores = await WebApi.MakeApiRequest(new GetUserScores(playerID, ScoreType.Recent, true));
+			List<Score> lastScores = await WebApiHandler.MakeApiRequest(new GetUserScores(playerID, ScoreType.Recent, true));
 			if (lastScores != null)
 			{
 				if (lastScores.Count == 0)
@@ -112,7 +112,7 @@ namespace den0bot.Modules.Osu
 					if (amount == 1)
 						ChatBeatmapCache.StoreMap(message.Chat.Id, score.BeatmapShort.Id);
 
-					score.Beatmap = await WebApi.MakeApiRequest(new Osu.API.Requests.V2.GetBeatmap(score.BeatmapShort.Id));
+					score.Beatmap = await WebApiHandler.MakeApiRequest(new WebAPI.Requests.V2.GetBeatmap(score.BeatmapShort.Id));
 					result += FormatScore(score, true);
 				}
 
@@ -142,13 +142,13 @@ namespace den0bot.Modules.Osu
 				playerID = id.ToString();
 			}
 
-			List<Score> lastScores = await WebApi.MakeApiRequest(new GetUserScores(playerID, ScoreType.Recent, false));
+			List<Score> lastScores = await WebApiHandler.MakeApiRequest(new GetUserScores(playerID, ScoreType.Recent, false));
 			if (lastScores.Count > 0)
 			{
 				var score = lastScores[0];
 				ChatBeatmapCache.StoreMap(message.Chat.Id, score.BeatmapShort.Id);
 
-				score.Beatmap = await WebApi.MakeApiRequest(new Osu.API.Requests.V2.GetBeatmap(score.BeatmapShort.Id));
+				score.Beatmap = await WebApiHandler.MakeApiRequest(new WebAPI.Requests.V2.GetBeatmap(score.BeatmapShort.Id));
 				return FormatScore(score, true);
 			}
 
@@ -168,7 +168,7 @@ namespace den0bot.Modules.Osu
 
 				if (isSet)
 				{
-					BeatmapSet set = await WebApi.MakeApiRequest(new Osu.API.Requests.V2.GetBeatmapSet(mapId));
+					BeatmapSet set = await WebApiHandler.MakeApiRequest(new WebAPI.Requests.V2.GetBeatmapSet(mapId));
 					if (set?.Beatmaps?.Count > 0)
 						mapId = set.Beatmaps.OrderBy(x => x.StarRating).Last().Id;
 				}
@@ -184,7 +184,7 @@ namespace den0bot.Modules.Osu
 			if (playerId == 0)
 				return Localization.Get("recentscores_unknown_player", message.Chat.Id);
 
-			List<Osu.Types.V1.Score> lastScores = await WebApi.MakeApiRequest(new GetScores(playerId.ToString(), mapId, mods, score_amount));
+			List<Types.V1.Score> lastScores = await WebApiHandler.MakeApiRequest(new GetScores(playerId.ToString(), mapId, mods, score_amount));
 
 			if (lastScores != null)
 			{
@@ -196,7 +196,7 @@ namespace den0bot.Modules.Osu
 				string result = string.Empty;
 				foreach (var score in lastScores)
 				{
-					score.Beatmap = await WebApi.MakeApiRequest(new Osu.API.Requests.V2.GetBeatmap(mapId));
+					score.Beatmap = await WebApiHandler.MakeApiRequest(new WebAPI.Requests.V2.GetBeatmap(mapId));
 					result += FormatScore(score, false);
 				}
 
@@ -222,7 +222,7 @@ namespace den0bot.Modules.Osu
 					if (!uint.TryParse(player, out var osuID))
 					{
 						// if they used /u/cookiezi instead of /u/124493 we ask osu API for an ID
-						User info = await WebApi.MakeApiRequest(new Osu.API.Requests.V2.GetUser(player));
+						User info = await WebApiHandler.MakeApiRequest(new WebAPI.Requests.V2.GetUser(player));
 
 						if (info == null)
 							return Localization.Get("recentscores_player_add_failed", message.Chat.Id);

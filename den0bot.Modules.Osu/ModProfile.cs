@@ -5,10 +5,11 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
-using den0bot.Modules.Osu.Osu.API.Requests.V2;
-using den0bot.Modules.Osu.Osu.Types.V2;
+using den0bot.Modules.Osu.WebAPI.Requests.V2;
+using den0bot.Modules.Osu.Types.V2;
 using den0bot.Util;
 using Newtonsoft.Json;
+using den0bot.Modules.Osu.WebAPI;
 
 namespace den0bot.Modules.Osu
 {
@@ -50,12 +51,12 @@ namespace den0bot.Modules.Osu
 
 		private async Task<string> FormatPlayerInfo(string playerID)
 		{
-			Osu.Types.V2.User info = await Osu.WebApi.MakeApiRequest(new GetUser(playerID));
+			Types.V2.User info = await WebApiHandler.MakeApiRequest(new GetUser(playerID));
 
 			if (info == null)
 				return string.Empty;
 
-			List<Score> topscores = await Osu.WebApi.MakeApiRequest(new GetUserScores(info.Id.ToString(), ScoreType.Best));
+			List<Score> topscores = await WebApiHandler.MakeApiRequest(new GetUserScores(info.Id.ToString(), ScoreType.Best));
 
 			if (topscores == null || topscores.Count <= 0)
 				return string.Empty;
