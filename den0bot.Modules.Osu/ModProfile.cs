@@ -73,7 +73,7 @@ namespace den0bot.Modules.Osu
 				// 1. 123pp | Artist - Title [Diffname] +Mods (Rank, Accuracy%)
 				string mapName = $"{score.BeatmapSet.Artist} - {score.BeatmapSet.Title} [{score.Beatmap.Version}]".FilterToHTML();
 				formatedTopscores +=
-					$"<b>{(i + 1)}</b>. <code>{score.Pp:F1}pp</code> | {mapName}{mods} (<b>{score.GetDescription()}</b>, {score.Accuracy:N2}%)\n";
+					$"<b>{(i + 1)}</b>. <code>{score.Pp:F1}pp</code> | {mapName}{mods} (<b>{score.Grade.GetDescription()}</b>, {score.Accuracy:N2}%)\n";
 			}
 
 			var title = string.Empty;

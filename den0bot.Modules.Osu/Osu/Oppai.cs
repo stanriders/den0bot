@@ -68,14 +68,27 @@ namespace den0bot.Modules.Osu.Osu
 
 		private static void CachePPv2Parameters(string mapCachePath, PPv2Parameters pp)
 		{
-			File.WriteAllText(mapCachePath, JsonConvert.SerializeObject(pp));
+			try
+			{
+				File.WriteAllText(mapCachePath, JsonConvert.SerializeObject(pp));
+			}
+			catch (Exception e)
+			{
+				Console.WriteLine($"Oppai: Failed to cache ppv2 params. {e}");
+			}
 		}
 
 		private static PPv2Parameters GetCachedPPv2Parameters(string mapCachePath)
 		{
-			if (File.Exists(mapCachePath))
-				return JsonConvert.DeserializeObject<PPv2Parameters>(File.ReadAllText(mapCachePath));
-
+			try
+			{
+				if (File.Exists(mapCachePath))
+					return JsonConvert.DeserializeObject<PPv2Parameters>(File.ReadAllText(mapCachePath));
+			}
+			catch (Exception e)
+			{
+				Console.WriteLine($"Oppai: Failed to get cached ppv2 params. {e}");
+			}
 			return null;
 		}
 	}

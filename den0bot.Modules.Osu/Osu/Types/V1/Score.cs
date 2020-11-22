@@ -87,29 +87,5 @@ namespace den0bot.Modules.Osu.Osu.Types.V1
 			set => accuracy = value;
 		}
 		private double accuracy = 0.0;
-
-		public override bool Equals(object obj)
-		{
-			Score b = obj as Score;
-			if (ReferenceEquals(this, b))
-				return true;
-
-			if (b == null)
-				return false;
-
-			return ScoreID == b.ScoreID && Date == b.Date;
-		}
-		public override int GetHashCode()
-		{
-			return ScoreID.GetHashCode() ^ Date.GetHashCode();
-		}
-		public static bool operator ==(Score a, Score b)
-		{
-			return Equals(a, b);
-		}
-		public static bool operator !=(Score a, Score b)
-		{
-			return !Equals(a, b);
-		}
 	}
 }

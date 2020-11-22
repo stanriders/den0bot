@@ -322,7 +322,7 @@ namespace den0bot.Modules.Osu
 				completion = $" | {(double)(score.Count300 + score.Count100 + score.Count50 + score.Misses) / score.Beatmap.ObjectsTotal * 100.0:N1}% completion";
 
 			result =
-				$"<b>({score.GetDescription()})</b> <a href=\"{score.Beatmap.Link}\">{mapInfo}</a><b>{mods} ({score.Accuracy:N2}%)</b>{Environment.NewLine}" +
+				$"<b>({score.Grade.GetDescription()})</b> <a href=\"{score.Beatmap.Link}\">{mapInfo}</a><b>{mods} ({score.Accuracy:N2}%)</b>{Environment.NewLine}" +
 				$"{score.Combo}/{beatmap.MaxCombo}x ({score.Count300} / {score.Count100} / {score.Count50} / {score.Misses}) {pp}{Environment.NewLine}" +
 				$"{date}{completion}{Environment.NewLine}{Environment.NewLine}";
 

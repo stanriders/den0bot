@@ -36,7 +36,7 @@ namespace den0bot.Modules.Osu.Osu
 				string json =
 					await Web.DownloadString($"https://osu.ppy.sh/api/{request.Address}&k={Config.Params.osuToken}");
 
-				dynamic deserializedObject = JsonConvert.DeserializeObject(json, request.ReturnType);
+				dynamic deserializedObject = JsonConvert.DeserializeObject(json, request.ReturnType, settings: new JsonSerializerSettings { DateTimeZoneHandling = DateTimeZoneHandling.Utc });
 				if (request.ShouldReturnSingle)
 					return deserializedObject[0];
 
@@ -82,7 +82,7 @@ namespace den0bot.Modules.Osu.Osu
 				{
 					string json = await Web.DownloadString($"https://osu.ppy.sh/api/v2/{request.Address}", v2AccessToken);
 
-					dynamic deserializedObject = JsonConvert.DeserializeObject(json, request.ReturnType);
+					dynamic deserializedObject = JsonConvert.DeserializeObject(json, request.ReturnType, settings: new JsonSerializerSettings { DateTimeZoneHandling = DateTimeZoneHandling.Utc });
 					//if (request.ShouldReturnSingle)
 					//	return deserializedObject[0];
 
