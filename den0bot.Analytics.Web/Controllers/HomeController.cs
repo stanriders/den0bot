@@ -40,7 +40,7 @@ namespace den0bot.Analytics.Web.Controllers
 					var tgChat = await TelegramCache.GetChat(telegramClient, chat.Id);
 					if (tgChat != null && tgChat.Type != ChatType.Private)
 					{
-						var lastMessageTimestamp = (await db.Messages.Where(x => x.ChatId == chat.Id).OrderByDescending(x => x.Timestamp).LastAsync()).Timestamp;
+						var lastMessageTimestamp = (await db.Messages.Where(x => x.ChatId == chat.Id).OrderByDescending(x => x.Timestamp).FirstAsync()).Timestamp;
 						if (lastMessageTimestamp > DateTime.UtcNow.AddDays(-30).Ticks)
 						{
 							model.Add(new ShortChatModel
