@@ -100,16 +100,16 @@ namespace den0bot
 		/// <param name="mode">ParseMode to use (None/Markdown/HTML)</param>
 		public static async Task SendMessageToAllChats(string msg, string image = null, ParseMode mode = ParseMode.Default)
 		{
-			foreach (DB.Types.Chat receiver in Database.GetAllChats())
+			foreach (var receiver in DatabaseCache.Chats)
             {
                 var chat = await api.GetChatAsync(receiver.Id);
                 if (chat == null)
 				{
-					Database.RemoveChat(receiver.Id);
+					await DatabaseCache.RemoveChat(receiver.Id);
 					Log.Info($"Chat {receiver.Id} removed");
 					return;
 				}
-				else if (!receiver.DisableAnnouncements)
+				else if (!receiver.DisableAnnouncements ?? false)
 				{
 					if (!string.IsNullOrEmpty(image))
 						await SendPhoto(image, receiver.Id, msg, mode);
@@ -128,7 +128,7 @@ namespace den0bot
 		/// <param name="mode">ParseMode</param>
 		/// <param name="replyID">Message to reply to</param>
 		/// <param name="replyMarkup"></param>
-		public static async Task<Message> SendPhoto(string photo, long receiverId, string message = "", ParseMode mode = ParseMode.Default, int replyID = 0, IReplyMarkup replyMarkup = null)
+		public static async Task<Message> SendPhoto(string photo, long receiverId, string message = "", ParseMode mode = ParseMode.Default, int replyID = 0, IReplyMarkup replyMarkup = null, bool sendTextIfFailed = true)
 		{
 			try
 			{
@@ -141,7 +141,8 @@ namespace den0bot
 			catch (ApiRequestException ex)
 			{
 				Log.Error(ex.InnerMessageIfAny());
-				return await api.SendTextMessageAsync(receiverId, message, mode, false, false, replyID, replyMarkup);
+				if (sendTextIfFailed)
+					return await api.SendTextMessageAsync(receiverId, message, mode, false, false, replyID, replyMarkup);
 			}
 			catch (Exception ex)
 			{

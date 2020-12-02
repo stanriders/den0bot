@@ -13,7 +13,7 @@ using Telegram.Bot.Types.Enums;
 
 namespace den0bot.Modules
 {
-	public class ModShmalala : IModule, IReceiveAllMessages
+	internal class ModShmalala : IModule, IReceiveAllMessages
 	{
 		// Based on https://github.com/IrcDotNet/IrcDotNet/tree/master/samples/IrcDotNet.Samples.MarkovTextBot
 		private class MarkovChain
@@ -175,8 +175,6 @@ namespace den0bot.Modules
 			}
 		}
 
-		private const bool useTranslation = false;
-
 		private readonly char[] sentenceSeparators = { '.', '.', '.', '!', '!', '?', '(', ')', '\n' };
 		private readonly Regex cleanWordRegex = 
 			new Regex(@"[()\[\]{}'""`~\\\/\-*\d]|(http|ftp|https):\/\/([\w_-]+(?:(?:\.[\w_-]+)+))([\w.,@?^=%&:\/~+#-]*[\w@?^=%&\/~+#-])?", RegexOptions.Compiled | RegexOptions.IgnoreCase);
@@ -195,7 +193,7 @@ namespace den0bot.Modules
 				{
 					Name = "talk",
 					Reply = true,
-					ActionAsync = SendRandomMessage
+					Action = SendRandomMessage
 				},
 				new Command
 				{
@@ -234,7 +232,7 @@ namespace den0bot.Modules
 			});
 		}
 
-		private async Task<string> SendRandomMessage(Message msg)
+		private string SendRandomMessage(Message msg)
 		{
 			if (!markovChain.Ready || markovChain.Nodes.Count <= min_nodes)
 				return Localization.Get("shmalala_notready", msg.Chat.Id);
@@ -245,39 +243,7 @@ namespace den0bot.Modules
 			for (int i = 0; i < RNG.NextNoMemory(1, 4); i++)
 				textBuilder.Append(GenerateRandomSentence(default));
 
-			var completeMessage = textBuilder.ToString();
-
-			if (useTranslation)
-			{
-				var ruenTranslate = await Translate(completeMessage, "en");
-				if (!string.IsNullOrEmpty(ruenTranslate))
-				{
-					var enruTranslate = await Translate(ruenTranslate, "ru");
-					if (!string.IsNullOrEmpty(enruTranslate))
-					{
-						return enruTranslate;
-					}
-				}
-			}
-
-			return completeMessage;
-		}
-
-		private async Task<string> Translate(string text, string lang)
-		{
-			var translate = await Web.DownloadString(
-				$"https://translate.yandex.net/api/v1.5/tr.json/translate?key={Config.Params.YandexTranslateToken}&text={text}&lang={lang}");
-
-			if (!string.IsNullOrEmpty(translate))
-			{
-				dynamic json = JsonConvert.DeserializeObject(translate);
-				if (json.code == 200)
-				{
-					return json.text[0];
-				}
-			}
-
-			return string.Empty;
+			return textBuilder.ToString();
 		}
 
 		private string GenerateRandomSentence(string startNode)
@@ -329,24 +295,7 @@ namespace den0bot.Modules
 							var completeMessage = textBuilder.ToString();
 							if (!string.IsNullOrEmpty(completeMessage))
 							{
-								var transSuccess = false;
-
-								if (useTranslation && RNG.NextNoMemory(1, 3) == 2)
-								{
-									var ruenTranslate = await Translate(completeMessage, "en");
-									if (!string.IsNullOrEmpty(ruenTranslate))
-									{
-										var enruTranslate = await Translate(ruenTranslate, "ru");
-										if (!string.IsNullOrEmpty(enruTranslate))
-										{
-											await API.SendMessage(enruTranslate, message.Chat.Id, replyID: message.MessageId);
-											transSuccess = true;
-										}
-									}
-								}
-
-								if (!transSuccess)
-									await API.SendMessage(completeMessage, message.Chat.Id, replyID: message.MessageId);
+								await API.SendMessage(completeMessage, message.Chat.Id, replyID: message.MessageId);
 							}
 						}
 

@@ -1,5 +1,6 @@
 ﻿// den0bot (c) StanR 2020 - MIT License
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using den0bot.DB;
 using den0bot.Util;
@@ -8,7 +9,7 @@ using Newtonsoft.Json;
 namespace den0bot.Modules
 {
 	// check certain youtube channel and post new highscores to all chats
-	class ModYoutube : IModule
+	internal class ModYoutube : IModule
 	{
 		private DateTime nextCheck;
 		private readonly bool isEnabled = false;
@@ -28,20 +29,32 @@ namespace den0bot.Modules
 				{
 					Name = "disableannouncements",
 					IsAdminOnly = true,
-					Action = (msg) =>
+					ActionAsync = async (msg) =>
 					{
-						Database.ToggleAnnouncements(msg.Chat.Id, false);
-						return "Понял, вырубаю";
+						using(var db = new Database())
+						{
+							var chat = db.Chats.First(x=> x.Id == msg.Chat.Id);
+							chat.DisableAnnouncements = false;
+							await db.SaveChangesAsync();
+
+							return "Понял, вырубаю";
+						}
 					}
 				},
 				new Command()
 				{
 					Name = "enableannouncements",
 					IsAdminOnly = true,
-					Action = (msg) =>
+					ActionAsync = async (msg) =>
 					{
-						Database.ToggleAnnouncements(msg.Chat.Id, true);
-						return "Понял, врубаю";
+						using(var db = new Database())
+						{
+							var chat = db.Chats.First(x=> x.Id == msg.Chat.Id);
+							chat.DisableAnnouncements = true;
+							await db.SaveChangesAsync();
+
+							return "Понял, врубаю";
+						}
 					}
 				},
 				new Command

@@ -30,9 +30,8 @@ namespace den0bot.Analytics.Web.Controllers
 			var model = new List<ShortChatModel>();
 			using (var db = new AnalyticsDatabase())
 			{
-				db.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
-
-				var chats = await db.Messages.GroupBy(x => x.ChatId)
+				var chats = await db.Messages.AsNoTracking()
+					.GroupBy(x => x.ChatId)
 					.Select(x => new{Id = x.Key, Msgs = x.Max(m => m.TelegramId)})
 					.ToArrayAsync();
 
@@ -41,19 +40,24 @@ namespace den0bot.Analytics.Web.Controllers
 					var tgChat = await TelegramCache.GetChat(telegramClient, chat.Id);
 					if (tgChat != null && tgChat.Type != ChatType.Private)
 					{
-						model.Add(new ShortChatModel
+						var lastMessageTimestamp = (await db.Messages.Where(x => x.ChatId == chat.Id).OrderByDescending(x => x.Timestamp).LastAsync()).Timestamp;
+						if (lastMessageTimestamp > DateTime.UtcNow.AddDays(-30).Ticks)
 						{
-							Name = tgChat.Title,
-							Avatar =
-								await TelegramCache.GetChatImage(telegramClient, chat.Id, tgChat.Photo?.SmallFileId),
-							Messages = chat.Msgs,
-							Id = chat.Id
-						});
+							model.Add(new ShortChatModel
+							{
+								Name = tgChat.Title,
+								Avatar =
+									await TelegramCache.GetChatImage(telegramClient, chat.Id, tgChat.Photo?.SmallFileId),
+								Messages = chat.Msgs,
+								Id = chat.Id,
+								LastMessageTimestamp = new DateTime(lastMessageTimestamp)
+							});
+						}
 					}
 				}
 			}
 
-			return View(model.OrderByDescending(x=>x.Messages).ToArray());
+			return View(model.OrderByDescending(x=>x.LastMessageTimestamp).ToArray());
 		}
 
 		public async Task<IActionResult> Chat(long chatId)

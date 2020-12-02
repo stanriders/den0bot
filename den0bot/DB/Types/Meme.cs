@@ -5,11 +5,16 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace den0bot.DB.Types
 {
-	[Table("User")]
-	public class User
+	[Table("Meme")]
+	public class Meme
 	{
 		[Key]
-		public int TelegramID { get; set; }
-		public string Username { get; set; }
+		public int Id { get; set; }
+
+		public string Link { get; set; }
+
+		public long ChatID { get; set; }
+
+		public bool Used { get; set; }
 	}
 }

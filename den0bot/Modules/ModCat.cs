@@ -9,7 +9,7 @@ using den0bot.Util;
 
 namespace den0bot.Modules
 {
-	class ModCat : IModule, IReceiveAllMessages
+	internal class ModCat : IModule, IReceiveAllMessages
 	{
 		private readonly string api_link = "https://api.thecatapi.com/v1/images/search?size=med&type=jpg,png&api_key=" + Config.Params.CatToken;
 

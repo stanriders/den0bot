@@ -8,7 +8,7 @@ using den0bot.Util;
 
 namespace den0bot.Modules
 {
-	public class ModAnalytics : IModule, IReceiveAllMessages
+	internal class ModAnalytics : IModule, IReceiveAllMessages
 	{
 		private static readonly List<Message> messageBuffer = new List<Message>();
 

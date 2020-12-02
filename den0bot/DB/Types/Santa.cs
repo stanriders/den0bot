@@ -5,11 +5,12 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace den0bot.DB.Types
 {
-	[Table("User")]
-	public class User
+	[Table("Santa")]
+	public class Santa
 	{
 		[Key]
-		public int TelegramID { get; set; }
-		public string Username { get; set; }
+		public string Sender { get; set; }
+
+		public string Receiver { get; set; }
 	}
 }

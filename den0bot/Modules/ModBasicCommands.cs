@@ -3,10 +3,11 @@
 using den0bot.DB;
 using Telegram.Bot.Types.Enums;
 using den0bot.Util;
+using System.Linq;
 
 namespace den0bot.Modules
 {
-	class ModBasicCommands : IModule
+	internal class ModBasicCommands : IModule
 	{
 		public ModBasicCommands()
 		{
@@ -43,12 +44,17 @@ namespace den0bot.Modules
 				{
 					Name = "setlocale",
 					IsAdminOnly = true,
-					Action = (message) =>
+					ActionAsync = async (message) =>
 					{
 						var locale = message.Text.Substring(11);
 						if (Localization.GetAvailableLocales().Contains(locale))
 						{
-							Database.SetChatLocale(message.Chat.Id, locale);
+							using (var db = new Database())
+							{
+								var chat = db.Chats.First(x=> x.Id == message.Chat.Id);
+								chat.Locale = locale;
+								await db.SaveChangesAsync();
+							}
 							return "👌";
 						}
 						else
@@ -61,10 +67,15 @@ namespace den0bot.Modules
 				{
 					Name = "setintroduction",
 					IsAdminOnly = true,
-					Action = (message) =>
+					ActionAsync = async (message) =>
 					{
-						var text = message.Text.Substring(17);
-						Database.SetChatIntroduction(message.Chat.Id, text);
+						using (var db = new Database())
+						{
+							var text = message.Text.Substring(17);
+							var chat = db.Chats.First(x=> x.Id == message.Chat.Id);
+							chat.Introduction = text;
+							await db.SaveChangesAsync();
+						}
 						return "👌";
 					}
 				},
@@ -72,10 +83,16 @@ namespace den0bot.Modules
 				{
 					Name = "toggleevents",
 					IsOwnerOnly = true,
-					Action = (message) =>
+					ActionAsync = async (message) =>
 					{
-						Database.ToggleEvents(message.Chat.Id);
-						return "👌";
+						using (var db = new Database())
+						{
+							var chat = db.Chats.First(x=> x.Id == message.Chat.Id);
+							chat.DisableEvents = !chat.DisableEvents;
+							await db.SaveChangesAsync();
+						
+							return chat.DisableEvents.ToString();
+						}
 					}
 				},
 			});

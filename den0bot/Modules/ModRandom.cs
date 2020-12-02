@@ -1,23 +1,22 @@
-﻿// den0bot (c) StanR 2019 - MIT License
+﻿// den0bot (c) StanR 2020 - MIT License
 
-using System.Collections.Generic;
+using System.Linq;
 using System.Numerics;
 using System.Threading.Tasks;
 using Telegram.Bot.Types;
+using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.InputFiles;
 using den0bot.DB;
+using den0bot.DB.Types;
 using den0bot.Util;
-using SQLite;
-using Telegram.Bot.Types.Enums;
+using Microsoft.EntityFrameworkCore;
 
 namespace den0bot.Modules
 {
-	class ModRandom : IModule
+	internal class ModRandom : IModule
 	{
 		public ModRandom()
 		{
-			Database.CreateTable<Meme>();
-
 			AddCommands(new[]
 			{
 				new Command
@@ -46,7 +45,7 @@ namespace den0bot.Modules
 			Log.Debug("Enabled");
 		}
 
-		private async Task<string> GetRandomDinosaur(Chat sender)
+		private async Task<string> GetRandomDinosaur(Telegram.Bot.Types.Chat sender)
 		{
 			switch (RNG.Next(1, 4))
 			{
@@ -67,7 +66,7 @@ namespace den0bot.Modules
 			return Localization.Get("random_roll", msg.Chat.Id) + RNG.Next(max: 101);
 		}
 
-		private string AddMeme(Telegram.Bot.Types.Message message)
+		private string AddMeme(Message message)
 		{
 			long chatId = message.Chat.Id;
 			string link = message.Text.Substring(7);
@@ -85,86 +84,62 @@ namespace den0bot.Modules
 			return Localization.Get("random_meme_add_failed", chatId);
 		}
 
-		private async Task<string> GetRandomMeme(Chat sender)
+		private async Task<string> GetRandomMeme(Telegram.Bot.Types.Chat sender)
 		{
-			int memeCount = GetMemeCountFromDatabase(sender.Id);
-			if (memeCount <= 0)
-				return Localization.Get("random_no_memes", sender.Id);
+			using (var db = new Database())
+			{
+				int memeCount = db.Memes.Count(x => x.ChatID == sender.Id);
+				if (memeCount <= 0)
+					return Localization.Get("random_no_memes", sender.Id);
 
-			string photo = GetMemeFromDatabase(sender.Id);
-			if (!string.IsNullOrEmpty(photo))
-			{ 
-				await API.SendPhoto(photo, sender.Id);
-				return string.Empty;
+				var memes = await db.Memes.ToArrayAsync();
+				if (!memes.Any(x => !x.Used))
+				{
+					foreach (var usedMeme in memes)
+					{
+						usedMeme.Used = false;
+						db.Memes.Update(usedMeme);
+					}
+				}
+
+				var unusedMemes = memes.Count(x => !x.Used);
+				if (unusedMemes > 0)
+				{
+					int num = RNG.Next(max: unusedMemes);
+					var meme = memes[num];
+
+					meme.Used = true;
+					db.Memes.Update(meme);
+
+					await db.SaveChangesAsync();
+
+					string photo = meme.Link;
+					if (!string.IsNullOrEmpty(photo))
+					{
+						await API.SendPhoto(photo, sender.Id);
+						return string.Empty;
+					}
+
+					return meme.Link;
+				}
+
+				return Localization.Get("generic_fail", sender.Id);
 			}
-
-			return Localization.Get("generic_fail", sender.Id);
 		}
 
-		#region Database
-		private class Meme
-		{
-			[PrimaryKey, AutoIncrement]
-			public int Id { get; set; }
-
-			public string Link { get; set; }
-
-			public long ChatID { get; set; }
-
-			public bool Used { get; set; }
-		}
-
-		private int GetMemeCountFromDatabase(long chatID) => Database.Get<Meme>(x => x.ChatID == chatID).Count;
 		private void AddMemeToDatabase(string link, long chatID)
 		{
-			if (Database.Exist<Meme>(x => x.Link == link))
+			using (var db = new Database())
 			{
-				Database.Insert(new Meme
+				if (!db.Memes.Any(x => x.Link == link))
 				{
-					Link = link,
-					ChatID = chatID
-				});
-			}
-		}
-		private string GetMemeFromDatabase(long chatID)
-		{
-			List<Meme> memes = Database.Get<Meme>(x => x.ChatID == chatID);
-			if (memes != null)
-			{
-				memes.RemoveAll(x => x.Used == true);
-				if (memes.Count == 0)
-				{
-					ResetUsedMemeInDatabase(chatID);
-					return GetMemeFromDatabase(chatID);
-				}
-				else
-				{
-					int num = RNG.Next(max: memes.Count);
-
-					SetUsedMemeInDatabase(memes[num].Id);
-					return memes[num].Link;
+					db.Memes.Add(new Meme
+					{
+						Link = link,
+						ChatID = chatID
+					});
 				}
 			}
-			return null;
 		}
-		private void SetUsedMemeInDatabase(int id)
-		{
-			Meme meme = Database.GetFirst<Meme>(x => x.Id == id);
-			if (meme != null)
-			{
-				meme.Used = true;
-				Database.Update(meme);
-			}
-		}
-		private void ResetUsedMemeInDatabase(long chatID)
-		{
-			List<Meme> memes = Database.Get<Meme>(x => x.ChatID == chatID);
-			foreach (Meme meme in memes)
-				meme.Used = false;
-
-			Database.UpdateAll(memes);
-		}
-
-		#endregion
 	}
 }

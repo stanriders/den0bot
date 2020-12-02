@@ -1,296 +1,39 @@
 ﻿// den0bot (c) StanR 2020 - MIT License
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using System.Linq.Expressions;
+
 using den0bot.DB.Types;
-using den0bot.Util;
-using SQLite;
+using Microsoft.EntityFrameworkCore;
 
 namespace den0bot.DB
 {
-	public static class Database
+	public class Database : DbContext
 	{
-		private static SQLiteConnection db;
-		private const string database_path = "./data.db";
-		private static List<Chat> chatCache;
-		private static List<User> userCache;
-		private static int girlSeason;
+		public const string database_path = "./data.db";
 
-		public static void Init()
+		public Database()
 		{
-			db = new SQLiteConnection(database_path);
-			db.CreateTable<Chat>();
-			db.CreateTable<Misc>();
-			db.CreateTable<User>();
-
-			// we keep whole chat and user tables in memory because they're being accessed quite often
-			chatCache = db.Table<Chat>().ToList();
-			userCache = db.Table<User>().ToList();
-			
-			Misc miscTable = db.Table<Misc>().FirstOrDefault();
-			if (miscTable != null)
-				girlSeason = miscTable.GirlSeason;
+			Database.EnsureCreated();
 		}
 
-		public static void CreateTable<T>()
+		protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 		{
-			db.CreateTable<T>();
+			optionsBuilder.UseSqlite($"Filename={database_path}");
 		}
 
-		public static void Insert(object obj)
+		protected override void OnModelCreating(ModelBuilder modelBuilder)
 		{
-			db.Insert(obj);
+			modelBuilder.Entity<Misc>().HasNoKey();
 		}
 
-		public static List<T> Get<T>() where T : new()
-		{
-			return db.Table<T>()?.ToList();
-		}
+		public DbSet<Chat> Chats { get; set; }
 
-		public static List<T> Get<T>(Expression<Func<T, bool>> predicate) where T : new()
-		{
-			return db.Table<T>().Where(predicate)?.ToList();
-		}
+		public DbSet<User> Users { get; set; }
 
-		public static T GetFirst<T>(Expression<Func<T, bool>> predicate) where T : new()
-		{
-			return db.Table<T>().FirstOrDefault(predicate);
-		}
+		public DbSet<Girl> Girls { get; set; }
 
-		public static bool Exist<T>(Expression<Func<T, bool>> predicate) where T : new()
-		{
-			return db.Table<T>().Where(predicate).Any();
-		}
+		public DbSet<Meme> Memes { get; set; }
 
-		public static void Remove(object obj)
-		{
-			db.Delete(obj);
-		}
+		public DbSet<Santa> Santas { get; set; }
 
-		public static void Remove<T>(Expression<Func<T, bool>> predicate) where T : new()
-		{
-			var obj = db.Table<T>().FirstOrDefault(predicate);
-			if (obj != null)
-				db.Delete(obj);
-		}
-
-		public static void Update(object obj)
-		{
-			db.Update(obj);
-		}
-
-		public static void UpdateAll(IEnumerable objs)
-		{
-			db.UpdateAll(objs);
-		}
-
-		public static void Close() => db.Close();
-
-		#region Users
-		public static void AddUser(int id, string username)
-		{
-			if (!userCache.Any(x => x.Username == username))
-			{
-				var user = new User
-				{
-					Username = username,
-					TelegramID = id
-				};
-				db.Insert(user);
-				userCache.Add(user);
-			}
-		}
-		public static int GetUserID(string username)
-		{
-			if (!string.IsNullOrEmpty(username))
-			{
-				User user = userCache.Find(x => x.Username == username);
-				if (user != null)
-				{
-					return user.TelegramID;
-				}
-			}
-			return 0;
-		}
-		public static string GetUsername(int id)
-		{
-			User user = userCache.Find(x => x.TelegramID == id);
-			return user?.Username;
-		}
-
-		#endregion
-
-		#region Chats
-		public static List<Chat> GetAllChats() => chatCache;
-		public static void AddChat(long chatID)
-		{
-			if (!chatCache.Any(x => x.Id == chatID))
-			{
-				var chat = new Chat
-				{
-					Id = chatID,
-					DisableAnnouncements = false,
-					DisableEvents = true,
-					Locale = "ru"
-				};
-				db.Insert(chat);
-				chatCache.Add(chat);
-
-				Log.Info($"Added chat '{chatID}' to the chat list");
-			}
-		}
-		public static void RemoveChat(long chatID)
-		{
-			Chat chat = db.Table<Chat>().FirstOrDefault(x => x.Id == chatID);
-			if (chat != null)
-			{
-				db.Delete(chat);
-			}
-		}
-		public static void ToggleAnnouncements(long chatID, bool enable)
-		{
-			Chat chat = db.Table<Chat>().FirstOrDefault(x => x.Id == chatID);
-			if (chat != null)
-			{
-				chat.DisableAnnouncements = !enable;
-				db.Update(chat);
-			}
-		}
-		public static void ToggleEvents(long chatID)
-		{
-			Chat chat = db.Table<Chat>().FirstOrDefault(x => x.Id == chatID);
-			if (chat != null)
-			{
-				chat.DisableEvents = !chat.DisableEvents;
-				db.Update(chat);
-			}
-		}
-		public static bool ShouldDisableEvents(long chatID)
-		{
-			return db.Table<Chat>().FirstOrDefault(x => x.Id == chatID)?.DisableEvents ?? true;
-		}
-		public static string GetChatLocale(long chatID)
-		{
-			Chat chat = chatCache.Find(x => x.Id == chatID);
-			if (chat != null)
-			{
-				if (string.IsNullOrEmpty(chat.Locale))
-				{
-					SetChatLocale(chatID, "ru");
-					return "ru";
-				}
-				else
-				{
-					return chat.Locale;
-				}
-			}
-			return "ru";
-		}
-
-		public static void SetChatLocale(long chatID, string locale)
-		{
-			Chat chat = db.Table<Chat>().FirstOrDefault(x => x.Id == chatID);
-			if (chat != null)
-			{
-				chat.Locale = locale;
-				db.Update(chat);
-
-				// Update cache as well
-				var cachedChat = chatCache.Find(x => x.Id == chatID);
-				if (cachedChat != null)
-					cachedChat.Locale = locale;
-			}
-		}
-
-		public static string GetChatIntroduction(long chatID)
-		{
-			return chatCache.Find(x => x.Id == chatID)?.Introduction;
-		}
-
-		public static void SetChatIntroduction(long chatID, string introduction)
-		{
-			Chat chat = db.Table<Chat>().FirstOrDefault(x => x.Id == chatID);
-			if (chat != null)
-			{
-				chat.Introduction = introduction;
-				db.Update(chat);
-
-				// Update cache as well
-				var cachedChat = chatCache.Find(x => x.Id == chatID);
-				if (cachedChat != null)
-					cachedChat.Introduction = introduction;
-			}
-		}
-		#endregion
-
-		#region Misc
-		public static int CurrentLobbyID
-		{
-			get
-			{
-				Misc table = db.Table<Misc>().FirstOrDefault();
-				if (table != null)
-				{
-					return table.CurrentMPLobby;
-				}
-				else
-				{
-					return 0;
-				}
-			}
-			set
-			{
-				Misc table = db.Table<Misc>().FirstOrDefault();
-				if (table != null)
-				{
-					table.CurrentMPLobby = value;
-					db.Update(table);
-				}
-				else
-				{
-					db.Insert(new Misc
-					{
-						Hi = true,
-						CurrentMPLobby = value
-					});
-				}
-			}
-		}
-		public static string GetCurrentTounament()
-		{
-			return string.Empty;
-		}
-
-		public static int GirlSeason
-		{
-			get => girlSeason;
-			set
-			{
-				Misc table = db.Table<Misc>().FirstOrDefault();
-				if (table != null)
-				{
-					table.GirlSeason = value;
-					table.GirlSeasonStart = DateTime.Today;
-					db.Update(table);
-				}
-
-				girlSeason = value;
-			}
-		}
-		public static DateTime GirlSeasonStartDate
-		{
-			get
-			{
-				Misc table = db.Table<Misc>().FirstOrDefault();
-				if (table != null)
-				{
-					return table.GirlSeasonStart;
-				}
-				return default;
-			}
-		}
-		#endregion
+		public DbSet<Misc> Misc { get; set; }
 	}
 }

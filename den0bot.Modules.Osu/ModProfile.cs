@@ -10,6 +10,8 @@ using den0bot.Modules.Osu.Types.V2;
 using den0bot.Util;
 using Newtonsoft.Json;
 using den0bot.Modules.Osu.WebAPI;
+using System.Linq;
+using Microsoft.EntityFrameworkCore;
 
 namespace den0bot.Modules.Osu
 {
@@ -131,12 +133,15 @@ namespace den0bot.Modules.Osu
 				}
 				else
 				{
-					var osuId = DatabaseOsu.GetPlayerOsuIDFromDatabase(msg.From.Id);
-					if (osuId != 0)
+					using (var db = new DatabaseOsu())
 					{
-						var result = await FormatRebalanceProfile(osuId.ToString());
-						if (!string.IsNullOrEmpty(result))
-							return result;
+						var osuId = await db.Players.FirstOrDefaultAsync(x=> x.TelegramID == msg.From.Id);
+						if (osuId != null)
+						{
+							var result = await FormatRebalanceProfile(osuId.ToString());
+							if (!string.IsNullOrEmpty(result))
+								return result;
+						}
 					}
 				}
 			}

@@ -11,6 +11,10 @@ namespace den0bot.Analytics.Data
 #else
 		private const string connection_string = "Filename=/root/den0bot/analytics.db";
 #endif
+		public AnalyticsDatabase()
+		{
+			Database.EnsureCreated();
+		}
 
 		protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 		{

@@ -46,7 +46,6 @@ namespace den0bot
 		{
 			Log.Info("________________");
 			Config.Init();
-			Database.Init();
 
 			Log.Info("Starting modules...");
 
@@ -112,7 +111,6 @@ namespace den0bot
 				}
 				Thread.Sleep(100);
 			}
-			Database.Close();
 			API.Disconnect();
 		}
 
@@ -150,9 +148,9 @@ namespace den0bot
 			var senderChatId = msg.Chat.Id;
 
 			if (msg.Chat.Type != ChatType.Private)
-				Database.AddChat(senderChatId);
+				await DatabaseCache.AddChat(senderChatId);
 
-			Database.AddUser(msg.From.Id, msg.From.Username);
+			await DatabaseCache.AddUser(msg.From.Id, msg.From.Username);
 
 			if (msg.NewChatMembers != null && msg.NewChatMembers.Length > 0)
 			{
@@ -165,7 +163,7 @@ namespace den0bot
 			}
 
 			if (Config.Params.UseEvents && 
-			    !Database.ShouldDisableEvents(senderChatId) && 
+			    (!DatabaseCache.Chats.FirstOrDefault(x=> x.Id == senderChatId)?.DisableEvents ?? false) && 
 			    msg.Text != null && 
 			    msg.Text[0] == command_trigger)
 			{

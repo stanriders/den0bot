@@ -5,13 +5,13 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using den0bot.DB;
+using den0bot.Modules.Osu.WebAPI;
 using den0bot.Modules.Osu.WebAPI.Requests.V1;
 using den0bot.Modules.Osu.WebAPI.Requests.V2;
 using den0bot.Modules.Osu.Types;
 using den0bot.Modules.Osu.Types.V2;
 using den0bot.Util;
 using Telegram.Bot.Types.Enums;
-using den0bot.Modules.Osu.WebAPI;
 
 namespace den0bot.Modules.Osu
 {
@@ -93,11 +93,14 @@ namespace den0bot.Modules.Osu
 			}
 			else
 			{
-				var id = DatabaseOsu.GetPlayerOsuIDFromDatabase(message.From.Id);
-				if (id == 0)
-					return Localization.Get("recentscores_unknown_player", message.Chat.Id);
+				using (var db = new DatabaseOsu())
+				{
+					var id = db.Players.FirstOrDefault(x=> x.TelegramID == message.From.Id)?.OsuID;
+					if (id == null || id == 0)
+						return Localization.Get("recentscores_unknown_player", message.Chat.Id);
 
-				playerID = id.ToString();
+					playerID = id.ToString();
+				}
 			}
 
 			List<Score> lastScores = await WebApiHandler.MakeApiRequest(new GetUserScores(playerID, ScoreType.Recent, true));
@@ -135,11 +138,14 @@ namespace den0bot.Modules.Osu
 			}
 			else
 			{
-				var id = DatabaseOsu.GetPlayerOsuIDFromDatabase(message.From.Id);
-				if (id == 0)
-					return Localization.Get("recentscores_unknown_player", message.Chat.Id);
+				using (var db = new DatabaseOsu())
+				{
+					var id = db.Players.FirstOrDefault(x => x.TelegramID == message.From.Id)?.OsuID;
+					if (id == null || id == 0)
+						return Localization.Get("recentscores_unknown_player", message.Chat.Id);
 
-				playerID = id.ToString();
+					playerID = id.ToString();
+				}
 			}
 
 			List<Score> lastScores = await WebApiHandler.MakeApiRequest(new GetUserScores(playerID, ScoreType.Recent, false));
@@ -180,27 +186,30 @@ namespace den0bot.Modules.Osu
 					return Localization.Get("generic_fail", message.Chat.Id);
 			}
 
-			var playerId = DatabaseOsu.GetPlayerOsuIDFromDatabase(message.From.Id);
-			if (playerId == 0)
-				return Localization.Get("recentscores_unknown_player", message.Chat.Id);
-
-			List<Types.V1.Score> lastScores = await WebApiHandler.MakeApiRequest(new GetScores(playerId.ToString(), mapId, mods, score_amount));
-
-			if (lastScores != null)
+			using (var db = new DatabaseOsu())
 			{
-				if (lastScores.Count == 0)
-					return Localization.Get("recentscores_no_scores", message.Chat.Id);
+				var playerId = db.Players.FirstOrDefault(x => x.TelegramID == message.From.Id)?.OsuID;
+				if (playerId == null || playerId == 0)
+					return Localization.Get("recentscores_unknown_player", message.Chat.Id);
 
-				ChatBeatmapCache.StoreMap(message.Chat.Id, mapId);
+				List<Types.V1.Score> lastScores = await WebApiHandler.MakeApiRequest(new GetScores(playerId.ToString(), mapId, mods, score_amount));
 
-				string result = string.Empty;
-				foreach (var score in lastScores)
+				if (lastScores != null)
 				{
-					score.Beatmap = await WebApiHandler.MakeApiRequest(new WebAPI.Requests.V2.GetBeatmap(mapId));
-					result += FormatScore(score, false);
-				}
+					if (lastScores.Count == 0)
+						return Localization.Get("recentscores_no_scores", message.Chat.Id);
 
-				return result;
+					ChatBeatmapCache.StoreMap(message.Chat.Id, mapId);
+
+					string result = string.Empty;
+					foreach (var score in lastScores)
+					{
+						score.Beatmap = await WebApiHandler.MakeApiRequest(new WebAPI.Requests.V2.GetBeatmap(mapId));
+						result += FormatScore(score, false);
+					}
+
+					return result;
+				}
 			}
 
 			return Localization.Get("generic_fail", message.Chat.Id);
@@ -210,30 +219,42 @@ namespace den0bot.Modules.Osu
 		{
 			if (message.Text.Length > 6)
 			{
-				string player;
-				Match regexMatch = profileRegex.Match(message.Text);
-				if (regexMatch.Groups.Count > 1)
-					player = regexMatch.Groups[1]?.Value;
-				else
-					player = message.Text.Substring(7);
-
-				if (!string.IsNullOrEmpty(player))
+				using (var db = new DatabaseOsu())
 				{
-					if (!uint.TryParse(player, out var osuID))
-					{
-						// if they used /u/cookiezi instead of /u/124493 we ask osu API for an ID
-						User info = await WebApiHandler.MakeApiRequest(new WebAPI.Requests.V2.GetUser(player));
+					string player;
+					Match regexMatch = profileRegex.Match(message.Text);
+					if (regexMatch.Groups.Count > 1)
+						player = regexMatch.Groups[1]?.Value;
+					else
+						player = message.Text.Substring(7);
 
-						if (info == null)
+					if (!string.IsNullOrEmpty(player))
+					{
+						if(db.Players.Any(x=> x.TelegramID == message.From.Id))
 							return Localization.Get("recentscores_player_add_failed", message.Chat.Id);
-						else
-							osuID = info.Id;
-					}
 
-					if (osuID != 0)
-					{
-						DatabaseOsu.AddPlayerToDatabase(message.From.Id, osuID);
-						return Localization.Get("recentscores_player_add_success", message.Chat.Id);
+						if (!uint.TryParse(player, out var osuID))
+						{
+							// if they used /u/cookiezi instead of /u/124493 we ask osu API for an ID
+							User info = await WebApiHandler.MakeApiRequest(new WebAPI.Requests.V2.GetUser(player));
+
+							if (info == null)
+								return Localization.Get("recentscores_player_add_failed", message.Chat.Id);
+							else
+								osuID = info.Id;
+						}
+
+						if (osuID != 0)
+						{
+							await db.Players.AddAsync(new DatabaseOsu.Player
+							{
+								OsuID = osuID,
+								TelegramID = message.From.Id
+							});
+							await db.SaveChangesAsync();
+
+							return Localization.Get("recentscores_player_add_success", message.Chat.Id);
+						}
 					}
 				}
 			}
@@ -243,23 +264,40 @@ namespace den0bot.Modules.Osu
 
 		private string RemoveMe(Telegram.Bot.Types.Message message)
 		{
-			if (DatabaseOsu.RemovePlayerFromDatabase(message.From.Id))
-				return Localization.Get("recentscores_player_remove_success", message.Chat.Id);
-			else
+			using (var db = new DatabaseOsu())
+			{
+				var player = db.Players.FirstOrDefault(x=> x.TelegramID == message.From.Id);
+				if (player != null)
+				{
+					db.Players.Remove(player);
+					db.SaveChanges();
+
+					return Localization.Get("recentscores_player_remove_success", message.Chat.Id);
+				}
+				
 				return Localization.Get("generic_fail", message.Chat.Id);
+			}
 		}
 
 		private string RemovePlayer(Telegram.Bot.Types.Message message)
 		{
-			string name = message.Text.Substring(14);
-
-			if (!string.IsNullOrEmpty(name))
+			using (var db = new DatabaseOsu())
 			{
-				DatabaseOsu.RemovePlayerFromDatabase(Database.GetUserID(name));
-				return Localization.Get("recentscores_player_remove_success", message.Chat.Id);
-			}
+				var tgId = DatabaseCache.GetUserID(message.Text.Split()[1]);
+				if (tgId != 0)
+				{
+					var player = db.Players.FirstOrDefault(x => x.TelegramID == tgId);
+					if (player != null)
+					{
+						db.Players.Remove(player);
+						db.SaveChanges();
 
-			return Localization.Get("recentscores_player_remove_failed", message.Chat.Id);
+						return Localization.Get("recentscores_player_remove_success", message.Chat.Id);
+					}
+				}
+
+				return Localization.Get("generic_fail", message.Chat.Id);
+			}
 		}
 
 		private string FormatScore(IScore score, bool useAgo)

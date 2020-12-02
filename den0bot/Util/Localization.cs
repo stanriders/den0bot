@@ -35,7 +35,7 @@ namespace den0bot.Util
 
 		public static string Get(string key, long chatID)
 		{
-			string locale = Database.GetChatLocale(chatID);
+			string locale = DatabaseCache.Chats.FirstOrDefault(x => x.Id == chatID)?.Locale;
 			if (locales.ContainsKey(locale))
 			{
 				if (locales[locale].ContainsKey(key))
@@ -47,11 +47,13 @@ namespace den0bot.Util
 
 		public static string NewMemberGreeting(long chatID, string name, long userID)
 		{
-			var introduction = Database.GetChatIntroduction(chatID);
+			var chat = DatabaseCache.Chats.FirstOrDefault(x => x.Id == chatID);
+
+			var introduction = chat?.Introduction;
 			if (!string.IsNullOrEmpty(introduction))
 				return string.Format(introduction, name, userID);
 
-			string locale = Database.GetChatLocale(chatID);
+			string locale = chat?.Locale;
 			if (locales.ContainsKey(locale))
 				return string.Format(locales[locale]["generic_greeting"], name, userID);
 			else
