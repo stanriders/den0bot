@@ -38,6 +38,7 @@ namespace den0bot
 		public static void Main()
 		{
 			Thread.CurrentThread.CurrentCulture = new CultureInfo("ru-RU", false);
+			AppDomain.CurrentDomain.UnhandledException += (s, e) => { Log.Error((e.ExceptionObject as Exception).ToString()); };
 			var bot = new Bot();
 			bot.Run();
 		}
