@@ -46,8 +46,6 @@ namespace den0bot
 		public void Run()
 		{
 			Log.Info("________________");
-			Config.Init();
-
 			Log.Info("Starting modules...");
 
 			List<Assembly> allAssemblies = new List<Assembly>();
@@ -197,7 +195,7 @@ namespace den0bot
 				if (command != null)
 				{
 					if ((command.IsOwnerOnly && !IsOwner(msg.From.Username)) ||
-					    (command.IsAdminOnly && !(await IsAdmin(msg.Chat.Id, msg.From.Username))))
+					    (command.IsAdminOnly && !await IsAdmin(msg.Chat.Id, msg.From.Username)))
 					{
 						// ignore admin commands from non-admins
 						result = Localization.Get($"annoy_{RNG.NextNoMemory(1, 10)}", senderChatId);
@@ -212,20 +210,9 @@ namespace den0bot
 					else
 						continue;
 
+					// add command to statistics
 					if (msg.Chat.Type != ChatType.Private)
-					{
-						// add command to statistics
-						ModAnalytics.AddMessage(new Analytics.Data.Types.Message
-						{
-							TelegramId = msg.MessageId,
-							ChatId = msg.Chat.Id,
-							UserId = msg.From.Id,
-							Timestamp = msg.Date.ToUniversalTime().Ticks,
-							Type = msg.Type.ToDbType(),
-							Command = msg.Text?.Split(' ')[0].Replace($"@{API.BotUser.Username}", ""),
-							Length = msg.Text?.Length ?? 0
-						});
-					}
+						ModAnalytics.AddCommand(msg);
 
 					// send result if we got any
 					if (!string.IsNullOrEmpty(result))

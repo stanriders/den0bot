@@ -41,7 +41,7 @@ namespace den0bot.Util
 		private const string config_file = "./config.json";
 		public static ConfigFile Params { get; private set; } = new ConfigFile();
 
-		public static void Init()
+		static Config()
 		{
 			if (File.Exists(config_file))
 				Params = JsonConvert.DeserializeObject<ConfigFile>(File.ReadAllText(config_file));

@@ -67,9 +67,18 @@ namespace den0bot.Modules
 			}
 		}
 
-		public static void AddMessage(Message msg)
+		public static void AddCommand(Telegram.Bot.Types.Message msg)
 		{
-			messageBuffer.Add(msg);
+			messageBuffer.Add(new Message
+			{
+				TelegramId = msg.MessageId,
+				ChatId = msg.Chat.Id,
+				UserId = msg.From.Id,
+				Timestamp = msg.Date.ToUniversalTime().Ticks,
+				Type = msg.Type.ToDbType(),
+				Command = msg.Text?.Split(' ')[0].Replace($"@{API.BotUser.Username}", ""),
+				Length = msg.Text?.Length ?? 0
+			});
 		}
 
 		public static async Task AddGirl(long chatId, long userId)
