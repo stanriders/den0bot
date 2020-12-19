@@ -8,7 +8,7 @@ using den0bot.Util;
 
 namespace den0bot.Modules
 {
-	internal class ModAnalytics : IModule, IReceiveAllMessages
+	internal class ModAnalytics : IModule, IReceiveAllMessages, IReceiveShutdown
 	{
 		private static readonly List<Message> messageBuffer = new List<Message>();
 
@@ -92,6 +92,11 @@ namespace den0bot.Modules
 				});
 				await db.SaveChangesAsync();
 			}
+		}
+
+		public void Shutdown()
+		{
+			Flush().Wait();
 		}
 	}
 }

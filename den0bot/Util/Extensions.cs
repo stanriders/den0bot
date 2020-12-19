@@ -18,7 +18,7 @@ namespace den0bot.Util
 
 		public static string InnerMessageIfAny(this Exception value)
 		{
-			return value.InnerException?.Message ?? value.Message;
+			return value.InnerException?.ToString() ?? value.ToString();
 		}
 
 		public static MessageType ToDbType(this Telegram.Bot.Types.Enums.MessageType msg)

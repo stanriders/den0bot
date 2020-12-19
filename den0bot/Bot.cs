@@ -33,7 +33,8 @@ namespace den0bot
 		}
 
 		private static bool shouldShutdown;
-		public static void Shutdown() { shouldShutdown = true; }
+		private static bool shouldCrash;
+		public static void Shutdown(bool crash = false) { shouldShutdown = true; shouldCrash = crash; }
 
 		public static void Main()
 		{
@@ -111,6 +112,11 @@ namespace den0bot
 				Thread.Sleep(100);
 			}
 			API.Disconnect();
+
+			if (shouldCrash)
+			{
+				throw new Exception("Shutdown with crash was initiated by owner");
+			}
 		}
 
 		private bool TryEvent(long chatID, out string text)

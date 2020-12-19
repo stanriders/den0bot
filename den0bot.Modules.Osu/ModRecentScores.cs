@@ -163,15 +163,16 @@ namespace den0bot.Modules.Osu
 
 		private async Task<string> GetMapScores(Telegram.Bot.Types.Message message)
 		{
-			List<string> msgSplit = message.Text.Split(' ').ToList();
-			msgSplit.RemoveAt(0);
+			// beatmap id regex can parse link as part of a complex message so we dont need to clean it up beforehand
+			var mapLink = message.Text;
+			if (message.ReplyToMessage != null && message.ReplyToMessage.Text.Contains(".ppy.sh"))
+				mapLink = message.ReplyToMessage.Text; // replies to beatmaps should return scores for these beatmaps
 
 			uint mapId = 0;
 			var mods = LegacyMods.None;
-			if (msgSplit.Count > 0)
+			if (!string.IsNullOrEmpty(mapLink))
 			{
-				mapId = IBeatmap.GetIdFromLink(msgSplit.First(), out var isSet, out mods);
-
+				mapId = IBeatmap.GetIdFromLink(mapLink, out var isSet, out mods);
 				if (isSet)
 				{
 					BeatmapSet set = await WebApiHandler.MakeApiRequest(new WebAPI.Requests.V2.GetBeatmapSet(mapId));
@@ -182,9 +183,10 @@ namespace den0bot.Modules.Osu
 			else
 			{
 				mapId = ChatBeatmapCache.GetMap(message.Chat.Id);
-				if (mapId == 0)
-					return Localization.Get("generic_fail", message.Chat.Id);
 			}
+
+			if (mapId == 0)
+				return Localization.Get("generic_fail", message.Chat.Id);
 
 			using (var db = new DatabaseOsu())
 			{
@@ -192,19 +194,20 @@ namespace den0bot.Modules.Osu
 				if (playerId == null || playerId == 0)
 					return Localization.Get("recentscores_unknown_player", message.Chat.Id);
 
-				List<Types.V1.Score> lastScores = await WebApiHandler.MakeApiRequest(new GetScores(playerId.ToString(), mapId, mods, score_amount));
+				List<Types.V1.Score> mapScores = await WebApiHandler.MakeApiRequest(new GetScores(playerId.ToString(), mapId, mods, score_amount));
 
-				if (lastScores != null)
+				if (mapScores != null)
 				{
-					if (lastScores.Count == 0)
+					if (mapScores.Count == 0)
 						return Localization.Get("recentscores_no_scores", message.Chat.Id);
 
 					ChatBeatmapCache.StoreMap(message.Chat.Id, mapId);
 
+					var beatmap = await WebApiHandler.MakeApiRequest(new WebAPI.Requests.V2.GetBeatmap(mapId));
 					string result = string.Empty;
-					foreach (var score in lastScores)
+					foreach (var score in mapScores)
 					{
-						score.Beatmap = await WebApiHandler.MakeApiRequest(new WebAPI.Requests.V2.GetBeatmap(mapId));
+						score.Beatmap = beatmap;
 						result += FormatScore(score, false);
 					}
 
@@ -236,7 +239,7 @@ namespace den0bot.Modules.Osu
 						if (!uint.TryParse(player, out var osuID))
 						{
 							// if they used /u/cookiezi instead of /u/124493 we ask osu API for an ID
-							User info = await WebApiHandler.MakeApiRequest(new WebAPI.Requests.V2.GetUser(player));
+							Types.V2.User info = await WebApiHandler.MakeApiRequest(new WebAPI.Requests.V2.GetUser(player));
 
 							if (info == null)
 								return Localization.Get("recentscores_player_add_failed", message.Chat.Id);
@@ -331,7 +334,7 @@ namespace den0bot.Modules.Osu
 
 				if (score.ComboBasedMissCount(beatmap.MaxCombo.Value, beatmap.Sliders.Value) > 0)
 				{
-					// Add possible pp value if they missed or dropped more than 2 combo
+					// Add possible pp value if they missed
 					var fcScore = new Score
 					{
 						Statistics = new Score.ScoreStatistics
@@ -366,7 +369,5 @@ namespace den0bot.Modules.Osu
 
 			return result;
 		}
-
-
 	}
 }

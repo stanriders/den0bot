@@ -42,6 +42,17 @@ namespace den0bot.Modules
 				},
 				new Command()
 				{
+					Name = "restartnow",
+					IsOwnerOnly = true,
+					Action = (msg) =>
+					{
+						// a hack to safely restart bot without using service manager
+						Bot.Shutdown(true);
+						return "Перезагружаюсь...";
+					}
+				},
+				new Command()
+				{
 					Name = "setlocale",
 					IsAdminOnly = true,
 					ActionAsync = async (message) =>

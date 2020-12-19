@@ -13,7 +13,7 @@ using Telegram.Bot.Types.Enums;
 
 namespace den0bot.Modules
 {
-	internal class ModShmalala : IModule, IReceiveAllMessages
+	internal class ModShmalala : IModule, IReceiveAllMessages, IReceiveShutdown
 	{
 		// Based on https://github.com/IrcDotNet/IrcDotNet/tree/master/samples/IrcDotNet.Samples.MarkovTextBot
 		private class MarkovChain
@@ -327,6 +327,11 @@ namespace den0bot.Modules
 						markovChain.SaveToFile();
 				}
 			}
+		}
+
+		public void Shutdown()
+		{
+			markovChain.SaveToFile();
 		}
 	}
 }
