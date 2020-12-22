@@ -6,7 +6,6 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
-using System.Threading.Tasks;
 using Telegram.Bot.Args;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
@@ -21,16 +20,6 @@ namespace den0bot
 		private readonly List<IModule> modules = new List<IModule>();
 		private readonly string module_path = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + Path.DirectorySeparatorChar + "Modules";
 		public const char command_trigger = '/';
-
-		private static bool IsOwner(string username) => (username == Config.Params.OwnerUsername);
-		private static async Task<bool> IsAdmin(long chatID, string username)
-		{
-			if (IsOwner(username))
-				return true;
-
-			var admins = await API.GetAdmins(chatID);
-			return admins.FirstOrDefault(x => x.User.Username == username && (x.CanPromoteMembers ?? true)) != null;
-		}
 
 		private static bool shouldShutdown;
 		private static bool shouldCrash;
@@ -180,69 +169,28 @@ namespace den0bot
 				}
 			}
 
-			ParseMode parseMode = ParseMode.Default;
-			int replyID = 0;
-
-			string result = string.Empty;
-			foreach (IModule m in modules)
+			foreach (IModule module in modules)
 			{
 				if (msg.Type == MessageType.Photo)
 					msg.Text = msg.Caption; // for consistency
 
-				if (m is IReceiveAllMessages messages)
+				if (module is IReceiveAllMessages messages)
 				{
-					if (!(msg.Text != null && msg.Text[0] == command_trigger))
+					if (!(msg.Text != null && msg?.Text[0] == command_trigger))
 					{
 						await messages.ReceiveMessage(msg);
 					}
 				}
 
-				var command = m.GetCommand(msg.Text);
-				if (command != null)
+				if (await module.RunCommands(msg))
 				{
-					if ((command.IsOwnerOnly && !IsOwner(msg.From.Username)) ||
-					    (command.IsAdminOnly && !await IsAdmin(msg.Chat.Id, msg.From.Username)))
-					{
-						// ignore admin commands from non-admins
-						result = Localization.Get($"annoy_{RNG.NextNoMemory(1, 10)}", senderChatId);
-						break;
-					}
-
-					// fire command's action
-					if (command.Action != null)
-						result = command.Action(msg);
-					else if (command.ActionAsync != null)
-						result = await command.ActionAsync(msg);
-					else
-						continue;
-
 					// add command to statistics
 					if (msg.Chat.Type != ChatType.Private)
 						ModAnalytics.AddCommand(msg);
 
-					// send result if we got any
-					if (!string.IsNullOrEmpty(result))
-					{
-						parseMode = command.ParseMode;
-						if (command.Reply)
-							replyID = msg.MessageId;
-
-						if (command.ActionResult != null)
-						{
-							var sentMessage = await API.SendMessage(result, senderChatId, parseMode, replyID);
-							if (sentMessage != null)
-							{
-								// call action that receives sent message
-								command.ActionResult(sentMessage);
-								return;
-							}
-						}
-						break;
-					}
+					break;
 				}
 			}
-
-			await API.SendMessage(result, senderChatId, parseMode, replyID);
 		}
 
 		private async void ProcessCallback(object sender, CallbackQueryEventArgs callbackEventArgs)

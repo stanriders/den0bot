@@ -164,15 +164,17 @@ namespace den0bot.Modules.Osu
 		private async Task<string> GetMapScores(Telegram.Bot.Types.Message message)
 		{
 			// beatmap id regex can parse link as part of a complex message so we dont need to clean it up beforehand
-			var mapLink = message.Text;
+			var msgText = message.Text;
 			if (message.ReplyToMessage != null && message.ReplyToMessage.Text.Contains(".ppy.sh"))
-				mapLink = message.ReplyToMessage.Text; // replies to beatmaps should return scores for these beatmaps
+				msgText = message.ReplyToMessage.Text; // replies to beatmaps should return scores for these beatmaps
+
+			var msgSplit = msgText.Split(' ').ToList();
 
 			uint mapId = 0;
 			var mods = LegacyMods.None;
-			if (!string.IsNullOrEmpty(mapLink))
+			if (msgSplit.Count > 1)
 			{
-				mapId = IBeatmap.GetIdFromLink(mapLink, out var isSet, out mods);
+				mapId = IBeatmap.GetIdFromLink(msgText, out var isSet, out mods);
 				if (isSet)
 				{
 					BeatmapSet set = await WebApiHandler.MakeApiRequest(new WebAPI.Requests.V2.GetBeatmapSet(mapId));

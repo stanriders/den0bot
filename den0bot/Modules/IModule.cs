@@ -1,7 +1,9 @@
-﻿// den0bot (c) StanR 2019 - MIT License
+﻿// den0bot (c) StanR 2020 - MIT License
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
+using den0bot.Util;
 using Newtonsoft.Json;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
@@ -49,6 +51,62 @@ namespace den0bot.Modules
 			/// Function to call AFTER action is complete and sent
 			/// </summary>
 			public Action<Message> ActionResult { get; set; }
+
+			private async Task<bool> IsAllowedAsync(Message message)
+			{
+				var from = message.From.Username;
+
+				// owner can run any commands
+				if (from == Config.Params.OwnerUsername)
+					return true;
+
+				if (IsOwnerOnly)
+					return from == Config.Params.OwnerUsername;
+
+				if (IsAdminOnly)
+					return (await API.GetAdmins(message.Chat.Id)).Any(x => x.User.Username == from && (x.CanPromoteMembers ?? true));
+
+				return true;
+			}
+
+			public async Task<bool> Run(Message message)
+			{
+				var senderChatId = message.Chat.Id;
+
+				if (!await IsAllowedAsync(message))
+				{
+					// ignore admin commands from non-admins
+					await API.SendMessage(Localization.Get($"annoy_{RNG.NextNoMemory(1, 10)}", senderChatId), senderChatId);
+					return true;
+				}
+
+				var result = string.Empty;
+
+				// fire command's action
+				if (ActionAsync != null)
+					result = await ActionAsync(message);
+				else if(Action != null)
+					result = Action(message);
+
+				// send result if we got any
+				if (!string.IsNullOrEmpty(result))
+				{
+					if (ActionResult != null)
+					{
+						var sentMessage = await API.SendMessage(result, senderChatId, ParseMode, Reply ? message.MessageId : 0);
+						if (sentMessage != null)
+						{
+							// call action that receives sent message
+							ActionResult(sentMessage);
+							return true;
+						}
+					}
+
+					await API.SendMessage(result, senderChatId, ParseMode, Reply ? message.MessageId : 0);
+					return true;
+				}
+				return false;
+			}
 		}
 
 		private readonly string configFile;
@@ -72,7 +130,7 @@ namespace den0bot.Modules
 			commands.AddRange(coll);
 		}
 
-		public Command GetCommand(string name)
+		protected Command GetCommand(string name)
 		{
 			if (string.IsNullOrEmpty(name) || commands.Count <= 0 || !name.StartsWith(Bot.command_trigger))
 				return null;
@@ -85,6 +143,15 @@ namespace den0bot.Modules
 				name = name.Replace($"@{API.BotUser.Username}", "");
 
 			return commands.Find(x => x.ContainsName(name.ToLowerInvariant()));
+		}
+
+		public async Task<bool> RunCommands(Message message)
+		{
+			var command = GetCommand(message.Text);
+			if (command != null)
+				return await command.Run(message);
+
+			return false;
 		}
 
 		public virtual void Think() { }
