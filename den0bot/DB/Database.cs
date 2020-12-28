@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace den0bot.DB
 {
-	public class Database : DbContext
+	public sealed class Database : DbContext
 	{
 		public const string database_path = "./data.db";
 

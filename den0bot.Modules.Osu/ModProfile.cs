@@ -10,14 +10,13 @@ using den0bot.Modules.Osu.Types.V2;
 using den0bot.Util;
 using Newtonsoft.Json;
 using den0bot.Modules.Osu.WebAPI;
-using System.Linq;
 using Microsoft.EntityFrameworkCore;
 
 namespace den0bot.Modules.Osu
 {
 	public class ModProfile : IModule, IReceiveAllMessages
 	{
-		private readonly Regex regex = new Regex(@"(?>https?:\/\/)?(?>osu|old)\.ppy\.sh\/u(?>sers)?\/(\d+|\S+)", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+		private readonly Regex regex = new(@"(?>https?:\/\/)?(?>osu|old)\.ppy\.sh\/u(?>sers)?\/(\d+|\S+)", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 		private readonly int topscores_to_show = 3;
 		public ModProfile()
 		{

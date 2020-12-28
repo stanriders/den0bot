@@ -9,7 +9,7 @@ namespace den0bot.Util
 	{
 		public class ConfigFile
 		{
-			public List<string> Modules { get; } = new List<string>();
+			public List<string> Modules { get; } = new();
 
 			public bool UseEvents { get; set; }
 
@@ -22,24 +22,16 @@ namespace den0bot.Util
 			public string osuClientId { get; set; }
 			public string osuClientSecret { get; set; }
 
-			// https://osu.ppy.sh/p/irc
-			public string osuIRCUsername { get; set; }
-			public string osuIRCPassword { get; set; }
-
-			public string osuLobbyName { get; set; }
-			public string osuLobbyPassword { get; set; }
-
 			// https://console.developers.google.com/apis/credentials
 			public string GoogleAPIToken { get; set; }
+			public string YoutubeChannelId { get; set; }
 
 			// http://thecatapi.com/api-key-registration.html
 			public string CatToken { get; set; }
-
-			public string YandexTranslateToken { get; set; }
 		}
 
 		private const string config_file = "./config.json";
-		public static ConfigFile Params { get; private set; } = new ConfigFile();
+		public static ConfigFile Params { get; } = new();
 
 		static Config()
 		{

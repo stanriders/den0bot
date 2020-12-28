@@ -11,7 +11,7 @@ namespace den0bot.Util
 {
 	public static class Web
 	{
-		private static readonly HttpClient client = new HttpClient();
+		private static readonly HttpClient client = new();
 
 		public static async Task<string> DownloadString(string address) => await client.GetStringAsync(address);
 
@@ -30,7 +30,7 @@ namespace den0bot.Util
 
 		public static async Task<string> DownloadString(string address, string bearer)
 		{
-			var request = new HttpRequestMessage()
+			var request = new HttpRequestMessage
 			{
 				RequestUri = new Uri(address),
 				Method = HttpMethod.Get,
@@ -46,7 +46,7 @@ namespace den0bot.Util
 
 			if (response.StatusCode == HttpStatusCode.Found || response.StatusCode == HttpStatusCode.Unauthorized)
 			{
-				request = new HttpRequestMessage()
+				request = new HttpRequestMessage
 				{
 					RequestUri = new Uri(response.RequestMessage.RequestUri.ToString()),
 					Method = HttpMethod.Get,

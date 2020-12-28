@@ -1,4 +1,4 @@
-﻿// den0bot (c) StanR 2019 - MIT License
+﻿// den0bot (c) StanR 2020 - MIT License
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -10,7 +10,7 @@ namespace den0bot.Util
 	public static class Localization
 	{
 		public static List<string> GetAvailableLocales() => locales.Keys.ToList();
-		private static readonly Dictionary<string, Dictionary<string, string>> locales = new Dictionary<string, Dictionary<string, string>>();
+		private static readonly Dictionary<string, Dictionary<string, string>> locales = new();
 
 		static Localization()
 		{

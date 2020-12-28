@@ -17,7 +17,7 @@ namespace den0bot
 {
 	public class Bot
 	{
-		private readonly List<IModule> modules = new List<IModule>();
+		private readonly List<IModule> modules = new();
 		private readonly string module_path = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + Path.DirectorySeparatorChar + "Modules";
 		public const char command_trigger = '/';
 
@@ -28,7 +28,7 @@ namespace den0bot
 		public static void Main()
 		{
 			Thread.CurrentThread.CurrentCulture = new CultureInfo("ru-RU", false);
-			AppDomain.CurrentDomain.UnhandledException += (s, e) => { Log.Error((e.ExceptionObject as Exception).ToString()); };
+			AppDomain.CurrentDomain.UnhandledException += (s, e) => { Log.Error((e.ExceptionObject as Exception)?.ToString()); };
 			var bot = new Bot();
 			bot.Run();
 		}
@@ -54,7 +54,7 @@ namespace den0bot
 						// if its not local
 						foreach (var ass in allAssemblies)
 						{
-							// we only allow subclases of IModule and only if they're in the config
+							// we only allow subclasses of IModule and only if they're in the config
 							type = ass.GetTypes().FirstOrDefault(t => t.IsPublic && t.IsSubclassOf(typeof(IModule)) && t.Name == moduleName);
 
 							if (type != null)
@@ -100,6 +100,13 @@ namespace den0bot
 				}
 				Thread.Sleep(100);
 			}
+
+			// shutdown
+			foreach (IModule m in modules)
+			{
+				if (m is IReceiveShutdown mShutdown)
+					mShutdown.Shutdown();
+			}
 			API.Disconnect();
 
 			if (shouldCrash)
@@ -123,10 +130,7 @@ namespace den0bot
 				777 => Localization.Get("event_9", chatID),
 				_ => string.Empty,
 			};
-			if (text != string.Empty)
-				return true;
-
-			return false;
+			return text != string.Empty;
 		}
 
 		private async void ProcessMessage(object sender, MessageEventArgs messageEventArgs)

@@ -30,7 +30,7 @@ namespace den0bot.Modules
 						return $"_{msg.From.FirstName}{msg.Text.Substring(3)}_";
 					}
 				},
-				new Command()
+				new Command
 				{
 					Name = "shutdownnow",
 					IsOwnerOnly = true,
@@ -40,7 +40,7 @@ namespace den0bot.Modules
 						return "Выключаюсь...";
 					}
 				},
-				new Command()
+				new Command
 				{
 					Name = "restartnow",
 					IsOwnerOnly = true,
@@ -51,7 +51,7 @@ namespace den0bot.Modules
 						return "Перезагружаюсь...";
 					}
 				},
-				new Command()
+				new Command
 				{
 					Name = "setlocale",
 					IsAdminOnly = true,
@@ -74,7 +74,7 @@ namespace den0bot.Modules
 						}
 					}
 				},
-				new Command()
+				new Command
 				{
 					Name = "setintroduction",
 					IsAdminOnly = true,
@@ -90,7 +90,7 @@ namespace den0bot.Modules
 						return "👌";
 					}
 				},
-				new Command()
+				new Command
 				{
 					Name = "toggleevents",
 					IsOwnerOnly = true,

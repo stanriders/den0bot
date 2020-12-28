@@ -15,7 +15,7 @@ namespace den0bot.Modules.Osu
 {
 	public class ModMaplist : IModule
 	{
-		private readonly List<string[]> maplist = new List<string[]>();
+		private readonly List<string[]> maplist = new();
 		private readonly string spreadsheet = "1AxoXTpNjFnWsFPuSa8rlMbtSnMtkYnKZyzUY_4FTbig";
 
 		private bool isEnabled;
@@ -23,7 +23,7 @@ namespace den0bot.Modules.Osu
 		public ModMaplist()
 		{
 			Start();
-			AddCommand(new Command()
+			AddCommand(new Command
 			{
 				Name = "map",
 				ActionAsync = GetMap

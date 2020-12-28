@@ -11,7 +11,7 @@ using Telegram.Bot.Types.Enums;
 
 namespace den0bot.Modules
 {
-	class ModThread : IModule
+	internal class ModThread : IModule
 	{
 		private class Board
 		{
@@ -39,7 +39,7 @@ namespace den0bot.Modules
 
 		public ModThread()
 		{
-			AddCommand(new Command()
+			AddCommand(new Command
 			{
 				Name = "thread",
 				ParseMode = ParseMode.Html,

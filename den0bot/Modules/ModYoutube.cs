@@ -8,14 +8,12 @@ using Newtonsoft.Json;
 
 namespace den0bot.Modules
 {
-	// check certain youtube channel and post new highscores to all chats
+	// check a youtube channel and post new videos to all chats
 	internal class ModYoutube : IModule
 	{
 		private DateTime nextCheck;
 		private readonly bool isEnabled = false;
 
-		private readonly string api_key = Config.Params.GoogleAPIToken;
-		private const string channel_id = "UCt1GKXk_zkcBUEwAeXZ43RA";  // circle people again
 		private const double check_interval = 1.0; // minutes
 		private const int default_score_amount = 3;
 
@@ -25,7 +23,7 @@ namespace den0bot.Modules
 
 			AddCommands(new []
 			{
-				new Command()
+				new Command
 				{
 					Name = "disableannouncements",
 					IsAdminOnly = true,
@@ -41,7 +39,7 @@ namespace den0bot.Modules
 						}
 					}
 				},
-				new Command()
+				new Command
 				{
 					Name = "enableannouncements",
 					IsAdminOnly = true,
@@ -78,9 +76,13 @@ namespace den0bot.Modules
 				}
 			});
 
-			if (string.IsNullOrEmpty(api_key))
+			if (string.IsNullOrEmpty(Config.Params.GoogleAPIToken))
 			{
 				Log.Error("API Key is not defined!");
+			}
+			else if (string.IsNullOrEmpty(Config.Params.YoutubeChannelId))
+			{
+				Log.Error("Youtube channel id is not defined!");
 			}
 			else
 			{
@@ -106,19 +108,21 @@ namespace den0bot.Modules
 
 				string request = string.Format("https://www.googleapis.com/youtube/v3/activities?part=snippet,contentDetails" +
 												"&key={0}" + "&fields={1}" + "&publishedAfter={2}" + "&channelId={3}",
-												api_key,
+												Config.Params.GoogleAPIToken,
 												Uri.EscapeDataString("items(contentDetails/upload,snippet/title)"),
 												Uri.EscapeDataString(lastChecked.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss.sZ")),
-												channel_id);
+												Config.Params.YoutubeChannelId);
 
 				var data = await Web.DownloadString(request);
-
-				dynamic items = JsonConvert.DeserializeObject(data);
-
-				foreach (var vid in items.items)
+				if (!string.IsNullOrEmpty(data))
 				{
-					await API.SendMessageToAllChats(
-						$"❗️ {vid.snippet.title}{Environment.NewLine}http://youtu.be/{vid.contentDetails.upload.videoId}");
+					dynamic items = JsonConvert.DeserializeObject(data);
+
+					foreach (var vid in items.items)
+					{
+						await API.SendMessageToAllChats(
+							$"❗️ {vid.snippet.title}{Environment.NewLine}http://youtu.be/{vid.contentDetails.upload.videoId}");
+					}
 				}
 			}
 			catch (Exception ex) { Log.Error(ex.InnerMessageIfAny()); }
@@ -135,18 +139,20 @@ namespace den0bot.Modules
 				string request = string.Format("https://www.googleapis.com/youtube/v3/activities?part=snippet,contentDetails" +
 												"&maxResults={0}" + "&key={1}" + "&fields={2}" + "&channelId={3}",
 												amount,
-												api_key,
+												Config.Params.GoogleAPIToken,
 												Uri.EscapeDataString("items(contentDetails/upload,snippet/title)"),
-												channel_id);
+												Config.Params.YoutubeChannelId);
 
 				var data = await Web.DownloadString(request);
-
-				dynamic items = JsonConvert.DeserializeObject(data);
-
-				for (int i = 0; i < 3; i++)
+				if (!string.IsNullOrEmpty(data))
 				{
-					var vid = items.items[i];
-					result += $"{vid.snippet.title}\nhttp://youtu.be/{vid.contentDetails.upload.videoId}";
+					dynamic items = JsonConvert.DeserializeObject(data);
+
+					for (int i = 0; i < 3; i++)
+					{
+						var vid = items.items[i];
+						result += $"{vid.snippet.title}\nhttp://youtu.be/{vid.contentDetails.upload.videoId}";
+					}
 				}
 			}
 			catch (Exception ex) { Log.Error(ex.InnerMessageIfAny()); }

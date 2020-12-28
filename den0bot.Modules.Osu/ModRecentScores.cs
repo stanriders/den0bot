@@ -17,7 +17,7 @@ namespace den0bot.Modules.Osu
 {
 	public class ModRecentScores : IModule
 	{
-		private readonly Regex profileRegex = new Regex(@"(?>https?:\/\/)?(?>osu|old)\.ppy\.sh\/u(?>sers)?\/(\d+|\S+)",
+		private readonly Regex profileRegex = new(@"(?>https?:\/\/)?(?>osu|old)\.ppy\.sh\/u(?>sers)?\/(\d+|\S+)",
 			RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
 		private const int recent_amount = 5;

@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿// den0bot (c) StanR 2020 - MIT License
+using System.Threading.Tasks;
 using Telegram.Bot.Types;
 
 namespace den0bot.Modules.Example

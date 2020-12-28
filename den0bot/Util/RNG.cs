@@ -1,4 +1,4 @@
-﻿// den0bot (c) StanR 2018 - MIT License
+﻿// den0bot (c) StanR 2020 - MIT License
 using System;
 using System.Numerics;
 
@@ -6,7 +6,7 @@ namespace den0bot.Util
 {
 	public static class RNG
 	{
-		private static Random rng = new Random();
+		private static Random rng = new();
 		private static int previousNum = 0;
 		private static BigInteger previousBigNum = 0;
 
@@ -43,7 +43,7 @@ namespace den0bot.Util
 			do
 			{
 				rng.NextBytes(buffer);
-				buffer[buffer.Length - 1] &= 0x7F; // force sign bit to positive
+				buffer[^1] &= 0x7F; // force sign bit to positive
 				result = new BigInteger(buffer);
 			} while (result >= max || result == 0);
 

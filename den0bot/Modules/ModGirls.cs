@@ -18,27 +18,27 @@ namespace den0bot.Modules
 	{
 		private class SentGirl
 		{
-			public int ID { get; set; }
+			public int ID { get; init; }
 			public int Rating { get; set; }
-			public List<int> Voters { get; set; }
-			public DateTime PostTime { get; set; }
-			public int MessageID { get; set; }
-			public int CommandMessageID { get; set; }
-			public bool Seasonal { get; set; }
-			public int Season { get; set; }
+			public List<int> Voters { get; init; }
+			public DateTime PostTime { get; init; }
+			public int MessageID { get; init; }
+			public int CommandMessageID { get; init; }
+			public bool Seasonal { get; init; }
+			public int Season { get; init; }
 			public int SeasonalRating { get; set; }
 		}
 
 		private readonly MemoryCache sentGirlsCache = MemoryCache.Default;
 		private const int days_to_keep_messages = 1; // how long do we keep girls in cache
 
-		private readonly InlineKeyboardMarkup buttons = new InlineKeyboardMarkup(
+		private readonly InlineKeyboardMarkup buttons = new(
 			new [] { new InlineKeyboardButton {Text = "+", CallbackData = "+" },
 					 new InlineKeyboardButton {Text = "-", CallbackData = "-" },
 			}
 		);
 
-		private readonly Dictionary<long, Queue<SentGirl>> antispamBuffer = new Dictionary<long, Queue<SentGirl>>(); // chatID, queue
+		private readonly Dictionary<long, Queue<SentGirl>> antispamBuffer = new(); // chatID, queue
 		private const int antispam_cooldown = 15; // seconds
 
 		private const int top_girls_amount = 9;
@@ -366,7 +366,7 @@ namespace den0bot.Modules
 				{
 					var girl = sentGirlsCache.Remove(message.ReplyToMessage.MessageId.ToString()) as SentGirl;
 
-					db.Girls.Remove(db.Girls.FirstOrDefault(x => x.Id == girl.ID));
+					db.Girls.Remove(db.Girls.First(x => x.Id == girl.ID));
 					await db.SaveChangesAsync();
 
 					await API.RemoveMessage(message.Chat.Id, message.ReplyToMessage.MessageId);
@@ -431,7 +431,7 @@ namespace den0bot.Modules
 					}
 				}
 
-				if (!girls.Any(x => !x.Used))
+				if (girls.All(x => x.Used))
 				{
 					foreach (Girl usedGirl in girls)
 					{

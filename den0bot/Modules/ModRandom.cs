@@ -25,7 +25,7 @@ namespace den0bot.Modules
 					Reply = true,
 					Action = Roll
 				},
-				new Command()
+				new Command
 				{
 					Name = "addmeme",
 					IsAdminOnly = true,
@@ -93,7 +93,7 @@ namespace den0bot.Modules
 					return Localization.Get("random_no_memes", sender.Id);
 
 				var memes = await db.Memes.ToArrayAsync();
-				if (!memes.Any(x => !x.Used))
+				if (memes.All(x => x.Used))
 				{
 					foreach (var usedMeme in memes)
 					{

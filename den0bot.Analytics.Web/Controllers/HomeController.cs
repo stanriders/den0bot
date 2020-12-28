@@ -1,4 +1,5 @@
-﻿using System;
+﻿// den0bot (c) StanR 2020 - MIT License
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -19,7 +20,7 @@ namespace den0bot.Analytics.Web.Controllers
 	{
 		private readonly TelegramBotClient telegramClient;
 
-		private readonly DateTime minimal_date = new DateTime(2019, 10, 2);
+		private readonly DateTime minimal_date = new(2019, 10, 2);
 		public HomeController(TelegramBotClient _telegramClient)
 		{
 			telegramClient = _telegramClient;

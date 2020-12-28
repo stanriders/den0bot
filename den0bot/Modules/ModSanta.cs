@@ -15,7 +15,7 @@ namespace den0bot.Modules
 	// 2018, 2019, 2020 secret santa event
 	internal class ModSanta : IModule
 	{
-		public readonly List<string> senders = new List<string>()
+		public readonly List<string> senders = new()
 		{
 			"StanRiders",
 			"Nufirdy",
@@ -116,10 +116,11 @@ namespace den0bot.Modules
 					var receiverID = DatabaseCache.GetUserID(db.Santas.AsNoTracking().FirstOrDefault(x => x.Sender == msg.From.Username)?.Receiver);
 					if (receiverID != 0)
 					{
-						await API.SendMessage($"Твой санта не может придумать что тебе подарить. Напиши /santagift <подарок> и я передам ему твоё пожелание!", receiverID);
-
-						return "Ждем ответа...";
+						if(await API.SendMessage($"Твой санта не может придумать что тебе подарить. Напиши /santagift <подарок> и я передам ему твоё пожелание!", receiverID) != null)
+							return "Ждем ответа...";
 					}
+
+					return "Чет не получилось";
 				}
 			}
 			return string.Empty;
@@ -138,10 +139,13 @@ namespace den0bot.Modules
 						if (string.IsNullOrEmpty(gift) || string.IsNullOrWhiteSpace(gift))
 							return "Ты пожелание-то напиши";
 						else
-							await API.SendMessage($"Тебе передали пожелание: \"{gift}\"", senderID);
-
-						return "Отправил!";
+						{
+							if (await API.SendMessage($"Тебе передали пожелание: \"{gift}\"", senderID) != null)
+								return "Отправил!";
+						}
 					}
+					
+					return "Чет не получилось";
 				}
 			}
 			return string.Empty;

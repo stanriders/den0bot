@@ -1,4 +1,4 @@
-﻿
+﻿// den0bot (c) StanR 2020 - MIT License
 using System;
 using System.IO;
 using System.Runtime.Caching;
@@ -10,7 +10,7 @@ namespace den0bot.Analytics.Web.Caches
 {
 	public static class TelegramCache
 	{
-		private static readonly MemoryCache cache = new MemoryCache("tgCache");
+		private static readonly MemoryCache cache = new("tgCache");
 
 		public static async Task<User> GetUser(TelegramBotClient client, long chatId, long userId)
 		{

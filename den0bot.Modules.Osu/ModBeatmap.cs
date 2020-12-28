@@ -24,7 +24,7 @@ namespace den0bot.Modules.Osu
 		private readonly MemoryCache sentMapsCache = MemoryCache.Default;
 		private const int days_to_keep_messages = 1; // how long do we keep maps in cache
 
-		private readonly InlineKeyboardMarkup buttons = new InlineKeyboardMarkup(
+		private readonly InlineKeyboardMarkup buttons = new(
 			new[] {new InlineKeyboardButton {Text = "Preview", CallbackData = "preview"},}
 		);
 

@@ -1,4 +1,4 @@
-﻿
+﻿// den0bot (c) StanR 2020 - MIT License
 namespace den0bot.Analytics.Web.Models
 {
 	public class ChatModel
@@ -21,7 +21,7 @@ namespace den0bot.Analytics.Web.Models
 			public User[] Users { get; set; }
 		}
 
-		public UserTable UsersTable { get; set; } = new UserTable();
+		public UserTable UsersTable { get; set; } = new();
 
 		public long ChatId { get; set; }
 	}

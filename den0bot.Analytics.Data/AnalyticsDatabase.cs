@@ -1,10 +1,10 @@
-﻿// den0bot (c) StanR 2019 - MIT License
+﻿// den0bot (c) StanR 2020 - MIT License
 using den0bot.Analytics.Data.Types;
 using Microsoft.EntityFrameworkCore;
 
 namespace den0bot.Analytics.Data
 {
-	public class AnalyticsDatabase : DbContext
+	public sealed class AnalyticsDatabase : DbContext
 	{
 #if DEBUG
 		private const string connection_string = "Filename=./analytics.db";

@@ -50,7 +50,7 @@ namespace den0bot.DB
 
 		public static async Task AddUser(int id, string username)
 		{
-			if (!Users.Any(x => x.Username == username))
+			if (Users.All(x => x.Username != username))
 			{
 				using (var db = new Database())
 				{
@@ -142,7 +142,7 @@ namespace den0bot.DB
 
 		public static async Task AddChat(long chatID)
 		{
-			if (!Chats.Any(x => x.Id == chatID))
+			if (Chats.All(x => x.Id != chatID))
 			{
 				using (var db = new Database())
 				{

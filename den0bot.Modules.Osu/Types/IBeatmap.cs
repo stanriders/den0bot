@@ -189,7 +189,7 @@ namespace den0bot.Modules.Osu.Types
 			return TimeSpan.FromSeconds(DrainLength);
 		}
 
-		private static readonly Regex linkRegex = new Regex(@"(?>https?:\/\/)?(?>osu|old)\.ppy\.sh\/([b,s]|(?>beatmaps)|(?>beatmapsets))\/(\d+\/?\#osu\/)?(\d+)?\/?(?>[&,?].=\d)?\s?(?>\+(\w+))?", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+		private static readonly Regex linkRegex = new(@"(?>https?:\/\/)?(?>osu|old)\.ppy\.sh\/([b,s]|(?>beatmaps)|(?>beatmapsets))\/(\d+\/?\#osu\/)?(\d+)?\/?(?>[&,?].=\d)?\s?(?>\+(\w+))?", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
 		public static uint GetIdFromLink(string link, out bool isSet, out LegacyMods mods)
 		{
@@ -198,8 +198,7 @@ namespace den0bot.Modules.Osu.Types
 			Match regexMatch = linkRegex.Match(link);
 			if (regexMatch.Groups.Count > 1)
 			{
-				List<Group> regexGroups = regexMatch.Groups.Values.Where(x => (x != null) && (x.Length > 0))
-					.ToList();
+				List<Group> regexGroups = regexMatch.Groups.Values.Where(x => x.Length > 0).ToList();
 
 				bool isNew = regexGroups[1].Value == "beatmapsets"; // are we using new website or not
 				uint beatmapId = 0;

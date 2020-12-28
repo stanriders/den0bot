@@ -14,14 +14,8 @@ namespace den0bot.DB.Types
 		[NotMapped]
 		public DateTime GirlSeasonStartDate 
 		{
-			get
-			{
-				return new DateTime(GirlSeasonStart);
-			}
-			set
-			{
-				GirlSeasonStart = value.Ticks;
-			}
+			get => new(GirlSeasonStart);
+			set => GirlSeasonStart = value.Ticks;
 		}
 	}
 }

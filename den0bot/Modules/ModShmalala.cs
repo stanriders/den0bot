@@ -20,7 +20,7 @@ namespace den0bot.Modules
 		{
 			public class MarkovChainNode : IEquatable<MarkovChainNode>
 			{
-				public List<MarkovChainNode> Links { get; } = new List<MarkovChainNode>();
+				public List<MarkovChainNode> Links { get; } = new();
 				public string Word { get; }
 
 				public MarkovChainNode(string w)
@@ -54,7 +54,7 @@ namespace den0bot.Modules
 				}
 			}
 
-			public List<MarkovChainNode> Nodes { get; } = new List<MarkovChainNode>();
+			public List<MarkovChainNode> Nodes { get; } = new();
 
 			public bool Ready { get; private set; } = false;
 
@@ -177,13 +177,13 @@ namespace den0bot.Modules
 
 		private readonly char[] sentenceSeparators = { '.', '.', '.', '!', '!', '?', '(', ')', '\n' };
 		private readonly Regex cleanWordRegex = 
-			new Regex(@"[()\[\]{}'""`~\\\/\-*\d]|(http|ftp|https):\/\/([\w_-]+(?:(?:\.[\w_-]+)+))([\w.,@?^=%&:\/~+#-]*[\w@?^=%&\/~+#-])?", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+			new(@"[()\[\]{}'""`~\\\/\-*\d]|(http|ftp|https):\/\/([\w_-]+(?:(?:\.[\w_-]+)+))([\w.,@?^=%&:\/~+#-]*[\w@?^=%&\/~+#-])?", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
 		private int numTrainingMessagesReceived;
 
 		private const int min_nodes = 100;
 
-		private MarkovChain markovChain = new MarkovChain();
+		private MarkovChain markovChain = new();
 
 		public ModShmalala()
 		{

@@ -1,4 +1,4 @@
-﻿// den0bot (c) StanR 2018 - MIT License
+﻿// den0bot (c) StanR 2020 - MIT License
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,19 +16,19 @@ namespace den0bot.Modules.Osu
 	{
 		private class FollowedMatch
 		{
-			public ulong MatchID { get; set; }
-			public long ChatID { get; set; }
+			public ulong MatchID { get; init; }
+			public long ChatID { get; init; }
 			public uint CurrentGameID { get; set; }
 		}
 
-		private readonly List<FollowedMatch> followList = new List<FollowedMatch>();
+		private readonly List<FollowedMatch> followList = new();
 		private DateTime nextCheck = DateTime.Now;
 
 		private int currentMatch = 0;
 		private bool updating = false;
 
-		private readonly Regex matchLinkRegex = new Regex(@"(?>https?:\/\/)?osu\.ppy\.sh\/community\/matches\/(\d+)", RegexOptions.Compiled | RegexOptions.IgnoreCase);
-		private readonly Regex matchNameRegex = new Regex(@".+: ?\((.+)\) ?vs ?\((.+)\)", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+		private readonly Regex matchLinkRegex = new(@"(?>https?:\/\/)?osu\.ppy\.sh\/community\/matches\/(\d+)", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+		private readonly Regex matchNameRegex = new(@".+: ?\((.+)\) ?vs ?\((.+)\)", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
 		private readonly int update_time = 5; //seconds
 
@@ -36,7 +36,7 @@ namespace den0bot.Modules.Osu
 		{
 			AddCommands(new [] 
 			{
-				new Command()
+				new Command
 				{
 					Name = "followmatch",
 					Action = StartFollowing
@@ -51,7 +51,7 @@ namespace den0bot.Modules.Osu
 				List<Group> regexGroups = regexMatch.Groups.OfType<Group>().Where(x => x.Length > 0).ToList();
 
 				ulong matchID = ulong.Parse(regexGroups[1].Value);
-				var match = new FollowedMatch()
+				var match = new FollowedMatch
 				{
 					MatchID = matchID,
 					ChatID = msg.Chat.Id,

@@ -14,43 +14,43 @@ namespace den0bot.Modules
 	{
 		public class Command
 		{
-			public List<string> Names { get; } = new List<string>();
+			public List<string> Names { get; } = new();
 			public string Name
 			{
 				set => Names.Add(value);
 			}
 			public bool ContainsName(string name)
 			{
-				return Names.Contains(name.Substring(1));
+				return Names.Contains(name[1..]);
 			}
 
 			/// <summary>
 			/// <see cref="Telegram.Bot.Types.Enums.ParseMode" />
 			/// </summary>
-			public ParseMode ParseMode { get; set; }
+			public ParseMode ParseMode { get; init; }
 
 			/// <summary>
 			/// Determines if command can only be used by chat admins
 			/// </summary>
-			public bool IsAdminOnly { get; set; }
+			public bool IsAdminOnly { get; init; }
 
 			/// <summary>
 			/// Determines if command can only be used by bot owner
 			/// </summary>
-			public bool IsOwnerOnly { get; set; }
+			public bool IsOwnerOnly { get; init; }
 
 			/// <summary>
 			/// Determines if command result should be a reply to the command message
 			/// </summary>
-			public bool Reply { get; set; }
+			public bool Reply { get; init; }
 
-			public Func<Message, Task<string>> ActionAsync { get; set; }
-			public Func<Message, string> Action { get; set; }
+			public Func<Message, Task<string>> ActionAsync { get; init; }
+			public Func<Message, string> Action { get; init; }
 
 			/// <summary>
 			/// Function to call AFTER action is complete and sent
 			/// </summary>
-			public Action<Message> ActionResult { get; set; }
+			public Action<Message> ActionResult { get; init; }
 
 			private async Task<bool> IsAllowedAsync(Message message)
 			{
@@ -110,9 +110,9 @@ namespace den0bot.Modules
 		}
 
 		private readonly string configFile;
-		private Dictionary<string, string> config = new Dictionary<string, string>();
+		private Dictionary<string, string> config = new();
 
-		private readonly List<Command> commands = new List<Command>();
+		private readonly List<Command> commands = new();
 
 		protected IModule()
 		{

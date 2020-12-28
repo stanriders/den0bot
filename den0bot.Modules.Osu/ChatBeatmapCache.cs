@@ -1,10 +1,11 @@
-﻿using System.Collections.Generic;
+﻿// den0bot (c) StanR 2020 - MIT License
+using System.Collections.Generic;
 
 namespace den0bot.Modules.Osu
 {
 	public static class ChatBeatmapCache
 	{
-		private static Dictionary<long, uint> lastMapCache = new Dictionary<long, uint>();
+		private static Dictionary<long, uint> lastMapCache = new();
 
 		public static uint GetMap(long chatId)
 		{

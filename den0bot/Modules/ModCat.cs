@@ -1,4 +1,4 @@
-﻿// den0bot (c) StanR 2019 - MIT License
+﻿// den0bot (c) StanR 2020 - MIT License
 using System;
 using System.Linq;
 using Telegram.Bot.Types;
@@ -13,7 +13,7 @@ namespace den0bot.Modules
 	{
 		private readonly string api_link = "https://api.thecatapi.com/v1/images/search?size=med&type=jpg,png&api_key=" + Config.Params.CatToken;
 
-		private readonly Dictionary<long, DateTime> nextPost = new Dictionary<long, DateTime>(); // chatID, time
+		private readonly Dictionary<long, DateTime> nextPost = new(); // chatID, time
 		private const int cooldown = 5; // minutes
 
 		public async Task ReceiveMessage(Message message)
