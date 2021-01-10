@@ -1,4 +1,4 @@
-﻿// den0bot (c) StanR 2020 - MIT License
+﻿// den0bot (c) StanR 2021 - MIT License
 namespace den0bot.Analytics.Web.Models
 {
 	public class ChatModel

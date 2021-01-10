@@ -1,4 +1,4 @@
-﻿// den0bot (c) StanR 2020 - MIT License
+﻿// den0bot (c) StanR 2021 - MIT License
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -309,7 +309,7 @@ namespace den0bot.Modules.Osu
 		{
 			string mods = string.Empty;
 			if (score.LegacyMods != LegacyMods.None)
-				mods = $" +{score.LegacyMods.ToString().Replace(",", string.Empty).Replace(" ", string.Empty)}";
+				mods = $" +{score.LegacyMods?.ReadableMods()}";
 
 			string date = score.Date.ToShortDateString();
 			if (useAgo)
