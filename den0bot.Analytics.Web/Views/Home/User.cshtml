@@ -1,5 +1,5 @@
 ﻿@using System.Globalization
-@model den0bot.Analytics.Web.Models.ChatModel
+@model den0bot.Analytics.Web.Models.UserModel
 
 @section Styles
 {
@@ -11,26 +11,21 @@
 <h1><img src="@ViewData["Image"]" width="64px" /> @ViewData["Title"]</h1>
 <table class="table table-bordered table-striped table-sm" data-toggle="bootstrap-table" id="maintable">
 	<tbody>
-		@foreach (var user in Model.UsersTable.Users)
+		@foreach (var chat in Model.ChatsTable.Chats)
 		{
-		<tr>
-			<td><a href="/user/@user.Id" class="text-body"><img src="@user.Avatar" width="24px" class="border border-secondary rounded-circle" /> @user.Name</a></td>
-			<td>@user.Messages</td>
-			<td>@user.Commands</td>
-			<td>@user.AverageLength.ToString("F1")</td>
-			<td>@user.Stickers</td>
-			<td>@user.GirlsRequested</td>
-			<td>@user.GirlsAdded</td>
-			<td>@user.LastMessageTime.ToString(CultureInfo.InvariantCulture)</td>
-		</tr>
+			<tr>
+				<td><a href="/chat/@chat.Id" class="text-body"><img src="@chat.Avatar" width="24px" class="border border-secondary rounded-circle" /> @chat.Name</a></td>
+				<td>@chat.Messages</td>
+				<td>@chat.LastMessageTime.ToString(CultureInfo.InvariantCulture)</td>
+			</tr>
 		}
 	</tbody>
 </table>
-<hr/>
-<form class="form-row align-items-right" method="get" data-ajax="true" data-ajax-url="/TimesChartChat/@Model.ChatId" data-ajax-update="#time-chart" data-ajax-method="get" data-ajax-loading="#spinner" data-ajax-complete="createChartchart">
+<hr />
+<form class="form-row align-items-right" method="get" data-ajax="true" data-ajax-url="/TimesChartUser/@Model.UserId" data-ajax-update="#time-chart" data-ajax-method="get" data-ajax-loading="#spinner" data-ajax-complete="createChartchart">
 	<div class="col-auto"><input type="text" id="startDatePicker" name="startTime" class="form-control" placeholder="Start date" /></div>
 	<div class="col-auto"><input type="text" id="endDatePicker" name="endTime" class="form-control" placeholder="End date" /></div>
-	<input type="submit" class="btn btn-secondary" title="Update"/>
+	<input type="submit" class="btn btn-secondary" title="Update" />
 	<span id="spinner" class="col"><i class="fa fa-spinner fa-spin"></i></span>
 </form>
 
@@ -44,9 +39,9 @@
 	<script src="https://unpkg.com/bootstrap-table@1.15.5/dist/bootstrap-table.min.js"></script>
 	<script>
 		$(function() {
-
+			
 			$.ajax({
-				url: '/TimesChartChat/@Model.ChatId',
+				url: '/TimesChartUser/@Model.UserId',
 				dataType: 'html',
 				success: function(data) {
 					$('#time-chart').html(data);
@@ -71,7 +66,7 @@
 				todayHighlight: true,
 				weekStart: 1
 			});
-
+			s
 			$('#maintable').bootstrapTable({
 				columns: [
 					[
@@ -85,33 +80,9 @@
 							sortable: true,
 							align: 'center'
 						}, {
-							title: 'Commands',
-							field: 'commands',
-							sortable: true,
-							align: 'center'
-						}, {
-							title: 'Average Length',
-							field: 'length',
-							sortable: true,
-							align: 'center'
-						}, {
-							title: 'Stickers',
-							field: 'stickers',
-							sortable: true,
-							align: 'center'
-						}, {
-							title: 'Girls requested',
-							field: 'girlsreq',
-							sortable: true,
-							align: 'center'
-						}, {
-							title: 'Girls added',
-							field: 'girlsadd',
-							align: 'center',
-							sortable: true
-						}, {
 							title: 'Last message time',
 							field: 'lastmsgtime',
+							sortable: true,
 							align: 'center'
 						}
 					]

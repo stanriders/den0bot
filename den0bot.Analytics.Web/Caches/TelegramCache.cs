@@ -1,4 +1,4 @@
-﻿// den0bot (c) StanR 2020 - MIT License
+﻿// den0bot (c) StanR 2021 - MIT License
 using System;
 using System.IO;
 using System.Runtime.Caching;
@@ -11,13 +11,17 @@ namespace den0bot.Analytics.Web.Caches
 	public static class TelegramCache
 	{
 		private static readonly MemoryCache cache = new("tgCache");
+		private static readonly MemoryCache nullCache = new("nullCache"); // kinda stupid but re-querying api for nonexisting users/chats is taking too much time
 
-		public static async Task<User> GetUser(TelegramBotClient client, long chatId, long userId)
+		public static async Task<User> GetUser(TelegramBotClient client, long? chatId, long userId)
 		{
 			var cacheKey = $"user_{userId.ToString()}";
 
 			if (cache.Contains(cacheKey))
 				return cache[cacheKey] as User;
+
+			if (chatId == null || nullCache.Contains(cacheKey))
+				return null;
 
 			try
 			{
@@ -28,6 +32,7 @@ namespace den0bot.Analytics.Web.Caches
 			catch (Exception e)
 			{
 				Console.WriteLine(e);
+				nullCache.Add(cacheKey, cacheKey, DateTimeOffset.Now.AddHours(1));
 				return null;
 			}
 		}
@@ -39,6 +44,9 @@ namespace den0bot.Analytics.Web.Caches
 			if (cache.Contains(cacheKey))
 				return cache[cacheKey] as Chat;
 
+			if (nullCache.Contains(cacheKey))
+				return null;
+
 			try
 			{
 				var chat = await client.GetChatAsync(chatId);
@@ -48,6 +56,7 @@ namespace den0bot.Analytics.Web.Caches
 			catch (Exception e)
 			{
 				Console.WriteLine(e);
+				nullCache.Add(cacheKey, cacheKey, DateTimeOffset.Now.AddHours(1));
 				return null;
 			}
 		}
@@ -58,6 +67,9 @@ namespace den0bot.Analytics.Web.Caches
 
 			if (cache.Contains(cacheKey))
 				return cache[cacheKey] as string;
+
+			if (nullCache.Contains(cacheKey))
+				return null;
 
 			try
 			{
@@ -74,6 +86,7 @@ namespace den0bot.Analytics.Web.Caches
 			catch (Exception e)
 			{
 				Console.WriteLine(e);
+				nullCache.Add(cacheKey, cacheKey, DateTimeOffset.Now.AddHours(1));
 				return null;
 			}
 		}
@@ -84,6 +97,9 @@ namespace den0bot.Analytics.Web.Caches
 
 			if (cache.Contains(cacheKey))
 				return cache[cacheKey] as string;
+
+			if (nullCache.Contains(cacheKey))
+				return null;
 
 			var avatarLocalPath = $"./wwwroot/img/{userId}.png";
 
@@ -103,12 +119,16 @@ namespace den0bot.Analytics.Web.Caches
 			catch (Exception e)
 			{
 				Console.WriteLine(e);
+				nullCache.Add(cacheKey, cacheKey, DateTimeOffset.Now.AddHours(1));
 				return null;
 			}
 		}
 
 		private static async Task DownloadTelegramFile(TelegramBotClient client, string fileId, string path)
 		{
+			if (string.IsNullOrEmpty(fileId) || string.IsNullOrEmpty(path))
+				return;
+
 			using (var stream = new MemoryStream())
 			{
 				var file = await client.GetFileAsync(fileId);

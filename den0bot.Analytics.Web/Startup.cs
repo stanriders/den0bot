@@ -1,3 +1,4 @@
+// den0bot (c) StanR 2021 - MIT License
 using den0bot.Analytics.Data;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -50,7 +51,7 @@ namespace den0bot.Analytics.Web
 			{
 				endpoints.MapControllerRoute(
 					name: "default",
-					pattern: "{action=Index}/{chatId?}",
+					pattern: "{action=Index}/{id?}",
 					defaults: new { controller = "Home" });
 			});
 		}

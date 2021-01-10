@@ -18,7 +18,7 @@
 		<tr>
 			<td><img src="@chat.Avatar" width="32px" class="border border-secondary rounded-circle" /> @chat.Name</td>
 			<td>@chat.Messages</td>
-			<td>@Html.ActionLink("Details", "Chat", "Home", new {chatId = chat.Id}, new {@class = "btn btn-primary"})</td>
+			<td>@Html.ActionLink("Details", "Chat", "Home", new {id = chat.Id}, new {@class = "btn btn-primary"})</td>
 		</tr>
 	}
 	</tbody>
