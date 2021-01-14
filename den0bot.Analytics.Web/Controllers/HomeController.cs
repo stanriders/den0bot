@@ -88,7 +88,7 @@ namespace den0bot.Analytics.Web.Controllers
 					SUM(CASE WHEN Type = 2 THEN 1 ELSE 0 END) as Stickers,
 					MAX(Timestamp) as LastMessageTimestamp
 					FROM 'Messages' WHERE ChatId = {id} GROUP BY UserId
-					ORDER BY Messages DESC;").ToArrayAsync();
+					ORDER BY Messages DESC").Where(x=> x.Messages > 1).ToArrayAsync();
 
 				foreach (var user in dbUsers)
 				{

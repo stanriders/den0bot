@@ -1,4 +1,4 @@
-﻿// den0bot (c) StanR 2020 - MIT License
+﻿// den0bot (c) StanR 2021 - MIT License
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -17,11 +17,20 @@ namespace den0bot.Modules
 
 		public ModAnalytics()
 		{
-			AddCommand(new Command
+			AddCommands(new[] 
 			{
-				Name = "compot",
-				Action = (msg) => $"https://stats.stanr.info/chat/{msg.Chat.Id}",
-				Reply = true
+				new Command
+				{
+					Name = "compot",
+					Action = (msg) => $"https://stats.stanr.info/chat/{msg.Chat.Id}",
+					Reply = true
+				},
+				new Command
+				{
+					Name = "analyticsflush",
+					ActionAsync = async (msg) => { await Flush(); return "Ok"; },
+					IsOwnerOnly = true
+				}
 			});
 
 			using (var db = new AnalyticsDatabase())

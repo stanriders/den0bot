@@ -1,4 +1,4 @@
-﻿// den0bot (c) StanR 2020 - MIT License
+﻿// den0bot (c) StanR 2021 - MIT License
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -140,6 +140,7 @@ namespace den0bot
 			if (msg == null ||
 				msg.ForwardFrom != null ||
 				msg.ForwardFromChat != null ||
+				msg.LeftChatMember != null ||
 				msg.Date < DateTime.Now.ToUniversalTime().AddSeconds(-15))
 				return;
 
