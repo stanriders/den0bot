@@ -12,7 +12,7 @@
 	<ItemGroup>
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="5.0.1" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
-    <PackageReference Include="OppaiSharp" Version="3.3.0" />
+    <PackageReference Include="OppaiSharp" Version="3.4.0" />
     <PackageReference Include="System.Runtime.Caching" Version="5.0.0" />
     <PackageReference Include="Telegram.Bot" Version="15.7.1" />
     <PackageReference Include="xFFmpeg.NET" Version="3.4.0" />
