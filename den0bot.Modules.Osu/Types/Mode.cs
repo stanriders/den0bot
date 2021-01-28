@@ -1,11 +1,11 @@
-﻿// den0bot (c) StanR 2020 - MIT License
+﻿// den0bot (c) StanR 2021 - MIT License
 namespace den0bot.Modules.Osu.Types
 {
 	public enum Mode
 	{
-		osu,
+		Osu,
 		Taiko,
-		CtB,
-		mania
+		Fruits,
+		Mania
 	}
 }

@@ -174,12 +174,16 @@ namespace den0bot.Modules.Osu
 			var mods = LegacyMods.None;
 			if (msgSplit.Count > 1)
 			{
-				mapId = IBeatmap.GetIdFromLink(msgText, out var isSet, out mods);
-				if (isSet)
+				var data = BeatmapLinkParser.Parse(msgText);
+				if (data != null)
 				{
-					BeatmapSet set = await WebApiHandler.MakeApiRequest(new WebAPI.Requests.V2.GetBeatmapSet(mapId));
-					if (set?.Beatmaps?.Count > 0)
-						mapId = set.Beatmaps.OrderBy(x => x.StarRating).Last().Id;
+					mapId = data.ID;
+					if (data.IsBeatmapset)
+					{
+						BeatmapSet set = await WebApiHandler.MakeApiRequest(new WebAPI.Requests.V2.GetBeatmapSet(data.ID));
+						if (set?.Beatmaps?.Count > 0)
+							mapId = set.Beatmaps.OrderBy(x => x.StarRating).Last().Id;
+					}
 				}
 			}
 			else
@@ -325,39 +329,42 @@ namespace den0bot.Modules.Osu
 			string mapInfo = $"{beatmap.BeatmapSet.Artist} - {beatmap.BeatmapSet.Title} [{score.Beatmap.Version}]".FilterToHTML();
 
 			string pp = string.Empty;
-			try
+			if (beatmap.Mode == Mode.Osu)
 			{
-				// Add pp values
-				double? scorePP = score.Pp;
-				if (scorePP == null)
-					scorePP = Oppai.GetBeatmapPP(score.Beatmap, score);
-
-				string possiblePP = string.Empty;
-
-				if (score.ComboBasedMissCount(beatmap.MaxCombo.Value, beatmap.Sliders.Value) > 0)
+				try
 				{
-					// Add possible pp value if they missed
-					var fcScore = new Score
+					// Add pp values
+					double? scorePP = score.Pp;
+					if (scorePP == null)
+						scorePP = Oppai.GetBeatmapPP(score.Beatmap, score);
+
+					string possiblePP = string.Empty;
+
+					if (score.ComboBasedMissCount(beatmap.MaxCombo.Value, beatmap.Sliders.Value) > 0)
 					{
-						Statistics = new Score.ScoreStatistics
+						// Add possible pp value if they missed
+						var fcScore = new Score
 						{
-							Count300 = (score.Beatmap.ObjectsTotal - score.Count100 - score.Count50) ?? 0,
-							Count100 = score.Count100,
-							Count50 = score.Count50,
-						},
-						Combo = beatmap.MaxCombo ?? 0,
-						LegacyMods = score.LegacyMods
-					};
+							Statistics = new Score.ScoreStatistics
+							{
+								Count300 = (score.Beatmap.ObjectsTotal - score.Count100 - score.Count50) ?? 0,
+								Count100 = score.Count100,
+								Count50 = score.Count50,
+							},
+							Combo = beatmap.MaxCombo ?? 0,
+							LegacyMods = score.LegacyMods
+						};
 
-					double possiblePPval = Oppai.GetBeatmapPP(score.Beatmap, fcScore);
-					possiblePP = $"(~{possiblePPval:N2}pp if FC)";
+						double possiblePPval = Oppai.GetBeatmapPP(score.Beatmap, fcScore);
+						possiblePP = $"(~{possiblePPval:N2}pp if FC)";
+					}
+
+					pp = $"| {(scorePP == null ? "~" : "")}{scorePP:N2}pp {possiblePP}";
 				}
-
-				pp = $"| {(scorePP == null ? "~" : "")}{scorePP:N2}pp {possiblePP}";
-			}
-			catch (Exception e)
-			{
-				Log.Error($"Oppai failed: {e.InnerMessageIfAny()}");
+				catch (Exception e)
+				{
+					Log.Error($"Oppai failed: {e.InnerMessageIfAny()}");
+				}
 			}
 
 			var completion = string.Empty;

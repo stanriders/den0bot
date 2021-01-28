@@ -1,5 +1,4 @@
-﻿// den0bot (c) StanR 2020 - MIT License
-
+﻿// den0bot (c) StanR 2021 - MIT License
 using System;
 using den0bot.Util;
 using Newtonsoft.Json;
@@ -18,7 +17,7 @@ namespace den0bot.Modules.Osu.Types.V1
 		[JsonProperty("approved_date")]
 		public DateTime? RankedDate;
 		[JsonProperty("approved")]
-		public RankedStatus Status;
+		public override RankedStatus Status { get; set; }
 
 		[JsonProperty("artist")]
 		public string Artist;
@@ -69,32 +68,52 @@ namespace den0bot.Modules.Osu.Types.V1
 		public override string GetFormattedMapInfo(LegacyMods mods)
 		{
 			string pp = string.Empty;
-
-			try
+			if (Mode == Mode.Osu)
 			{
-				double info100 = Oppai.GetBeatmapPP(this, mods, 100);
-				if (info100 > 0)
+				try
 				{
-					pp = $"100% - {info100:N2}pp";
+					double info100 = Oppai.GetBeatmapPP(this, mods, 100);
+					if (info100 > 0)
+					{
+						pp = $"100% - {info100:N2}pp";
 
-					double info98 = Oppai.GetBeatmapPP(this, mods, 98);
-					if (info98 > 0)
-						pp += $" | 98% - {info98:N2}pp";
+						double info98 = Oppai.GetBeatmapPP(this, mods, 98);
+						if (info98 > 0)
+							pp += $" | 98% - {info98:N2}pp";
 
-					double info95 = Oppai.GetBeatmapPP(this, mods, 95);
-					if (info95 > 0)
-						pp += $" | 95% - {info95:N2}pp";
+						double info95 = Oppai.GetBeatmapPP(this, mods, 95);
+						if (info95 > 0)
+							pp += $" | 95% - {info95:N2}pp";
+					}
+				}
+				catch (Exception e)
+				{
+					Log.Error($"Oppai failed: {e.InnerMessageIfAny()}");
 				}
 			}
-			catch (Exception e)
-			{
-				Log.Error($"Oppai failed: {e.InnerMessageIfAny()}");
-			}
 
-			return
-				$"[{Version.FilterToHTML()}] - {StarRating:N2}* - {ModdedDrainLength(mods):mm\':\'ss} - {Creator} - <b>{Status.ToString()}</b>\n" +
-				$"<b>CS:</b> {ModdedCS(mods):N2} | <b>AR:</b> {ModdedAR(mods):N2} | <b>OD:</b> {ModdedOD(mods):N2} | <b>BPM:</b> {ModdedBPM(mods):N2}\n" +
-				$"{pp}";
+			switch (Mode)
+			{
+				case Mode.Osu:
+					return
+						$"[{Version.FilterToHTML()}] - {StarRating:N2}* - {ModdedDrainLength(mods):mm\':\'ss} - {Creator} - <b>{Status}</b>\n" +
+						$"⭕️ | <b>CS:</b> {ModdedCS(mods):N2} | <b>AR:</b> {ModdedAR(mods):N2} | <b>OD:</b> {ModdedOD(mods):N2} | <b>BPM:</b> {ModdedBPM(mods):N2}\n" +
+						$"{pp}";
+				case Mode.Taiko:
+					return
+						$"[{Version.FilterToHTML()}] - {StarRating:N2}* - {ModdedDrainLength(mods):mm\':\'ss} - {Creator} - <b>{Status}</b>\n" +
+						$"🥁 | <b>OD:</b> {ModdedOD(mods):N2} | <b>BPM:</b> {ModdedBPM(mods):N2}";
+				case Mode.Fruits:
+					return
+						$"[{Version.FilterToHTML()}] - {StarRating:N2}* - {ModdedDrainLength(mods):mm\':\'ss} - {Creator} - <b>{Status}</b>\n" +
+						$"🍎 | <b>CS:</b> {ModdedCS(mods):N2} | <b>AR:</b> {ModdedAR(mods):N2} | <b>OD:</b> {ModdedOD(mods):N2} | <b>BPM:</b> {ModdedBPM(mods):N2}";
+				case Mode.Mania:
+					return
+						$"[{Version.FilterToHTML()}] - {StarRating:N2}* - {ModdedDrainLength(mods):mm\':\'ss} - {Creator} - <b>{Status}</b>\n" +
+						$"🎹 | <b>Keys:</b> {CS:N0} | <b>OD:</b> {ModdedOD(mods):N2} | <b>BPM:</b> {ModdedBPM(mods):N2}";
+				default:
+					return string.Empty;
+			}
 		}
 	}
 }

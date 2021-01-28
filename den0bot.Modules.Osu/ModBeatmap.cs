@@ -50,25 +50,25 @@ namespace den0bot.Modules.Osu
 		{
 			if (!string.IsNullOrEmpty(message.Text))
 			{
-				var beatmapId = IBeatmap.GetIdFromLink(message.Text, out var isSet, out var mods);
-				if (beatmapId != 0)
+				var beatmapLinkData = BeatmapLinkParser.Parse(message.Text);
+				if (beatmapLinkData != null)
 				{
 					Beatmap map = null;
-					if (isSet)
+					if (beatmapLinkData.IsBeatmapset)
 					{
-						List<Beatmap> set = await WebApiHandler.MakeApiRequest(new GetBeatmapSet(beatmapId));
+						List<Beatmap> set = await WebApiHandler.MakeApiRequest(new GetBeatmapSet(beatmapLinkData.ID));
 						if (set?.Count > 0)
 							map = set.Last();
 					}
 					else
 					{
-						map = await WebApiHandler.MakeApiRequest(new GetBeatmap(beatmapId));
+						map = await WebApiHandler.MakeApiRequest(new GetBeatmap(beatmapLinkData.ID));
 					}
 
 					if (map != null)
 					{
 						var sentMessage = await API.SendPhoto(map.BeatmapSet.Covers.Cover2X, message.Chat.Id,
-							map.GetFormattedMapInfo(mods),
+							map.GetFormattedMapInfo(beatmapLinkData.Mods),
 							Telegram.Bot.Types.Enums.ParseMode.Html, 0, buttons);
 						if (sentMessage != null)
 						{
@@ -121,10 +121,10 @@ namespace den0bot.Modules.Osu
 		{
 			if (!string.IsNullOrEmpty(msg.Text))
 			{
-				var beatmapId = IBeatmap.GetIdFromLink(msg.Text, out var isSet, out var mods);
-				if (beatmapId != 0 && !isSet)
+				var beatmapLinkData = BeatmapLinkParser.Parse(msg.Text);
+				if (beatmapLinkData != null && !beatmapLinkData.IsBeatmapset)
 				{
-					var json = new { Map = beatmapId.ToString(), Mods = mods == LegacyMods.None ? new string[0] : mods.ToString().Split(", ") };
+					var json = new { Map = beatmapLinkData.ID.ToString(), Mods = beatmapLinkData.Mods == LegacyMods.None ? new string[0] : beatmapLinkData.Mods.ToString().Split(", ") };
 					try
 					{
 						var mapJson = await Web.PostJson("https://newpp.stanr.info/api/CalculateMap",
@@ -138,7 +138,7 @@ namespace den0bot.Modules.Osu
 								$"{map.Title}\n{map.Stars:F2}*\n100% - {map.PP[10]}pp | 98% - {map.PP[8]}pp | 95% - {map.PP[5]}pp",
 								replyID: msg.MessageId) != null)
 							{
-								ChatBeatmapCache.StoreMap(msg.Chat.Id, beatmapId);
+								ChatBeatmapCache.StoreMap(msg.Chat.Id, beatmapLinkData.ID);
 							}
 
 							return string.Empty;

@@ -1,9 +1,5 @@
-﻿// den0bot (c) StanR 2020 - MIT License
+﻿// den0bot (c) StanR 2021 - MIT License
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Text.RegularExpressions;
 using den0bot.Util;
 
 namespace den0bot.Modules.Osu.Types
@@ -27,6 +23,7 @@ namespace den0bot.Modules.Osu.Types
 		public abstract uint? Sliders { get; set; }
 		public abstract uint? Spinners { get; set; }
 		public abstract bool Ranked { get; set; }
+		public abstract RankedStatus Status { get; set; }
 		public abstract string Thumbnail { get; }
 
 		public abstract string GetFormattedMapInfo(LegacyMods mods);
@@ -187,76 +184,6 @@ namespace den0bot.Modules.Osu.Types
 				return TimeSpan.FromSeconds((long)(DrainLength * 1.333333));
 			}
 			return TimeSpan.FromSeconds(DrainLength);
-		}
-
-		private static readonly Regex linkRegex = new(@"(?>https?:\/\/)?(?>osu|old)\.ppy\.sh\/([b,s]|(?>beatmaps)|(?>beatmapsets))\/(\d+\/?\#osu\/)?(\d+)?\/?(?>[&,?].=\d)?\s?(?>\+(\w+))?", RegexOptions.Compiled | RegexOptions.IgnoreCase);
-
-		public static uint GetIdFromLink(string link, out bool isSet, out LegacyMods mods)
-		{
-			isSet = false;
-			mods = LegacyMods.None;
-			Match regexMatch = linkRegex.Match(link);
-			if (regexMatch.Groups.Count > 1)
-			{
-				List<Group> regexGroups = regexMatch.Groups.Values.Where(x => x.Length > 0).ToList();
-
-				bool isNew = regexGroups[1].Value == "beatmapsets"; // are we using new website or not
-				uint beatmapId = 0;
-
-				if (isNew)
-				{
-					if (regexGroups[2].Value.Contains("#osu/"))
-					{
-						beatmapId = uint.Parse(regexGroups[3].Value);
-						if (regexGroups.Count > 4)
-							mods = ConvertToMods(regexGroups[4].Value);
-					}
-					else
-					{
-						isSet = true;
-						beatmapId = uint.Parse(regexGroups[2].Value);
-						if (regexGroups.Count > 3)
-							mods = ConvertToMods(regexGroups[3].Value);
-					}
-				}
-				else
-				{
-					if (regexGroups[1].Value == "s")
-						isSet = true;
-
-					beatmapId = uint.Parse(regexGroups[2].Value);
-					if (regexGroups.Count > 3)
-						mods = ConvertToMods(regexGroups[3].Value);
-				}
-
-				return beatmapId;
-			}
-
-			return 0;
-		}
-
-		private static LegacyMods ConvertToMods(string mods)
-		{
-			if (Enum.TryParse(mods, true, out LegacyMods result) || string.IsNullOrEmpty(mods) || mods.Length > 36) // every mod combination possible
-				return result;
-			else
-			{
-				StringBuilder builder = new StringBuilder(mods.Length * 2);
-				bool secondChar = false;
-				foreach (char c in mods)
-				{
-					builder.Append(c);
-					if (secondChar)
-					{
-						builder.Append(',');
-						builder.Append(' ');
-					}
-					secondChar = !secondChar;
-				}
-				builder.Remove(builder.Length - 2, 2);
-				Enum.TryParse(builder.ToString(), true, out result);
-				return result;
-			}
 		}
 	}
 }
