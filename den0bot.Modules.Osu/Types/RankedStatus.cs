@@ -3,7 +3,7 @@ namespace den0bot.Modules.Osu.Types
 {
 	public enum RankedStatus
 	{
-		Graveyarded = -2,
+		Graveyard = -2,
 		WIP = -1,
 		Pending = 0,
 		Ranked = 1,
