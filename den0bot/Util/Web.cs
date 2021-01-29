@@ -1,5 +1,4 @@
-﻿// den0bot (c) StanR 2020 - MIT License
-
+﻿// den0bot (c) StanR 2021 - MIT License
 using System;
 using System.IO;
 using System.Net;
@@ -13,11 +12,11 @@ namespace den0bot.Util
 	{
 		private static readonly HttpClient client = new();
 
-		public static async Task<string> DownloadString(string address) => await client.GetStringAsync(address);
+		public static Task<string> DownloadString(string address) => client.GetStringAsync(address);
 
-		public static async Task<byte[]> DownloadBytes(string address) => await client.GetByteArrayAsync(address);
+		public static Task<byte[]> DownloadBytes(string address) => client.GetByteArrayAsync(address);
 
-		public static async Task<Stream> DownloadStream(string address) => await client.GetStreamAsync(address);
+		public static Task<Stream> DownloadStream(string address) => client.GetStreamAsync(address);
 
 		public static async Task<string> PostJson(string address, string json)
 		{

@@ -54,7 +54,8 @@ namespace den0bot
 			catch (Exception ex)
 			{
 				Log.Error(ex.InnerMessageIfAny());
-				return false;
+				// crash so that we can reboot and try again
+				//return false;
 			}
 
 			Log.Info("Connected!");
