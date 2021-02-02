@@ -1,4 +1,4 @@
-﻿// den0bot (c) StanR 2020 - MIT License
+﻿// den0bot (c) StanR 2021 - MIT License
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,6 +9,7 @@ using den0bot.Modules.Osu.WebAPI.Requests.V1;
 using den0bot.Modules.Osu.Types.V1;
 using den0bot.Util;
 using den0bot.Modules.Osu.WebAPI;
+using den0bot.Types;
 
 namespace den0bot.Modules.Osu
 {
@@ -43,7 +44,7 @@ namespace den0bot.Modules.Osu
 				}
 			});
 		}
-		private string StartFollowing(Message msg)
+		private ICommandAnswer StartFollowing(Message msg)
 		{
 			Match regexMatch = matchLinkRegex.Match(msg.Text);
 			if (regexMatch.Groups.Count > 1)
@@ -58,9 +59,9 @@ namespace den0bot.Modules.Osu
 					CurrentGameID = 0
 				};
 				followList.Add(match);
-				return Localization.Get("matchfollow_added", msg.Chat.Id);
+				return Localization.GetAnswer("matchfollow_added", msg.Chat.Id);
 			}
-			return string.Empty;
+			return null;
 		}
 
 		public override async void Think()

@@ -1,4 +1,4 @@
-﻿// den0bot (c) StanR 2020 - MIT License
+﻿// den0bot (c) StanR 2021 - MIT License
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,6 +10,7 @@ using den0bot.Util;
 using Newtonsoft.Json.Linq;
 using Telegram.Bot.Types.Enums;
 using den0bot.Modules.Osu.WebAPI;
+using den0bot.Types;
 
 namespace den0bot.Modules.Osu
 {
@@ -26,7 +27,8 @@ namespace den0bot.Modules.Osu
 			AddCommand(new Command
 			{
 				Name = "map",
-				ActionAsync = GetMap
+				ActionAsync = GetMap,
+				ParseMode = ParseMode.Html
 			});
 			Log.Debug($"Enabled, {maplist.Count} maps");
 		}
@@ -60,25 +62,24 @@ namespace den0bot.Modules.Osu
 			}
 		}
 
-		private async Task<string> GetMap(Telegram.Bot.Types.Message message)
+		private async Task<ICommandAnswer> GetMap(Telegram.Bot.Types.Message message)
 		{
 			if (isEnabled && maplist.Count > 0)
 			{
 				int num = RNG.Next(max: maplist.Count);
-				string link = maplist[num][1].Substring(19);
+				var linkData = BeatmapLinkParser.Parse(maplist[num][1]);
+				if (linkData == null)
+					return new TextCommandAnswer(maplist[num][0] + Environment.NewLine + maplist[num][1]);
+
 				Beatmap map;
-				if (link[0] == 's')
+				if (linkData.IsBeatmapset)
 				{
-					List<Beatmap> set = await WebApiHandler.MakeApiRequest(new GetBeatmapSet(uint.Parse(link.Substring(2))));
+					List<Beatmap> set = await WebApiHandler.MakeApiRequest(new GetBeatmapSet(linkData.ID));
 					map = set?.Last();
-				}
-				else if (link[0] == 'b')
-				{
-					map = await WebApiHandler.MakeApiRequest(new GetBeatmap(uint.Parse(link.Substring(2))));
 				}
 				else
 				{
-					return maplist[num][0] + Environment.NewLine + maplist[num][1];
+					map = await WebApiHandler.MakeApiRequest(new GetBeatmap(linkData.ID));
 				}
 
 				if (map != null)
@@ -94,19 +95,23 @@ namespace den0bot.Modules.Osu
 							caption = $"{format}";
 					}
 
-					await API.SendPhoto(map.BeatmapSet.Covers.Cover2X, message.Chat.Id, caption, ParseMode.Html);
+					return new ImageCommandAnswer
+					{
+						Image = map.BeatmapSet.Covers.Cover2X,
+						Caption = caption
+					};
 				}
 
-				return string.Empty;
+				return null;
 			}
 			else
 			{
 				Log.Info("Trying to start again");
 				if (!Start())
-					return string.Empty;
+					return null;
 			}
 
-			return string.Empty;
+			return null;
 		}
 	}
 }

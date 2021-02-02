@@ -1,4 +1,4 @@
-﻿// den0bot (c) StanR 2020 - MIT License
+﻿// den0bot (c) StanR 2021 - MIT License
 using System.Collections.Generic;
 using Newtonsoft.Json;
 
@@ -66,6 +66,9 @@ namespace den0bot.Modules.Osu.Types.V2
 	{
 		[JsonProperty("beatmaps")]
 		public List<Beatmap> Beatmaps { get; set; }
+
+		[JsonProperty("converts")]
+		public List<Beatmap> Converts { get; set; }
 
 		[JsonProperty("user")]
 		public UserShort Creator { get; set; }

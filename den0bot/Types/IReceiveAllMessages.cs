@@ -1,8 +1,8 @@
-﻿// den0bot (c) StanR 2019 - MIT License
+﻿// den0bot (c) StanR 2021 - MIT License
 
 using System.Threading.Tasks;
 
-namespace den0bot.Modules
+namespace den0bot.Types
 {
 	public interface IReceiveAllMessages
 	{

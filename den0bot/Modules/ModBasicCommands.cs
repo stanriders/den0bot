@@ -1,9 +1,10 @@
-﻿// den0bot (c) StanR 2020 - MIT License
+﻿// den0bot (c) StanR 2021 - MIT License
 
 using den0bot.DB;
 using Telegram.Bot.Types.Enums;
 using den0bot.Util;
 using System.Linq;
+using den0bot.Types;
 
 namespace den0bot.Modules
 {
@@ -16,9 +17,13 @@ namespace den0bot.Modules
 				new Command
 				{
 					Names = {"start", "help"},
-					Action = (msg) => msg.Chat.Type == ChatType.Private
-						? Localization.Get("basiccommands_help", msg.Chat.Id)
-						: string.Empty
+					Action = (msg) => 
+					{
+						if (msg.Chat.Type == ChatType.Private)
+							return Localization.GetAnswer("basiccommands_help", msg.Chat.Id);
+
+						return null;
+					}
 				},
 				new Command
 				{
@@ -27,7 +32,7 @@ namespace den0bot.Modules
 					ActionAsync = async (msg) =>
 					{
 						await API.RemoveMessage(msg.Chat.Id, msg.MessageId);
-						return $"_{msg.From.FirstName}{msg.Text.Substring(3)}_";
+						return new TextCommandAnswer($"_{msg.From.FirstName}{msg.Text.Substring(3)}_");
 					}
 				},
 				new Command
@@ -37,7 +42,7 @@ namespace den0bot.Modules
 					Action = (msg) =>
 					{
 						Bot.Shutdown();
-						return "Выключаюсь...";
+						return new TextCommandAnswer("Выключаюсь...");
 					}
 				},
 				new Command
@@ -48,7 +53,7 @@ namespace den0bot.Modules
 					{
 						// a hack to safely restart bot without using service manager
 						Bot.Shutdown(true);
-						return "Перезагружаюсь...";
+						return new TextCommandAnswer("Перезагружаюсь...");
 					}
 				},
 				new Command
@@ -66,11 +71,11 @@ namespace den0bot.Modules
 								chat.Locale = locale;
 								await db.SaveChangesAsync();
 							}
-							return "👌";
+							return new TextCommandAnswer("👌");
 						}
 						else
 						{
-							return "😡";
+							return new TextCommandAnswer("😡");
 						}
 					}
 				},
@@ -87,7 +92,7 @@ namespace den0bot.Modules
 							chat.Introduction = text;
 							await db.SaveChangesAsync();
 						}
-						return "👌";
+						return new TextCommandAnswer("👌");
 					}
 				},
 				new Command
@@ -102,7 +107,7 @@ namespace den0bot.Modules
 							chat.DisableEvents = !chat.DisableEvents;
 							await db.SaveChangesAsync();
 						
-							return chat.DisableEvents.ToString();
+							return new TextCommandAnswer(chat.DisableEvents.ToString());
 						}
 					}
 				},

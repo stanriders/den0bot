@@ -12,6 +12,7 @@ using Telegram.Bot.Types.Enums;
 using den0bot.DB;
 using den0bot.Modules;
 using den0bot.Util;
+using den0bot.Types;
 
 namespace den0bot
 {

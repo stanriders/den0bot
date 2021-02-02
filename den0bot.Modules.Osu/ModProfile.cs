@@ -1,4 +1,4 @@
-﻿// den0bot (c) StanR 2020 - MIT License
+﻿// den0bot (c) StanR 2021 - MIT License
 using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
@@ -11,6 +11,7 @@ using den0bot.Util;
 using Newtonsoft.Json;
 using den0bot.Modules.Osu.WebAPI;
 using Microsoft.EntityFrameworkCore;
+using den0bot.Types;
 
 namespace den0bot.Modules.Osu
 {
@@ -116,7 +117,8 @@ namespace den0bot.Modules.Osu
 			}
 			return string.Empty;
 		}
-		private async Task<string> GetRebalanceProfile(Message msg)
+
+		private async Task<ICommandAnswer> GetRebalanceProfile(Message msg)
 		{
 			if (!string.IsNullOrEmpty(msg.Text))
 			{
@@ -127,7 +129,7 @@ namespace den0bot.Modules.Osu
 					{
 						var result = await FormatRebalanceProfile(player);
 						if (!string.IsNullOrEmpty(result))
-							return result;
+							return new TextCommandAnswer(result);
 					}
 				}
 				else
@@ -139,13 +141,13 @@ namespace den0bot.Modules.Osu
 						{
 							var result = await FormatRebalanceProfile(osuId.ToString());
 							if (!string.IsNullOrEmpty(result))
-								return result;
+								return new TextCommandAnswer(result);
 						}
 					}
 				}
 			}
 
-			return Localization.Get("generic_badrequest", msg.Chat.Id);
+			return Localization.GetAnswer("generic_badrequest", msg.Chat.Id);
 		}
 	}
 }

@@ -1,4 +1,4 @@
-﻿// den0bot (c) StanR 2020 - MIT License
+﻿// den0bot (c) StanR 2021 - MIT License
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -9,6 +9,7 @@ using den0bot.Util;
 using System.Linq;
 using den0bot.DB.Types;
 using Microsoft.EntityFrameworkCore;
+using den0bot.Types;
 
 namespace den0bot.Modules
 {
@@ -17,20 +18,7 @@ namespace den0bot.Modules
 	{
 		public readonly List<string> senders = new()
 		{
-			"StanRiders",
-			"Nufirdy",
-			"orinel",
-			"a1askaaa",
-			"flamefox74",
-			"slam3085",
-			"evahuevcoroleva",
-			"machine_ka",
-			"noyasine",
-			"ah_shu36",
-			"kakayatodura",
-			"dariapox",
-			"Wladek",
-			"dusomlyser"
+			"StanRiders"
 		};
 		public ModSanta()
 		{
@@ -55,7 +43,7 @@ namespace den0bot.Modules
 			});
 		}
 
-		private async Task<string> Go(Message msg)
+		private async Task<ICommandAnswer> Go(Message msg)
 		{
 			var err = string.Empty;
 
@@ -75,7 +63,7 @@ namespace den0bot.Modules
 
 					var senderID = DatabaseCache.GetUserID(sender);
 					if (senderID == 0)
-						return $"Невозможно отправить сообщение {sender}";
+						return new TextCommandAnswer($"Невозможно отправить сообщение {sender}");
 
 					var num = RNG.Next(max: receivers.Count);
 					var receiver = receivers[num];
@@ -104,10 +92,10 @@ namespace den0bot.Modules
 				}
 				await db.SaveChangesAsync();
 			}
-			return err;
+			return new TextCommandAnswer(err);
 		}
 
-		private async Task<string> Help(Message msg)
+		private async Task<ICommandAnswer> Help(Message msg)
 		{
 			if (msg.Chat.Type == ChatType.Private)
 			{
@@ -117,16 +105,16 @@ namespace den0bot.Modules
 					if (receiverID != 0)
 					{
 						if(await API.SendMessage($"Твой санта не может придумать что тебе подарить. Напиши /santagift <подарок> и я передам ему твоё пожелание!", receiverID) != null)
-							return "Ждем ответа...";
+							return new TextCommandAnswer("Ждем ответа...");
 					}
 
-					return "Чет не получилось";
+					return new TextCommandAnswer("Чет не получилось");
 				}
 			}
-			return string.Empty;
+			return null;
 		}
 
-		private async Task<string> Gift(Message msg)
+		private async Task<ICommandAnswer> Gift(Message msg)
 		{
 			if (msg.Chat.Type == ChatType.Private)
 			{
@@ -137,18 +125,18 @@ namespace den0bot.Modules
 					{
 						var gift = msg.Text.Substring(11);
 						if (string.IsNullOrEmpty(gift) || string.IsNullOrWhiteSpace(gift))
-							return "Ты пожелание-то напиши";
+							return new TextCommandAnswer("Ты пожелание-то напиши");
 						else
 						{
 							if (await API.SendMessage($"Тебе передали пожелание: \"{gift}\"", senderID) != null)
-								return "Отправил!";
+								return new TextCommandAnswer("Отправил!");
 						}
 					}
 					
-					return "Чет не получилось";
+					return new TextCommandAnswer("Чет не получилось");
 				}
 			}
-			return string.Empty;
+			return null;
 		}
 	}
 }

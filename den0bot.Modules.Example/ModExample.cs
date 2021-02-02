@@ -1,4 +1,5 @@
-﻿// den0bot (c) StanR 2020 - MIT License
+﻿// den0bot (c) StanR 2021 - MIT License
+using den0bot.Types;
 using System.Threading.Tasks;
 using Telegram.Bot.Types;
 
@@ -8,21 +9,36 @@ namespace den0bot.Modules.Example
 	{
 		public ModExample()
 		{
-			AddCommand(new Command
+			AddCommands(new[] 
 			{
-				Name = "example",
-				Action = Go
+				new Command
+				{
+					Name = "example",
+					Action = Go
+				},
+				new Command
+				{
+					Name = "exampleasync",
+					ActionAsync = GoAsync,
+					Reply = true
+				}
 			});
 		}
 
 		public async Task ReceiveMessage(Message message)
 		{
-			await API.SendMessage("hi", message.Chat.Id);
+			_ = await API.SendMessage("hi", message.Chat.Id);
 		}
 
-		private string Go(Message msg)
+		private ICommandAnswer Go(Message msg)
 		{
-			return "ok!";
+			return new TextCommandAnswer("ok!");
+		}
+
+		private async Task<ICommandAnswer> GoAsync(Message msg)
+		{
+			await Task.Delay(1000);
+			return new TextCommandAnswer("ok but 1 second later!");
 		}
 	}
 }

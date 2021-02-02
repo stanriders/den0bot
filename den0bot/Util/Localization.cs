@@ -1,8 +1,9 @@
-﻿// den0bot (c) StanR 2020 - MIT License
+﻿// den0bot (c) StanR 2021 - MIT License
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using den0bot.DB;
+using den0bot.Types;
 using Newtonsoft.Json;
 
 namespace den0bot.Util
@@ -43,6 +44,16 @@ namespace den0bot.Util
 			}
 			// defaults to russian (assume its complete)
 			return locales["ru"][key];
+		}
+
+		public static TextCommandAnswer GetAnswer(string key, long chatID)
+		{
+			return new TextCommandAnswer(Get(key,chatID));
+		}
+
+		public static TextCommandAnswer GetAnswerFormat(string key, long chatID, params object[] arg)
+		{
+			return new TextCommandAnswer(FormatGet(key, chatID, arg));
 		}
 
 		public static string NewMemberGreeting(long chatID, string name, long userID)

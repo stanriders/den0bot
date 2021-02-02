@@ -1,4 +1,4 @@
-﻿// den0bot (c) StanR 2020 - MIT License
+﻿// den0bot (c) StanR 2021 - MIT License
 using den0bot.DB.Types;
 using den0bot.Util;
 using Microsoft.EntityFrameworkCore;
@@ -83,20 +83,21 @@ namespace den0bot.DB
 			return Users.Find(x => x.TelegramID == id)?.Username;
 		}
 
-		public static async Task<int> GetGirlSeason()
+		public static int GetGirlSeason()
 		{
-			await UpdateGirlSeason();
+			UpdateGirlSeason();
 
 			return girlSeason.Value;
 		}
 
-		private static async Task UpdateGirlSeason()
+		private static void UpdateGirlSeason()
 		{
 			if (girlSeason == null || girlSeasonStart?.AddMonths(1) < DateTime.Today)
 			{
+				girlSeasonStart = DateTime.Today;
 				using (var db = new Database())
 				{
-					var misc = await db.Misc.FirstOrDefaultAsync();
+					var misc = db.Misc.FirstOrDefault();
 					if (misc != null)
 					{
 						if (misc.GirlSeasonStartDate.AddMonths(1) < DateTime.Today)
@@ -105,37 +106,28 @@ namespace den0bot.DB
 							if (misc.GirlSeason > 0)
 							{
 								// submit seasonal ratings into the main ones
-								var table = await db.Girls.Where(x => x.Season == misc.GirlSeason).ToArrayAsync();
+								var table = db.Girls.Where(x => x.Season == misc.GirlSeason).ToArray();
 								foreach (var girl in table)
-								{
 									girl.Rating += girl.SeasonRating;
-									if (girl.Rating < -10)
-									{
-										db.Girls.Remove(girl);
-										continue;
-									}
 
-									db.Girls.Update(girl);
-								}
+								db.Girls.UpdateRange(table);
 							}
 
 							misc.GirlSeason++;
-							misc.GirlSeasonStartDate = DateTime.Today;
+							misc.GirlSeasonStartDate = girlSeasonStart.Value;
 						}
-
 						girlSeason = misc.GirlSeason;
-						girlSeasonStart = misc.GirlSeasonStartDate;
 					}
 					else
 					{
-						await db.Misc.AddAsync(new Misc
+						db.Misc.Add(new Misc
 						{
 							GirlSeason = 0,
-							GirlSeasonStartDate = DateTime.Today
+							GirlSeasonStartDate = girlSeasonStart.Value
 						});
 					}
 
-					await db.SaveChangesAsync();
+					db.SaveChanges();
 				}
 			}
 		}

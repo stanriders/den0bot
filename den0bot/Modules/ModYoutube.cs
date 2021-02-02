@@ -1,8 +1,9 @@
-﻿// den0bot (c) StanR 2020 - MIT License
+﻿// den0bot (c) StanR 2021 - MIT License
 using System;
 using System.Linq;
 using System.Threading.Tasks;
 using den0bot.DB;
+using den0bot.Types;
 using den0bot.Util;
 using Newtonsoft.Json;
 
@@ -35,7 +36,7 @@ namespace den0bot.Modules
 							chat.DisableAnnouncements = false;
 							await db.SaveChangesAsync();
 
-							return "Понял, вырубаю";
+							return new TextCommandAnswer("Понял, вырубаю");
 						}
 					}
 				},
@@ -51,26 +52,26 @@ namespace den0bot.Modules
 							chat.DisableAnnouncements = true;
 							await db.SaveChangesAsync();
 
-							return "Понял, врубаю";
+							return new TextCommandAnswer("Понял, врубаю");
 						}
 					}
 				},
 				new Command
 				{
 					Name = "newscores",
-					ActionAsync = (msg) =>
+					ActionAsync = async (msg) =>
 					{
 						try
 						{
 							int amount = int.Parse(msg.Text.Remove(0, 10));
 							if (amount > 20)
-								return GetLastScores(default_score_amount);
+								return new TextCommandAnswer(await GetLastScores(default_score_amount));
 							else
-								return GetLastScores(amount);
+								return new TextCommandAnswer(await GetLastScores(amount));
 						}
 						catch (Exception)
 						{
-							return GetLastScores(default_score_amount);
+							return new TextCommandAnswer(await GetLastScores(default_score_amount));
 						}
 					}
 				}

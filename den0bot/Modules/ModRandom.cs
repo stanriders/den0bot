@@ -1,4 +1,4 @@
-﻿// den0bot (c) StanR 2020 - MIT License
+﻿// den0bot (c) StanR 2021 - MIT License
 
 using System.Linq;
 using System.Numerics;
@@ -10,6 +10,7 @@ using den0bot.DB;
 using den0bot.DB.Types;
 using den0bot.Util;
 using Microsoft.EntityFrameworkCore;
+using den0bot.Types;
 
 namespace den0bot.Modules
 {
@@ -39,34 +40,34 @@ namespace den0bot.Modules
 				new Command
 				{
 					Name = "den0saur",
-					ActionAsync = (msg) => GetRandomDinosaur(msg.Chat)
+					Action = (msg) => GetRandomDinosaur()
 				}
 			});
 			Log.Debug("Enabled");
 		}
 
-		private async Task<string> GetRandomDinosaur(Telegram.Bot.Types.Chat sender)
+		private ICommandAnswer GetRandomDinosaur()
 		{
 			switch (RNG.Next(1, 4))
 			{
-				case 1: return "динозавр?";
-				case 2: await API.SendSticker(new InputOnlineFile("BQADAgADNAADnML7Dbv6HgazQYiIAg"), sender.Id); break;
-				case 3: await API.SendSticker(new InputOnlineFile("BQADAgADMAADnML7DXy6fUB4x-sqAg"), sender.Id); break;
+				case 1: return new TextCommandAnswer("динозавр?");
+				case 2: return new StickerCommandAnswer("BQADAgADNAADnML7Dbv6HgazQYiIAg");
+				case 3: return new StickerCommandAnswer("BQADAgADMAADnML7DXy6fUB4x-sqAg");
+				default: return null;
 			}
-			return string.Empty;
 		}
 
-		private string Roll(Message msg)
+		private ICommandAnswer Roll(Message msg)
 		{
 			string[] msgArr = msg.Text.Split(' ');
 
 			if (msgArr.Length > 1 && BigInteger.TryParse(msgArr[1], out var max) && max > 1)
-				return Localization.Get("random_roll", msg.Chat.Id) + RNG.NextBigInteger(max+1);
+				return new TextCommandAnswer(Localization.Get("random_roll", msg.Chat.Id) + RNG.NextBigInteger(max+1));
 			
-			return Localization.Get("random_roll", msg.Chat.Id) + RNG.Next(max: 101);
+			return new TextCommandAnswer(Localization.Get("random_roll", msg.Chat.Id) + RNG.Next(max: 101));
 		}
 
-		private string AddMeme(Message message)
+		private ICommandAnswer AddMeme(Message message)
 		{
 			long chatId = message.Chat.Id;
 			string link = message.Text.Substring(7);
@@ -74,23 +75,23 @@ namespace den0bot.Modules
 			if (link.StartsWith("http") && (link.EndsWith(".jpg") || link.EndsWith(".png")))
 			{
 				AddMemeToDatabase(link, chatId);
-				return Localization.Get("random_meme_added", chatId);
+				return new TextCommandAnswer(Localization.Get("random_meme_added", chatId));
 			}
 			else if (message.Type == MessageType.Photo)
 			{
 				AddMemeToDatabase(message.Photo[0].FileId, chatId);
-				return Localization.Get("random_meme_added", chatId);
+				return new TextCommandAnswer(Localization.Get("random_meme_added", chatId));
 			}
-			return Localization.Get("random_meme_add_failed", chatId);
+			return new TextCommandAnswer(Localization.Get("random_meme_add_failed", chatId));
 		}
 
-		private async Task<string> GetRandomMeme(Telegram.Bot.Types.Chat sender)
+		private async Task<ICommandAnswer> GetRandomMeme(Telegram.Bot.Types.Chat sender)
 		{
 			using (var db = new Database())
 			{
 				int memeCount = db.Memes.Count(x => x.ChatID == sender.Id);
 				if (memeCount <= 0)
-					return Localization.Get("random_no_memes", sender.Id);
+					return Localization.GetAnswer("random_no_memes", sender.Id);
 
 				var memes = await db.Memes.ToArrayAsync();
 				if (memes.All(x => x.Used))
@@ -116,14 +117,14 @@ namespace den0bot.Modules
 					string photo = meme.Link;
 					if (!string.IsNullOrEmpty(photo))
 					{
-						await API.SendPhoto(photo, sender.Id);
-						return string.Empty;
+						return new ImageCommandAnswer()
+						{
+							Image = photo
+						};
 					}
-
-					return meme.Link;
 				}
 
-				return Localization.Get("generic_fail", sender.Id);
+				return Localization.GetAnswer("generic_fail", sender.Id);
 			}
 		}
 

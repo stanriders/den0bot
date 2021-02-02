@@ -1,10 +1,11 @@
-﻿// den0bot (c) StanR 2020 - MIT License
+﻿// den0bot (c) StanR 2021 - MIT License
 #define ENDLESSTHREAD
 
 using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using den0bot.Types;
 using den0bot.Util;
 using Newtonsoft.Json;
 using Telegram.Bot.Types.Enums;
@@ -43,19 +44,19 @@ namespace den0bot.Modules
 			{
 				Name = "thread",
 				ParseMode = ParseMode.Html,
-				ActionAsync = (msg) =>
+				ActionAsync = async (msg) =>
 				{
 					try
 					{
 						int amount = int.Parse(msg.Text.Remove(0, 7));
 						if (amount > max_post_amount)
-							return GetLastPosts(default_post_amount);
+							return new TextCommandAnswer(await GetLastPosts(default_post_amount));
 						else
-							return GetLastPosts(amount);
+							return new TextCommandAnswer(await GetLastPosts(amount));
 					}
 					catch (Exception)
 					{
-						return GetLastPosts(default_post_amount);
+						return new TextCommandAnswer(await GetLastPosts(default_post_amount));
 					}
 				}
 			});

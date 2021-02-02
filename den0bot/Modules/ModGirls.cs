@@ -1,4 +1,4 @@
-﻿// den0bot (c) StanR 2020 - MIT License
+﻿// den0bot (c) StanR 2021 - MIT License
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,6 +11,7 @@ using den0bot.DB;
 using den0bot.DB.Types;
 using den0bot.Util;
 using Microsoft.EntityFrameworkCore;
+using den0bot.Types;
 
 namespace den0bot.Modules
 {
@@ -52,6 +53,7 @@ namespace den0bot.Modules
 				{
 					Names = { "devka", "tyanochku", "girl" },
 					ActionAsync = msg => GetRandomGirl(msg),
+					//ActionResult = msg => CacheGirl(msg)
 				},
 				new Command
 				{
@@ -101,7 +103,7 @@ namespace den0bot.Modules
 						var link = message.Photo.Last().FileId;
 						if (!db.Girls.Any(x => x.Link == link))
 						{
-							var season = await DatabaseCache.GetGirlSeason();
+							var season = DatabaseCache.GetGirlSeason();
 
 							await db.Girls.AddAsync(new Girl
 							{
@@ -121,13 +123,13 @@ namespace den0bot.Modules
 			}
 		}
 
-		private async Task<string> GetRandomGirl(Message msg, bool seasonal = false)
+		private async Task<ICommandAnswer> GetRandomGirl(Message msg, bool seasonal = false)
 		{
 			long chatID = msg.Chat.Id;
 			using var db = new Database();
 
 			if (await db.Girls.CountAsync(x=> x.ChatID == chatID) <= 0)
-				return Localization.Get("girls_not_found", chatID);
+				return Localization.GetAnswer("girls_not_found", chatID);
 
 			if (!antispamBuffer.ContainsKey(chatID))
 				antispamBuffer.Add(chatID, new Queue<SentGirl>(3));
@@ -154,7 +156,7 @@ namespace den0bot.Modules
 						MessageID = sentMessage.MessageId,
 						CommandMessageID = msg.MessageId,
 						Seasonal = seasonal,
-						Season = await DatabaseCache.GetGirlSeason(),
+						Season = DatabaseCache.GetGirlSeason(),
 						SeasonalRating = picture.SeasonRating == int.MinValue ? 0 : picture.SeasonRating
 					};
 					sentGirlsCache.Add(sentMessage.MessageId.ToString(), girl, DateTimeOffset.Now.AddDays(days_to_keep_messages));
@@ -174,13 +176,13 @@ namespace den0bot.Modules
 					}
 				}
 
-				return string.Empty;
+				return null;
 			}
 
-			return Localization.Get("generic_fail", chatID);
+			return Localization.GetAnswer("generic_fail", chatID);
 		}
 
-		private async Task<string> GetRandomPlatinumGirl(Telegram.Bot.Types.Chat sender)
+		private async Task<ICommandAnswer> GetRandomPlatinumGirl(Telegram.Bot.Types.Chat sender)
 		{
 			using (var db = new Database())
 			{
@@ -191,14 +193,14 @@ namespace den0bot.Modules
 					if (picture != null && picture.Link != string.Empty)
 					{
 						await API.SendPhoto(picture.Link, sender.Id, sendTextIfFailed: false);
-						return string.Empty;
+						return null;
 					}
 				}
-				return Localization.Get("girls_not_found", sender.Id);
+				return Localization.GetAnswer("girls_not_found", sender.Id);
 			}
 		}
 
-		private async Task<string> TopGirls(long chatID, bool reverse = false)
+		private async Task<ICommandAnswer> TopGirls(long chatID, bool reverse = false)
 		{
 			using (var db = new Database())
 			{
@@ -225,15 +227,15 @@ namespace den0bot.Modules
 
 						photos.Add(new InputMediaPhoto(girl.Link) { Caption = girl.Rating.ToString() });
 					}
-					await API.SendMultiplePhotos(photos, chatID);
+					return new ImageAlbumCommandAnswer(photos);
 				}
-				return Localization.Get("generic_fail", chatID);
 			}
+			return Localization.GetAnswer("generic_fail", chatID);
 		}
 
-		private async Task<string> TopGirlsSeasonal(Message msg)
+		private async Task<ICommandAnswer> TopGirlsSeasonal(Message msg)
 		{
-			int season = await DatabaseCache.GetGirlSeason();
+			int season = DatabaseCache.GetGirlSeason();
 
 			var split = msg.Text.Split(' ');
 			if (split.Length > 1
@@ -266,10 +268,10 @@ namespace den0bot.Modules
 
 						photos.Add(new InputMediaPhoto(girl.Link) { Caption = $"{girl.SeasonRating} (s{season})" });
 					}
-					await API.SendMultiplePhotos(photos, msg.Chat.Id);
+					return new ImageAlbumCommandAnswer(photos);
 				}
 			}
-			return Localization.Get("generic_fail", msg.Chat.Id);
+			return Localization.GetAnswer("generic_fail", msg.Chat.Id);
 		}
 
 		public async Task<string> ReceiveCallback(CallbackQuery callback)
@@ -358,7 +360,7 @@ namespace den0bot.Modules
 			return string.Empty;
 		}
 
-		private async Task<string> DeleteGirl(Message message)
+		private async Task<ICommandAnswer> DeleteGirl(Message message)
 		{
 			if (message.ReplyToMessage != null && sentGirlsCache.Contains(message.ReplyToMessage.MessageId.ToString()))
 			{
@@ -371,10 +373,10 @@ namespace den0bot.Modules
 
 					await API.RemoveMessage(message.Chat.Id, message.ReplyToMessage.MessageId);
 
-					return Localization.Get("girls_rating_delete_manual", message.Chat.Id);
+					return Localization.GetAnswer("girls_rating_delete_manual", message.Chat.Id);
 				}
 			}
-			return string.Empty;
+			return null;
 		}
 
 		private async Task<Girl> GetGirl(long chatID)
@@ -408,7 +410,7 @@ namespace den0bot.Modules
 
 		private async Task<Girl> GetGirlSeasonal(long chatID)
 		{
-			var season = await DatabaseCache.GetGirlSeason();
+			var season = DatabaseCache.GetGirlSeason();
 			using (var db = new Database())
 			{
 				var girls = await db.Girls.Where(x => x.ChatID == chatID && x.Season == season).ToArrayAsync();

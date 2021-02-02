@@ -1,4 +1,4 @@
-﻿// den0bot (c) StanR 2020 - MIT License
+﻿// den0bot (c) StanR 2021 - MIT License
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -33,33 +33,22 @@ namespace den0bot
 			}
 
 			Log.Info("Connecting...");
-			try
+			api = new TelegramBotClient(Config.Params.TelegamToken);
+			api.OnMessage += OnMessage;
+			api.OnCallbackQuery += OnCallback;
+			api.OnReceiveGeneralError += delegate (object sender, ReceiveGeneralErrorEventArgs args) { Log.Error(args.Exception.InnerMessageIfAny()); };
+			api.OnReceiveError += delegate (object sender, ReceiveErrorEventArgs args) { Log.Error(args.ApiRequestException.InnerMessageIfAny()); };
+
+			if (!api.TestApiAsync().Result)
 			{
-				api = new TelegramBotClient(Config.Params.TelegamToken);
-				api.OnMessage += OnMessage;
-				api.OnCallbackQuery += OnCallback;
-				api.OnReceiveGeneralError += delegate (object sender, ReceiveGeneralErrorEventArgs args) { Log.Error(args.Exception.InnerMessageIfAny()); };
-				api.OnReceiveError += delegate (object sender, ReceiveErrorEventArgs args) { Log.Error(args.ApiRequestException.InnerMessageIfAny()); };
-
-				if (!api.TestApiAsync().Result)
-				{
-					Log.Error("API Test failed, shutting down!");
-					return false;
-				}
-
-				BotUser = api.GetMeAsync().Result;
-
-				api.StartReceiving();
+				Log.Error("API Test failed, shutting down!");
+				return false;
 			}
-			catch (Exception ex)
-			{
-				Log.Error(ex.InnerMessageIfAny());
-				// crash so that we can reboot and try again
-				//return false;
-			}
+			BotUser = api.GetMeAsync().Result;
+
+			api.StartReceiving();
 
 			Log.Info("Connected!");
-
 			return true;
 		}
 

@@ -1,4 +1,4 @@
-﻿// den0bot (c) StanR 2020 - MIT License
+﻿// den0bot (c) StanR 2021 - MIT License
 using den0bot.Modules.Osu.WebAPI.Requests.V2;
 using den0bot.Modules.Osu.Types;
 using den0bot.Modules.Osu.Types.V2;
@@ -16,6 +16,7 @@ using Telegram.Bot.Types.InputFiles;
 using Telegram.Bot.Types.ReplyMarkups;
 using File = System.IO.File;
 using den0bot.Modules.Osu.WebAPI;
+using den0bot.Types;
 
 namespace den0bot.Modules.Osu
 {
@@ -41,7 +42,8 @@ namespace den0bot.Modules.Osu
 			AddCommand(new Command
 			{
 				Name = "newppmap",
-				ActionAsync = GetRebalancePp
+				ActionAsync = GetRebalancePp,
+				Reply = true
 			});
 			Log.Debug("Enabled");
 		}
@@ -117,7 +119,7 @@ namespace den0bot.Modules.Osu
 			return string.Empty;
 		}
 
-		private async Task<string> GetRebalancePp(Message msg)
+		private async Task<ICommandAnswer> GetRebalancePp(Message msg)
 		{
 			if (!string.IsNullOrEmpty(msg.Text))
 			{
@@ -132,26 +134,25 @@ namespace den0bot.Modules.Osu
 						if (!string.IsNullOrEmpty(mapJson))
 						{
 							var map = JsonConvert.DeserializeObject<RebalanceMap>(mapJson);
-
-							if (await API.SendPhoto($"https://assets.ppy.sh/beatmaps/{map.BeatmapSetId}/covers/card@2x.jpg",
-								msg.Chat.Id,
-								$"{map.Title}\n{map.Stars:F2}*\n100% - {map.PP[10]}pp | 98% - {map.PP[8]}pp | 95% - {map.PP[5]}pp",
-								replyID: msg.MessageId) != null)
+							if (map != null)
 							{
 								ChatBeatmapCache.StoreMap(msg.Chat.Id, beatmapLinkData.ID);
+								return new ImageCommandAnswer
+								{
+									Image = $"https://assets.ppy.sh/beatmaps/{map.BeatmapSetId}/covers/card@2x.jpg",
+									Caption = $"{map.Title}\n{map.Stars:F2}*\n100% - {map.PP[10]}pp | 98% - {map.PP[8]}pp | 95% - {map.PP[5]}pp"
+								};
 							}
-
-							return string.Empty;
 						}
 					}
 					catch (Exception)
 					{
-						return Localization.Get("generic_fail", msg.Chat.Id);
+						return Localization.GetAnswer("generic_fail", msg.Chat.Id);
 					}
 				}
 			}
 
-			return Localization.Get("generic_badrequest", msg.Chat.Id);
+			return Localization.GetAnswer("generic_badrequest", msg.Chat.Id);
 		}
 	}
 }

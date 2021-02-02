@@ -1,4 +1,4 @@
-﻿// den0bot (c) StanR 2020 - MIT License
+﻿// den0bot (c) StanR 2021 - MIT License
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -6,6 +6,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using den0bot.Types;
 using den0bot.Util;
 using Newtonsoft.Json;
 using Telegram.Bot.Types;
@@ -205,7 +206,7 @@ namespace den0bot.Modules
 						{
 							linkAmount += node.Links.Count;
 						}
-						return Localization.FormatGet("shmalala_stats", msg.Chat.Id, markovChain.Nodes.Count, linkAmount);
+						return new TextCommandAnswer(Localization.FormatGet("shmalala_stats", msg.Chat.Id, markovChain.Nodes.Count, linkAmount));
 					}
 				},
 				new Command
@@ -214,7 +215,7 @@ namespace den0bot.Modules
 					Action = msg =>
 					{
 						markovChain.SaveToFile();
-						return "k cool";
+						return new TextCommandAnswer("k cool");
 					},
 					IsOwnerOnly = true
 				},
@@ -225,17 +226,17 @@ namespace den0bot.Modules
 					{
 						markovChain.DeleteFile();
 						markovChain = new MarkovChain();
-						return "Done!";
+						return new TextCommandAnswer("Done!");
 					},
 					IsAdminOnly = true
 				}
 			});
 		}
 
-		private string SendRandomMessage(Message msg)
+		private ICommandAnswer SendRandomMessage(Message msg)
 		{
 			if (!markovChain.Ready || markovChain.Nodes.Count <= min_nodes)
-				return Localization.Get("shmalala_notready", msg.Chat.Id);
+				return Localization.GetAnswer("shmalala_notready", msg.Chat.Id);
 
 			var textBuilder = new StringBuilder();
 
@@ -243,7 +244,7 @@ namespace den0bot.Modules
 			for (int i = 0; i < RNG.NextNoMemory(1, 4); i++)
 				textBuilder.Append(GenerateRandomSentence(default));
 
-			return textBuilder.ToString();
+			return new TextCommandAnswer(textBuilder.ToString());
 		}
 
 		private string GenerateRandomSentence(string startNode)

@@ -1,4 +1,4 @@
-﻿// den0bot (c) StanR 2020 - MIT License
+﻿// den0bot (c) StanR 2021 - MIT License
 using System;
 using System.Linq;
 using Telegram.Bot.Types;
@@ -6,6 +6,7 @@ using Newtonsoft.Json.Linq;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using den0bot.Util;
+using den0bot.Types;
 
 namespace den0bot.Modules
 {

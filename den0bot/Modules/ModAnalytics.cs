@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using den0bot.Analytics.Data;
 using den0bot.Analytics.Data.Types;
+using den0bot.Types;
 using den0bot.Util;
 
 namespace den0bot.Modules
@@ -22,13 +23,13 @@ namespace den0bot.Modules
 				new Command
 				{
 					Name = "compot",
-					Action = (msg) => $"https://stats.stanr.info/chat/{msg.Chat.Id}",
+					Action = (msg) => new TextCommandAnswer($"https://stats.stanr.info/chat/{msg.Chat.Id}"),
 					Reply = true
 				},
 				new Command
 				{
 					Name = "analyticsflush",
-					ActionAsync = async (msg) => { await Flush(); return "Ok"; },
+					ActionAsync = async (msg) => { await Flush(); return new TextCommandAnswer("Ok"); },
 					IsOwnerOnly = true
 				}
 			});
