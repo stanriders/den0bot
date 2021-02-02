@@ -115,6 +115,7 @@ namespace den0bot.DB
 
 							misc.GirlSeason++;
 							misc.GirlSeasonStartDate = girlSeasonStart.Value;
+							db.Update(misc);
 						}
 						girlSeason = misc.GirlSeason;
 					}

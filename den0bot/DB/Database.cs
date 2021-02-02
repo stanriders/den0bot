@@ -1,4 +1,4 @@
-﻿// den0bot (c) StanR 2020 - MIT License
+﻿// den0bot (c) StanR 2021 - MIT License
 
 using den0bot.DB.Types;
 using Microsoft.EntityFrameworkCore;
@@ -17,11 +17,6 @@ namespace den0bot.DB
 		protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 		{
 			optionsBuilder.UseSqlite($"Filename={database_path}");
-		}
-
-		protected override void OnModelCreating(ModelBuilder modelBuilder)
-		{
-			modelBuilder.Entity<Misc>().HasNoKey();
 		}
 
 		public DbSet<Chat> Chats { get; set; }
