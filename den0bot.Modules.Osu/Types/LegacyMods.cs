@@ -9,7 +9,7 @@ namespace den0bot.Modules.Osu.Types
 	[Flags]
 	public enum LegacyMods
 	{
-		None = 0,
+		NM = 0,
 		NF = 1,
 		EZ = 2,
 		TD = 4, // previously NoVideo, now TouchDevice

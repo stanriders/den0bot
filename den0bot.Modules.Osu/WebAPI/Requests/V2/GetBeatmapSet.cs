@@ -1,18 +1,13 @@
-﻿// den0bot (c) StanR 2020 - MIT License
-using System;
+﻿// den0bot (c) StanR 2021 - MIT License
 using den0bot.Modules.Osu.Types.V2;
 
 namespace den0bot.Modules.Osu.WebAPI.Requests.V2
 {
-	class GetBeatmapSet : IRequest
+	class GetBeatmapSet : IRequest<BeatmapSet, BeatmapSet>
 	{
 		public APIVersion API => APIVersion.V2;
 
 		public string Address => $"beatmapsets/{id}";
-
-		public Type ReturnType => typeof(BeatmapSet);
-
-		public bool ShouldReturnSingle => true;
 
 		private uint id;
 
@@ -20,5 +15,7 @@ namespace den0bot.Modules.Osu.WebAPI.Requests.V2
 		{
 			this.id = id;
 		}
+
+		public BeatmapSet Process(BeatmapSet data) => data;
 	}
 }

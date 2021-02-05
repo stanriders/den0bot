@@ -1,19 +1,14 @@
-﻿// den0bot (c) StanR 2020 - MIT License
-using System;
+﻿// den0bot (c) StanR 2021 - MIT License
 using System.Collections.Generic;
 using den0bot.Modules.Osu.Types.V2;
 
 namespace den0bot.Modules.Osu.WebAPI.Requests.V2
 {
-	public class GetUserScores : IRequest
+	public class GetUserScores : IRequest<List<Score>, List<Score>>
 	{
 		public APIVersion API => APIVersion.V2;
 
 		public string Address => $"users/{username}/scores/{type}?include_fails={includeFails.ToString().ToLower()}";
-
-		public Type ReturnType => typeof(List<Score>);
-
-		public bool ShouldReturnSingle => false;
 
 		private readonly string username;
 		private readonly string type;
@@ -25,6 +20,8 @@ namespace den0bot.Modules.Osu.WebAPI.Requests.V2
 			this.type = type.ToString().ToLower();
 			this.includeFails = includeFails;
 		}
+
+		public List<Score> Process(List<Score> data) => data;
 	}
 
 	public enum ScoreType

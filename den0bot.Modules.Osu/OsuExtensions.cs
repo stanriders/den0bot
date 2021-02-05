@@ -19,5 +19,13 @@ namespace den0bot.Modules.Osu
 
 			return res;
 		}
+
+		public static string[] ToArray(this LegacyMods value)
+		{
+			if (value == LegacyMods.NM)
+				return new string[0];
+
+			return value.ToString().Split(", ");
+		}
 	}
 }

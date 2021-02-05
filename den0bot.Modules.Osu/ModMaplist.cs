@@ -74,8 +74,8 @@ namespace den0bot.Modules.Osu
 				Beatmap map;
 				if (linkData.IsBeatmapset)
 				{
-					List<Beatmap> set = await WebApiHandler.MakeApiRequest(new GetBeatmapSet(linkData.ID));
-					map = set?.Last();
+					var set = await WebApiHandler.MakeApiRequest(new GetBeatmapSet(linkData.ID));
+					map = set?.Beatmaps.Last();
 				}
 				else
 				{
@@ -84,7 +84,7 @@ namespace den0bot.Modules.Osu
 
 				if (map != null)
 				{
-					string format = map.GetFormattedMapInfo(LegacyMods.None);
+					string format = map.GetFormattedMapInfo(LegacyMods.NM);
 					string caption = $"{maplist[num][0]} {format}";
 					if (caption.Length > 265) // 200 regular character limit + HTML
 					{

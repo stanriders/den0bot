@@ -1,5 +1,4 @@
-﻿// den0bot (c) StanR 2020 - MIT License
-using System;
+﻿// den0bot (c) StanR 2021 - MIT License
 
 namespace den0bot.Modules.Osu.WebAPI
 {
@@ -9,14 +8,12 @@ namespace den0bot.Modules.Osu.WebAPI
 		V2
 	}
 
-	public interface IRequest
+	public interface IRequest<In, Out>
 	{
 		APIVersion API { get; }
 
 		string Address { get; }
 
-		Type ReturnType { get; }
-
-		bool ShouldReturnSingle { get; }
+		Out Process(In data);
 	}
 }

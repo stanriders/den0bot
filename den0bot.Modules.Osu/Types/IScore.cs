@@ -17,6 +17,7 @@ namespace den0bot.Modules.Osu.Types
 		public abstract LegacyMods? LegacyMods { get; set; }
 		public abstract double? Pp { get; set; }
 
+		public int? LeaderboardPosition { get; set; }
 		public abstract IBeatmap Beatmap { get; set; }
 
 		public uint ComboBasedMissCount(uint maxCombo, uint countSliders)

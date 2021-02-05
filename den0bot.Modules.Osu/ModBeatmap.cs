@@ -1,12 +1,12 @@
 ﻿// den0bot (c) StanR 2021 - MIT License
-using den0bot.Modules.Osu.WebAPI.Requests.V2;
-using den0bot.Modules.Osu.Types;
 using den0bot.Modules.Osu.Types.V2;
+using den0bot.Modules.Osu.WebAPI;
+using den0bot.Modules.Osu.WebAPI.Requests.V2;
+using den0bot.Types;
 using den0bot.Util;
 using FFmpeg.NET;
 using Newtonsoft.Json;
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.Caching;
@@ -15,8 +15,6 @@ using Telegram.Bot.Types;
 using Telegram.Bot.Types.InputFiles;
 using Telegram.Bot.Types.ReplyMarkups;
 using File = System.IO.File;
-using den0bot.Modules.Osu.WebAPI;
-using den0bot.Types;
 
 namespace den0bot.Modules.Osu
 {
@@ -58,9 +56,9 @@ namespace den0bot.Modules.Osu
 					Beatmap map = null;
 					if (beatmapLinkData.IsBeatmapset)
 					{
-						List<Beatmap> set = await WebApiHandler.MakeApiRequest(new GetBeatmapSet(beatmapLinkData.ID));
-						if (set?.Count > 0)
-							map = set.Last();
+						var set = await WebApiHandler.MakeApiRequest(new GetBeatmapSet(beatmapLinkData.ID));
+						if (set?.Beatmaps.Count > 0)
+							map = set.Beatmaps.Last();
 					}
 					else
 					{
@@ -69,9 +67,13 @@ namespace den0bot.Modules.Osu
 
 					if (map != null)
 					{
-						var sentMessage = await API.SendPhoto(map.BeatmapSet.Covers.Cover2X, message.Chat.Id,
+						var sentMessage = await API.SendPhoto(map.BeatmapSet.Covers.Cover2X, 
+							message.Chat.Id, 
 							map.GetFormattedMapInfo(beatmapLinkData.Mods),
-							Telegram.Bot.Types.Enums.ParseMode.Html, 0, buttons);
+							Telegram.Bot.Types.Enums.ParseMode.Html, 
+							0, 
+							buttons);
+
 						if (sentMessage != null)
 						{
 							// we only store mapset id to spare the memory a bit
@@ -126,7 +128,7 @@ namespace den0bot.Modules.Osu
 				var beatmapLinkData = BeatmapLinkParser.Parse(msg.Text);
 				if (beatmapLinkData != null && !beatmapLinkData.IsBeatmapset)
 				{
-					var json = new { Map = beatmapLinkData.ID.ToString(), Mods = beatmapLinkData.Mods == LegacyMods.None ? new string[0] : beatmapLinkData.Mods.ToString().Split(", ") };
+					var json = new { Map = beatmapLinkData.ID.ToString(), Mods = beatmapLinkData.Mods.ToArray() };
 					try
 					{
 						var mapJson = await Web.PostJson("https://newpp.stanr.info/api/CalculateMap",

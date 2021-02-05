@@ -18,7 +18,7 @@ namespace den0bot.Modules.Osu
 
 	public static class BeatmapLinkParser
 	{
-		private static readonly Regex linkRegex = new(@"(?>https?:\/\/)?(?>osu|old)\.ppy\.sh\/([b,s]|(?>beatmaps)|(?>beatmapsets))\/(\d+)\/?\#?(\w+)?\/?(\d+)?\/?(?>[&,?].=\d)?\s?(?>\+(\w+))?", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+		private static readonly Regex linkRegex = new(@"(?>https?:\/\/)?(?>osu|old)\.ppy\.sh\/([b,s]|(?>beatmaps)|(?>beatmapsets))\/(\d+)\/?\#?(\w+)?\/?(\d+)?\/?(?>[&,?].+=\w+)?\s?(?>\+(\w+))?", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
 		public static BeatmapLinkData Parse(string link)
 		{
@@ -37,6 +37,11 @@ namespace den0bot.Modules.Osu
 				bool isNew = regexGroups[1].Value != "b" && regexGroups[1].Value != "s"; // are we using new website or not
 				bool isSet = regexGroups[1].Value == "beatmapset" || regexGroups[1].Value == "s";
 
+				var mods = ConvertToMods(regexGroups[5].Value);
+				var mode = Mode.Osu;
+				if (regexGroups[3].Value != null)
+					Enum.TryParse(regexGroups[3].Value.Capitalize(), out mode);
+
 				if (isNew)
 				{
 					if (isSet)
@@ -45,17 +50,18 @@ namespace den0bot.Modules.Osu
 						{
 							ID = uint.Parse(regexGroups[2].Value),
 							IsBeatmapset = isSet,
-							Mods = ConvertToMods(regexGroups[5].Value)
+							Mods = mods
 						};
 					}
 					else
 					{
 						return new BeatmapLinkData
 						{
-							ID = uint.Parse(regexGroups[4].Value),
+							// 'beatmaps' case is stupid and since it's literally one of a kind we're accounting for it here
+							ID = regexGroups[1].Value == "beatmaps" ? uint.Parse(regexGroups[2].Value) : uint.Parse(regexGroups[4].Value),
 							IsBeatmapset = false,
-							Mode = (Mode)Enum.Parse(typeof(Mode), regexGroups[3].Value.Capitalize()),
-							Mods = ConvertToMods(regexGroups[5].Value)
+							Mode = mode,
+							Mods = mods
 						};
 					}
 				}
@@ -65,7 +71,7 @@ namespace den0bot.Modules.Osu
 					{
 						ID = uint.Parse(regexGroups[2].Value),
 						IsBeatmapset = isSet,
-						Mods = ConvertToMods(regexGroups[5].Value)
+						Mods = mods
 					};
 				}
 			}
@@ -76,7 +82,7 @@ namespace den0bot.Modules.Osu
 		private static LegacyMods ConvertToMods(string mods)
 		{
 			if (string.IsNullOrEmpty(mods))
-				return LegacyMods.None;
+				return LegacyMods.NM;
 
 			if (Enum.TryParse(mods, true, out LegacyMods result) || string.IsNullOrEmpty(mods) || mods.Length > 36) // every mod combination possible
 				return result;

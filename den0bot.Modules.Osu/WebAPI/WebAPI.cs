@@ -1,4 +1,4 @@
-﻿// den0bot (c) StanR 2020 - MIT License
+﻿// den0bot (c) StanR 2021 - MIT License
 using System;
 using System.Threading.Tasks;
 using den0bot.Util;
@@ -12,7 +12,7 @@ namespace den0bot.Modules.Osu.WebAPI
 		private static string v2AccessToken = string.Empty;
 		private static DateTime v2AccessTokenExpiration = DateTime.Now;
 
-		public static async Task<dynamic> MakeApiRequest(IRequest request)
+		public static async Task<Out> MakeApiRequest<In, Out>(IRequest<In,Out> request)
 		{
 			return request.API switch
 			{
@@ -22,12 +22,12 @@ namespace den0bot.Modules.Osu.WebAPI
 			};
 		}
 
-		private static async Task<dynamic> V1ApiRequest(IRequest request)
+		private static async Task<Out> V1ApiRequest<In, Out>(IRequest<In, Out> request)
 		{
 			if (string.IsNullOrEmpty(Config.Params.osuToken))
 			{
 				Log.Error("API Key is not defined!");
-				return null;
+				return default(Out);
 			}
 
 			try
@@ -35,25 +35,23 @@ namespace den0bot.Modules.Osu.WebAPI
 				string json =
 					await Web.DownloadString($"https://osu.ppy.sh/api/{request.Address}&k={Config.Params.osuToken}");
 
-				dynamic deserializedObject = JsonConvert.DeserializeObject(json, request.ReturnType, settings: new JsonSerializerSettings { DateTimeZoneHandling = DateTimeZoneHandling.Utc });
-				if (request.ShouldReturnSingle)
-					return deserializedObject[0];
-
-				return deserializedObject;
+				var deserializedObject = JsonConvert.DeserializeObject<In>(json, new JsonSerializerSettings { DateTimeZoneHandling = DateTimeZoneHandling.Utc });
+				if (deserializedObject != null)
+					return request.Process(deserializedObject);
 			}
 			catch (Exception ex)
 			{
 				Log.Error(ex.InnerMessageIfAny());
-				return null;
 			}
+			return default(Out);
 		}
 
-		private static async Task<dynamic> V2ApiRequest(IRequest request)
+		private static async Task<Out> V2ApiRequest<In, Out>(IRequest<In, Out> request)
 		{
 			if (string.IsNullOrEmpty(Config.Params.osuClientId) || string.IsNullOrEmpty(Config.Params.osuClientSecret))
 			{
 				Log.Error("API Key is not defined!");
-				return null;
+				return default(Out);
 			}
 
 			if (string.IsNullOrEmpty(v2AccessToken) || v2AccessTokenExpiration < DateTime.Now)
@@ -81,19 +79,16 @@ namespace den0bot.Modules.Osu.WebAPI
 				{
 					string json = await Web.DownloadString($"https://osu.ppy.sh/api/v2/{request.Address}", v2AccessToken);
 
-					dynamic deserializedObject = JsonConvert.DeserializeObject(json, request.ReturnType, settings: new JsonSerializerSettings { DateTimeZoneHandling = DateTimeZoneHandling.Utc });
-					//if (request.ShouldReturnSingle)
-					//	return deserializedObject[0];
-
-					return deserializedObject;
+					var deserializedObject = JsonConvert.DeserializeObject<In>(json, new JsonSerializerSettings { DateTimeZoneHandling = DateTimeZoneHandling.Utc });
+					if (deserializedObject != null)
+						return request.Process(deserializedObject);
 				}
 				catch (Exception ex)
 				{
 					Log.Error(ex.InnerMessageIfAny());
-					return null;
 				}
 			}
-			return null;
+			return default(Out);
 		}
 	}
 }

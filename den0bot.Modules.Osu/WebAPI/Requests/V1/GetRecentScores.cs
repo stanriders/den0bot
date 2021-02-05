@@ -1,20 +1,14 @@
-﻿// den0bot (c) StanR 2020 - MIT License
-
-using System;
+﻿// den0bot (c) StanR 2021 - MIT License
 using System.Collections.Generic;
 using den0bot.Modules.Osu.Types.V1;
 
 namespace den0bot.Modules.Osu.WebAPI.Requests.V1
 {
-	public class GetRecentScores : IRequest
+	public class GetRecentScores : IRequest<List<Score>, List<Score>>
 	{
 		public APIVersion API => APIVersion.V1;
 
 		public string Address => $"get_user_recent?limit={amount}&u={username}";
-
-		public Type ReturnType => typeof(List<Score>);
-
-		public bool ShouldReturnSingle => false;
 
 		private string username;
 		private int amount;
@@ -24,5 +18,7 @@ namespace den0bot.Modules.Osu.WebAPI.Requests.V1
 			this.username = username;
 			this.amount = amount;
 		}
+
+		public List<Score> Process(List<Score> data) => data;
 	}
 }

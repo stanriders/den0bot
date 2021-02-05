@@ -94,7 +94,7 @@ namespace den0bot.Modules.Osu
 					{
 						// current game isnt the one we have stored and it ended already
 						if (followList[currentMatch].CurrentGameID != 0)
-							API.SendMessage(await formatMatchInfo(match), followList[currentMatch].ChatID, Telegram.Bot.Types.Enums.ParseMode.Html).NoAwait();
+							await API.SendMessage(await formatMatchInfo(match), followList[currentMatch].ChatID, Telegram.Bot.Types.Enums.ParseMode.Html);
 
 						followList[currentMatch].CurrentGameID = match.Games.Last().ID;
 					}

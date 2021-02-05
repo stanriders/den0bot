@@ -1,4 +1,4 @@
-﻿// den0bot (c) StanR 2020 - MIT License
+﻿// den0bot (c) StanR 2021 - MIT License
 using System;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
@@ -116,10 +116,10 @@ namespace den0bot.Modules.Osu.Types.V2
 				if (legacyMods != null)
 					return legacyMods;
 
-				var mods = Types.LegacyMods.None;
+				var mods = Types.LegacyMods.NM;
 				foreach (var mod in Mods)
 				{
-					mods |= (LegacyMods) Enum.Parse(typeof(LegacyMods), mod);
+					mods |= Enum.Parse<LegacyMods>(mod);
 				}
 
 				legacyMods = mods;

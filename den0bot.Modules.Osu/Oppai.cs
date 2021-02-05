@@ -26,11 +26,11 @@ namespace den0bot.Modules.Osu
 
 		public static double GetBeatmapPP(IBeatmap map, IScore score)
 		{
-			var pp = CalcPP(map, score.LegacyMods ?? LegacyMods.None, score.Accuracy, (int)score.Combo, (int)score.Misses, map.Ranked);
+			var pp = CalcPP(map, score.LegacyMods ?? LegacyMods.NM, score.Accuracy, (int)score.Combo, (int)score.Misses, map.Ranked);
 			return pp?.Total ?? -1;
 		}
 
-		private static PPv2 CalcPP(IBeatmap beatmap, LegacyMods mods = LegacyMods.None, double acc = -1, int combo = -1, int misses = 0, bool cache = false)
+		private static PPv2 CalcPP(IBeatmap beatmap, LegacyMods mods = LegacyMods.NM, double acc = -1, int combo = -1, int misses = 0, bool cache = false)
 		{
 			try
 			{

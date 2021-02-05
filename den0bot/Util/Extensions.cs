@@ -33,6 +33,9 @@ namespace den0bot.Util
 
 		public static string Capitalize(this string value)
 		{
+			if (string.IsNullOrEmpty(value))
+				return string.Empty;
+
 			return value.Substring(0, 1).ToUpperInvariant() + value.Substring(1);
 		}
 
