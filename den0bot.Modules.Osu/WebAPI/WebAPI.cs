@@ -1,6 +1,7 @@
 ﻿// den0bot (c) StanR 2021 - MIT License
 using System;
 using System.Threading.Tasks;
+using den0bot.Modules.Osu.Types.V2;
 using den0bot.Util;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -9,8 +10,7 @@ namespace den0bot.Modules.Osu.WebAPI
 {
 	public static class WebApiHandler
 	{
-		private static string v2AccessToken = string.Empty;
-		private static DateTime v2AccessTokenExpiration = DateTime.Now;
+		private static AccessToken v2AccessToken;
 
 		public static async Task<Out> MakeApiRequest<In, Out>(IRequest<In,Out> request)
 		{
@@ -54,7 +54,7 @@ namespace den0bot.Modules.Osu.WebAPI
 				return default(Out);
 			}
 
-			if (string.IsNullOrEmpty(v2AccessToken) || v2AccessTokenExpiration < DateTime.Now)
+			if (v2AccessToken == null || v2AccessToken.Expired)
 			{
 				var authRequest = new
 				{
@@ -67,17 +67,15 @@ namespace den0bot.Modules.Osu.WebAPI
 				string authJson = await Web.PostJson("https://osu.ppy.sh/oauth/token", JsonConvert.SerializeObject(authRequest));
 				if (!string.IsNullOrEmpty(authJson))
 				{
-					var authData = JToken.Parse(authJson);
-					v2AccessToken = authData["access_token"].ToString();
-					v2AccessTokenExpiration = DateTime.Now.AddSeconds(authData["expires_in"].Value<int>());
+					v2AccessToken = JsonConvert.DeserializeObject<AccessToken>(authJson);
 				}
 			}
 
-			if (!string.IsNullOrEmpty(v2AccessToken))
+			if (v2AccessToken != null)
 			{
 				try
 				{
-					string json = await Web.DownloadString($"https://osu.ppy.sh/api/v2/{request.Address}", v2AccessToken);
+					string json = await Web.DownloadString($"https://osu.ppy.sh/api/v2/{request.Address}", v2AccessToken.Token);
 
 					var deserializedObject = JsonConvert.DeserializeObject<In>(json, new JsonSerializerSettings { DateTimeZoneHandling = DateTimeZoneHandling.Utc });
 					if (deserializedObject != null)
