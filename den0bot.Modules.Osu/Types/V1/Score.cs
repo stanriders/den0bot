@@ -1,6 +1,7 @@
 ﻿// den0bot (c) StanR 2020 - MIT License
 
 using System;
+using den0bot.Modules.Osu.Types.Enums;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 
@@ -16,7 +17,7 @@ namespace den0bot.Modules.Osu.Types.V1
 		public uint UserID { get; set; }
 
 		[JsonProperty("date")]
-		public override DateTime Date { get; set; }
+		public override DateTime? Date { get; set; }
 
 		[JsonProperty("maxcombo")]
 		public override uint Combo { get; set; }
@@ -25,7 +26,7 @@ namespace den0bot.Modules.Osu.Types.V1
 		public short Perfect { get; set; }
 
 		[JsonProperty("score")]
-		public uint ScorePoints { get; set; }
+		public override uint Points { get; set; }
 		[JsonProperty("count300")]
 		public override uint Count300 { get; set; }
 		[JsonProperty("count100")]
@@ -44,7 +45,7 @@ namespace den0bot.Modules.Osu.Types.V1
 
 		[JsonProperty("rank")]
 		[JsonConverter(typeof(StringEnumConverter))]
-		public override ScoreGrade Grade { get; set; }
+		public override ScoreGrade? Grade { get; set; }
 
 		[JsonProperty("pp")]
 		public override double? Pp { get; set; }

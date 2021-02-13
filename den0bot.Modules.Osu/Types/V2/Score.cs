@@ -1,5 +1,6 @@
 ﻿// den0bot (c) StanR 2021 - MIT License
 using System;
+using den0bot.Modules.Osu.Types.Enums;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 
@@ -13,6 +14,9 @@ namespace den0bot.Modules.Osu.Types.V2
 		[JsonProperty("user")]
 		public UserShort User { get; set; }
 
+		[JsonProperty("user_id")]
+		public uint UserId { get; set; }
+
 		[JsonProperty("beatmap")]
 		public BeatmapShort BeatmapShort { get; set; }
 
@@ -21,7 +25,7 @@ namespace den0bot.Modules.Osu.Types.V2
 
 		[JsonProperty("rank")]
 		[JsonConverter(typeof(StringEnumConverter))]
-		public override ScoreGrade Grade { get; set; }
+		public override ScoreGrade? Grade { get; set; }
 
 		[JsonProperty("pp")]
 		public override double? Pp { get; set; }
@@ -58,7 +62,10 @@ namespace den0bot.Modules.Osu.Types.V2
 		public string[] Mods { get; set; }
 
 		[JsonProperty("created_at")]
-		public override DateTime Date { get; set; }
+		public override DateTime? Date { get; set; }
+
+		[JsonProperty("score")]
+		public override uint Points { get; set; }
 
 		[JsonProperty("statistics")]
 		public ScoreStatistics Statistics { get; set; }
@@ -82,6 +89,22 @@ namespace den0bot.Modules.Osu.Types.V2
 
 			[JsonProperty("count_miss")]
 			public uint CountMiss { get; set; }
+		}
+
+		[JsonProperty("match")]
+		public MultiplayerData MatchData { get; set; }
+
+		public class MultiplayerData
+		{
+			[JsonProperty("slot")]
+			public uint Slot { get; set; }
+
+			[JsonProperty("team")]
+			[JsonConverter(typeof(StringEnumConverter))]
+			public Team Team { get; set; }
+
+			[JsonProperty("pass")]
+			public bool Pass { get; set; }
 		}
 
 		public override uint Count300
@@ -116,7 +139,7 @@ namespace den0bot.Modules.Osu.Types.V2
 				if (legacyMods != null)
 					return legacyMods;
 
-				var mods = Types.LegacyMods.NM;
+				var mods = Enums.LegacyMods.NM;
 				foreach (var mod in Mods)
 				{
 					mods |= Enum.Parse<LegacyMods>(mod);

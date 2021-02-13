@@ -1,7 +1,7 @@
-﻿// den0bot (c) StanR 2020 - MIT License
+﻿// den0bot (c) StanR 2021 - MIT License
 using System;
 
-namespace den0bot.Modules.Osu.Types
+namespace den0bot.Modules.Osu.Types.Enums
 {
 	/// <summary>
 	/// Bitwise list of all mods
@@ -22,24 +22,10 @@ namespace den0bot.Modules.Osu.Types
 		FL = 1024,
 		SO = 4096,
 		PF = 16384, // Only set along with SuddenDeath. i.e: PF only gives 16416  
+		FI = 1048576, // mania
+		Random = 2097152, // mania
 		V2 = 536870912,
 
 		DifficultyChanging = NC | HT | DT | HR | EZ, // FL changes difficulty but osu! api doesn't think so
-
-		/*
-		Key4 = 32768,
-		Key5 = 65536,
-		Key6 = 131072,
-		Key7 = 262144,
-		Key8 = 524288,
-		FadeIn = 1048576,
-		Random = 2097152,
-		LastMod = 4194304,
-		Key9 = 16777216,
-		Key10 = 33554432,
-		Key1 = 67108864,
-		Key3 = 134217728,
-		Key2 = 268435456
-		*/
 	}
 }

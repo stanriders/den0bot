@@ -1,6 +1,7 @@
 ﻿// den0bot (c) StanR 2021 - MIT License
 using System.Collections.Generic;
 using den0bot.Modules.Osu.Types;
+using den0bot.Modules.Osu.Types.Enums;
 using den0bot.Modules.Osu.Types.V1;
 
 namespace den0bot.Modules.Osu.WebAPI.Requests.V1

@@ -1,5 +1,6 @@
 ﻿// den0bot (c) StanR 2021 - MIT License
 using System;
+using den0bot.Modules.Osu.Types.Enums;
 using den0bot.Util;
 
 namespace den0bot.Modules.Osu.Types

@@ -2,11 +2,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using den0bot.Modules.Osu.Parsers;
+using den0bot.Modules.Osu.Types.Enums;
 using Telegram.Bot.Types;
-using den0bot.Modules.Osu.WebAPI.Requests.V1;
-using den0bot.Modules.Osu.Types.V1;
+using den0bot.Modules.Osu.WebAPI.Requests.V2;
+using den0bot.Modules.Osu.Types.V2;
 using den0bot.Util;
 using den0bot.Modules.Osu.WebAPI;
 using den0bot.Types;
@@ -17,21 +18,26 @@ namespace den0bot.Modules.Osu
 	{
 		private class FollowedMatch
 		{
-			public ulong MatchID { get; init; }
-			public long ChatID { get; init; }
-			public uint CurrentGameID { get; set; }
+			public ulong MatchId { get; init; }
+			public long ChatId { get; init; }
+			public uint CurrentEventId { get; set; }
+			public MatchTeamStatus Status { get; set; }
+		}
+
+		private class MatchTeamStatus
+		{
+			public uint RedScore { get; set; }
+			public uint BlueScore { get; set; }
+			public MatchTeamNames Teams { get; set; }
 		}
 
 		private readonly List<FollowedMatch> followList = new();
 		private DateTime nextCheck = DateTime.Now;
 
-		private int currentMatch = 0;
+		private int currentMatchId = 0;
 		private bool updating = false;
 
-		private readonly Regex matchLinkRegex = new(@"(?>https?:\/\/)?osu\.ppy\.sh\/community\/matches\/(\d+)", RegexOptions.Compiled | RegexOptions.IgnoreCase);
-		private readonly Regex matchNameRegex = new(@".+: ?\((.+)\) ?vs ?\((.+)\)", RegexOptions.Compiled | RegexOptions.IgnoreCase);
-
-		private readonly int update_time = 5; //seconds
+		private readonly int update_time = 1; //seconds
 
 		public ModMatchFollow()
 		{
@@ -45,22 +51,20 @@ namespace den0bot.Modules.Osu
 			});
 		}
 		private ICommandAnswer StartFollowing(Message msg)
-		{
-			Match regexMatch = matchLinkRegex.Match(msg.Text);
-			if (regexMatch.Groups.Count > 1)
+		{ 
+			ulong? matchId = MatchLinkParser.Parse(msg.Text)?.Id;
+			if (matchId != null)
 			{
-				List<Group> regexGroups = regexMatch.Groups.OfType<Group>().Where(x => x.Length > 0).ToList();
-
-				ulong matchID = ulong.Parse(regexGroups[1].Value);
 				var match = new FollowedMatch
 				{
-					MatchID = matchID,
-					ChatID = msg.Chat.Id,
-					CurrentGameID = 0
+					MatchId = matchId.Value,
+					ChatId = msg.Chat.Id,
+					CurrentEventId = 0
 				};
 				followList.Add(match);
 				return Localization.GetAnswer("matchfollow_added", msg.Chat.Id);
 			}
+
 			return null;
 		}
 
@@ -78,120 +82,170 @@ namespace den0bot.Modules.Osu
 		{
 			nextCheck = DateTime.Now.AddSeconds(update_time);
 
-			if (currentMatch >= followList.Count)
-				currentMatch = 0;
+			if (currentMatchId >= followList.Count)
+				currentMatchId = 0;
 
-			var match = await WebApiHandler.MakeApiRequest(new GetMatch(followList[currentMatch].MatchID));
-			if (match.Games.Count > 0)
+			var updatingMatch = followList[currentMatchId];
+
+			var match = await WebApiHandler.MakeApiRequest(new GetMatch(updatingMatch.MatchId));
+			if (match.Events.Length > 0)
 			{
-				if (match.Info.EndTime != null)
-					followList.RemoveAt(currentMatch);
-				else
+				if (match.Info.EndTime == null)
 				{
 					// match still running
-					if (match.Games.Last().ID != followList[currentMatch].CurrentGameID &&
-						match.Games.Last().EndTime != null)
+					var latestEvent = match.Events.Last();
+					if (latestEvent.Id != updatingMatch.CurrentEventId && latestEvent.Game?.EndTime != null)
 					{
-						// current game isnt the one we have stored and it ended already
-						if (followList[currentMatch].CurrentGameID != 0)
-							await API.SendMessage(await formatMatchInfo(match), followList[currentMatch].ChatID, Telegram.Bot.Types.Enums.ParseMode.Html);
+						// current event isnt the one we have stored and it ended already
 
-						followList[currentMatch].CurrentGameID = match.Games.Last().ID;
+						if (updatingMatch.Status == null && latestEvent.Game?.TeamMode >= TeamMode.Team)
+						{
+							uint redTotalScore = 0, blueTotalScore = 0;
+							foreach (var g in match.Events.Select(x => x.Game))
+							{
+								var redGameScore = g.Scores.Where(x => x.MatchData.Team == Team.Red).Sum(x => x.Points);
+								var blueGameScore = g.Scores.Where(x => x.MatchData.Team == Team.Blue).Sum(x => x.Points);
+
+								if (redGameScore > blueGameScore)
+									redTotalScore++;
+								else
+									blueTotalScore++;
+							}
+
+							updatingMatch.Status = new MatchTeamStatus
+							{
+								RedScore = redTotalScore,
+								BlueScore = blueTotalScore,
+								Teams = MatchTeamsParser.Parse(match.Info.Name)
+							};
+						}
+
+						var matchInfo =
+							$"<a href=\"https://osu.ppy.sh/community/matches/{match.Info.Id}\">{match.Info.Name}</a>{Environment.NewLine}";
+
+						if (updatingMatch.CurrentEventId != 0)
+						{
+							if (latestEvent.Game?.Scores != null)
+							{
+								switch (latestEvent.Game.TeamMode)
+								{
+									case TeamMode.HeadToHead:
+									case TeamMode.Tag:
+										matchInfo += formatHeadToHeadGame(match);
+										break;
+									case TeamMode.Team:
+									case TeamMode.TeamTag:
+										matchInfo += formatTeamGame(match, updatingMatch.Status);
+										break;
+									default:
+										throw new ArgumentException();
+								}
+
+							}
+						}
+
+						await API.SendMessage(matchInfo, updatingMatch.ChatId, Telegram.Bot.Types.Enums.ParseMode.Html);
+
+						updatingMatch.CurrentEventId = latestEvent.Id;
 					}
 				}
+				else
+				{ 
+					// match has ended
+					followList.RemoveAt(currentMatchId);
+				}
 			}
-			currentMatch++;
+			currentMatchId++;
 		}
 
 		public async Task ReceiveMessage(Message message)
 		{
-			if (!string.IsNullOrEmpty(message.Text))
+			var matchId = MatchLinkParser.Parse(message.Text)?.Id;
+			if (matchId != null)
 			{
-				Match regexMatch = matchLinkRegex.Match(message.Text);
-				if (regexMatch.Groups.Count > 1)
+				var match = await WebApiHandler.MakeApiRequest(new GetMatch(matchId.Value));
+				if (match?.Events.Length > 0)
 				{
-					List<Group> regexGroups = regexMatch.Groups.OfType<Group>().Where(x => x.Length > 0).ToList();
-					if (regexGroups.Count > 0 && ulong.TryParse(regexGroups[1].Value, out var matchID))
+					var matchInfo =
+						$"<a href=\"https://osu.ppy.sh/community/matches/{match.Info.Id}\">{match.Info.Name}</a>{Environment.NewLine}";
+
+					var latestEvent = match.Events.Last();
+					if (latestEvent.Game?.Scores != null)
 					{
-						var match = await WebApiHandler.MakeApiRequest(new GetMatch(matchID));
-						if (match?.Games.Count > 0)
-							await API.SendMessage(await formatMatchInfo(match), message.Chat.Id,
-								Telegram.Bot.Types.Enums.ParseMode.Html);
+						switch (latestEvent.Game.TeamMode)
+						{
+							case TeamMode.HeadToHead:
+							case TeamMode.Tag:
+								matchInfo += formatHeadToHeadGame(match);
+								break;
+							case TeamMode.Team:
+							case TeamMode.TeamTag:
+								matchInfo += formatTeamGame(match, null);
+								break;
+							default:
+								throw new ArgumentException();
+						}
+
 					}
+
+					await API.SendMessage(matchInfo, message.Chat.Id, Telegram.Bot.Types.Enums.ParseMode.Html);
 				}
 			}
 		}
 
-		private async Task<string> formatMatchInfo(MultiplayerMatch match)
+		private string formatHeadToHeadGame(Match match)
 		{
 			string gamesString = string.Empty;
+			var game = match.Events.Select(x => x.Game).Last(x => x.EndTime != null);
+			var scores = game.Scores.OrderByDescending(x => x.Points).ToList();
 
-			List<MultiplayerMatch.Game> games = match.Games;
-			var game = games.Last(x => x.EndTime != null);
-			if (game?.Scores != null)
+			gamesString += $"{Environment.NewLine}{game.Beatmap.BeatmapSet.Artist} - {game.Beatmap.BeatmapSet.Title}[{game.Beatmap.Version}]{Environment.NewLine}";
+			for (int i = 0; i < scores.Count; i++)
 			{
-				Map map = await WebApiHandler.MakeApiRequest(new GetBeatmap(game.BeatmapID));
-				if (game.TeamMode >= MultiplayerMatch.TeamMode.Team)
+				if (scores[i].Points != 0)
 				{
-					int blueTotalScore = 0, redTotalScore = 0;
-					string blueTeamName = "Blue team", redTeamName = "Red team";
-
-					Match regexMatch = matchNameRegex.Match(match.Info.Name);
-					if (regexMatch.Groups.Count == 3)
-					{
-						redTeamName = regexMatch.Groups[1].Value;
-						blueTeamName = regexMatch.Groups[2].Value;
-					}
-
-					foreach (var g in match.Games)
-					{
-						var redGameScore = g.Scores.Where(x => x.Team == Team.Red).Sum(x => x.ScorePoints);
-						var blueGameScore = g.Scores.Where(x => x.Team == Team.Blue).Sum(x => x.ScorePoints);
-
-						if (redGameScore > blueGameScore)
-							redTotalScore++;
-						else
-							blueTotalScore++;
-					}
-
-					List <Score> allScores = game.Scores
-						.OrderByDescending(x => x.ScorePoints)
-						.ThenByDescending(x => x.Team)
-						.ToList();
-
-					gamesString += $"{redTeamName} {redTotalScore} | {blueTeamName} {blueTotalScore}{Environment.NewLine}{Environment.NewLine}" +
-					               $"<b>{map.Artist} - {map.Title} [{map.Version}]</b>{Environment.NewLine}";
-
-					foreach (var score in allScores)
-					{
-						if (score.ScorePoints > 0)
-						{
-							Player player = await WebApiHandler.MakeApiRequest(new GetUser(score.UserID.ToString()));
-							gamesString += $" {(score.Team == Team.Red ? "🔴" : "🔵")} <b>{player.Username}</b>: {score.ScorePoints} ({score.Combo}x, {score.Accuracy:N2}%{(score.IsPass ? "" : ", failed")}){Environment.NewLine}";
-						}
-					}
-
-					var redScore = allScores.Where(x => x.Team == Team.Red).Sum(x => x.ScorePoints);
-					var blueScore = allScores.Where(x => x.Team == Team.Blue).Sum(x => x.ScorePoints);
-
-					gamesString += $"<b>{(redScore > blueScore ? redTeamName : blueTeamName)}</b> wins by <b>{Math.Abs(redScore - blueScore)}</b> points!";
-				}
-				else if(game.TeamMode >= MultiplayerMatch.TeamMode.HeadToHead)
-				{
-					var scores = game.Scores.OrderByDescending(x => x.ScorePoints).ToList();
-
-					gamesString += $"{Environment.NewLine}{map.Artist} - {map.Title}[{map.Version}]{Environment.NewLine}";
-					for (int i = 0; i < scores.Count; i++)
-					{
-						if (scores[i].ScorePoints != 0)
-						{
-							Player player = await WebApiHandler.MakeApiRequest(new GetUser(scores[i].UserID.ToString()));
-							gamesString += $"{i + 1}. <b>{player.Username}</b>: {scores[i].ScorePoints} ({scores[i].Combo}x, {scores[i].Accuracy:N2}%{(scores[i].IsPass ? "" : ", failed")}){Environment.NewLine}";
-						}
-					}
+					var player = match.Users.First(x => x.Id == scores[i].UserId);
+					gamesString += $"{i + 1}. <b>{player.Username}</b>: {scores[i].Points} ({scores[i].Combo}x, {scores[i].Accuracy:N2}%{(scores[i].MatchData.Pass ? "" : ", failed")}){Environment.NewLine}";
 				}
 			}
-			return $"<a href=\"https://osu.ppy.sh/community/matches/{match.Info.ID}\">{match.Info.Name}</a>{Environment.NewLine}{gamesString}";
+
+			return gamesString;
+		}
+
+		private string formatTeamGame(Match match, MatchTeamStatus status)
+		{
+			string gamesString = string.Empty;
+			var game = match.Events.Select(x => x.Game).Last(x => x.EndTime != null);
+
+			List<Score> allScores = game.Scores
+				.OrderByDescending(x => x.Points)
+				.ThenByDescending(x => x.MatchData.Team)
+				.ToList();
+
+			gamesString += $"{status.Teams.RedTeam} {status.RedScore} | {status.Teams.BlueTeam} {status.BlueScore}{Environment.NewLine}{Environment.NewLine}" +
+			               $"<b>{game.Beatmap.BeatmapSet.Artist} - {game.Beatmap.BeatmapSet.Title} [{game.Beatmap.Version}]</b>{Environment.NewLine}";
+
+			foreach (var score in allScores)
+			{
+				if (score.Points > 0)
+				{
+					var player = match.Users.First(x => x.Id == score.UserId);
+					gamesString += $" {(score.MatchData.Team == Team.Red ? "🔴" : "🔵")} <b>{player.Username}</b>: {score.Points} ({score.Combo}x, {score.Accuracy:N2}%{(score.MatchData.Pass ? "" : ", failed")}){Environment.NewLine}";
+				}
+			}
+
+			var redScore = allScores.Where(x => x.MatchData.Team == Team.Red).Sum(x => x.Points);
+			var blueScore = allScores.Where(x => x.MatchData.Team == Team.Blue).Sum(x => x.Points);
+
+			var redWon = redScore > blueScore;
+			if (redWon)
+				status.RedScore++;
+			else
+				status.BlueScore++;
+
+			gamesString += $"<b>{(redWon ? status.Teams.RedTeam : status.Teams.BlueTeam)}</b> wins by <b>{Math.Abs(redScore - blueScore)}</b> points!";
+
+			return gamesString;
 		}
 	}
 }

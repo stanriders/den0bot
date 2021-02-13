@@ -1,8 +1,7 @@
-﻿// den0bot (c) StanR 2020 - MIT License
+﻿// den0bot (c) StanR 2021 - MIT License
 using System.ComponentModel;
 
-
-namespace den0bot.Modules.Osu.Types
+namespace den0bot.Modules.Osu.Types.Enums
 {
 	public enum ScoreGrade
 	{

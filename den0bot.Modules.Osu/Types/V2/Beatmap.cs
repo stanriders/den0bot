@@ -1,5 +1,6 @@
 ﻿// den0bot (c) StanR 2021 - MIT License
 using System;
+using den0bot.Modules.Osu.Types.Enums;
 using den0bot.Util;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
@@ -66,6 +67,9 @@ namespace den0bot.Modules.Osu.Types.V2
 
 		[JsonProperty("ranked")]
 		public override bool Ranked { get; set; }
+
+		[JsonProperty("beatmapset")]
+		public BeatmapSetShort BeatmapSet { get; set; }
 
 		/*
             "convert": false,
@@ -139,9 +143,6 @@ namespace den0bot.Modules.Osu.Types.V2
 
 	public class Beatmap : BeatmapShort
 	{
-		[JsonProperty("beatmapset")]
-		public BeatmapSetShort BeatmapSet { get; set; }
-
 		[JsonProperty("max_combo")]
 		public override uint? MaxCombo { get; set; }
 

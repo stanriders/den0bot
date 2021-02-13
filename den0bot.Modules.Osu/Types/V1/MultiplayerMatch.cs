@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using den0bot.Modules.Osu.Types.Enums;
 using Newtonsoft.Json;
 
 namespace den0bot.Modules.Osu.Types.V1
@@ -56,19 +57,7 @@ namespace den0bot.Modules.Osu.Types.V1
 			[JsonProperty("scores")]
 			public List<Score> Scores;
 		}
-		public enum ScoringType
-		{
-			ScoreV1,
-			Accuracy,
-			Combo,
-			ScoreV2
-		}
-		public enum TeamMode
-		{
-			HeadToHead,
-			Tag,
-			Team,
-			TeamTag
-		}
+		
+		
 	}
 }
