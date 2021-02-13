@@ -11,6 +11,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.Caching;
 using System.Threading.Tasks;
+using den0bot.Modules.Osu.Parsers;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.InputFiles;
 using Telegram.Bot.Types.ReplyMarkups;

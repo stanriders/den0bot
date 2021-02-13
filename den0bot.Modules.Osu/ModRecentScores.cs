@@ -5,9 +5,11 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using den0bot.DB;
+using den0bot.Modules.Osu.Parsers;
 using den0bot.Modules.Osu.WebAPI;
 using den0bot.Modules.Osu.WebAPI.Requests.V2;
 using den0bot.Modules.Osu.Types;
+using den0bot.Modules.Osu.Types.Enums;
 using den0bot.Modules.Osu.Types.V2;
 using den0bot.Util;
 using Telegram.Bot.Types.Enums;
@@ -17,9 +19,6 @@ namespace den0bot.Modules.Osu
 {
 	public class ModRecentScores : IModule
 	{
-		private readonly Regex profileRegex = new(@"(?>https?:\/\/)?(?>osu|old)\.ppy\.sh\/u(?>sers)?\/(\d+|\S+)",
-			RegexOptions.Compiled | RegexOptions.IgnoreCase);
-
 		private const int recent_amount = 5;
 		private const int score_amount = 5;
 
@@ -221,11 +220,8 @@ namespace den0bot.Modules.Osu
 			{
 				using (var db = new DatabaseOsu())
 				{
-					string player;
-					Match regexMatch = profileRegex.Match(message.Text);
-					if (regexMatch.Groups.Count > 1)
-						player = regexMatch.Groups[1]?.Value;
-					else
+					string player = ProfileLinkParser.Parse(message.Text)?.Id;
+					if (string.IsNullOrEmpty(player))
 						player = message.Text.Substring(7);
 
 					if (!string.IsNullOrEmpty(player))
@@ -306,14 +302,12 @@ namespace den0bot.Modules.Osu
 			if (score.LegacyMods != LegacyMods.NM)
 				mods = $" +{score.LegacyMods?.ReadableMods()}";
 
-			string date = score.Date.ToShortDateString();
-			if (useAgo)
+			string date = score.Date?.ToShortDateString();
+			if (useAgo && score.Date != null)
 			{
-				TimeSpan ago = DateTime.Now.ToUniversalTime() - score.Date;
+				TimeSpan ago = DateTime.Now.ToUniversalTime() - score.Date.Value;
 				date = $"{ago:hh\\:mm\\:ss} ago";
 			}
-
-			string result;
 
 			Beatmap beatmap = (Beatmap)score.Beatmap;
 			// html-filtered map title
@@ -366,12 +360,10 @@ namespace den0bot.Modules.Osu
 			if (useAgo)
 				completion = $" | {(double)(score.Count300 + score.Count100 + score.Count50 + score.Misses) / score.Beatmap.ObjectsTotal * 100.0:N1}% completion";
 
-			result =
+			return
 				$"<b>({score.Grade.GetDescription()})</b> <a href=\"{score.Beatmap.Link}\">{mapInfo}</a><b>{mods} ({score.Accuracy:N2}%)</b>{Environment.NewLine}" +
 				$"{score.Combo}/{beatmap.MaxCombo}x ({score.Count300} / {score.Count100} / {score.Count50} / {score.Misses}) {pp}{Environment.NewLine}" +
 				$"{position}{date}{completion}{Environment.NewLine}{Environment.NewLine}";
-
-			return result;
 		}
 	}
 }

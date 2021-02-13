@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using den0bot.Modules.Osu.Parsers;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using den0bot.Modules.Osu.WebAPI.Requests.V2;
@@ -17,7 +18,6 @@ namespace den0bot.Modules.Osu
 {
 	public class ModProfile : IModule, IReceiveAllMessages
 	{
-		private readonly Regex regex = new(@"(?>https?:\/\/)?(?>osu|old)\.ppy\.sh\/u(?>sers)?\/(\d+|\S+)", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 		private readonly int topscores_to_show = 3;
 		public ModProfile()
 		{
@@ -33,22 +33,11 @@ namespace den0bot.Modules.Osu
 		{
 			if (!string.IsNullOrEmpty(message.Text))
 			{
-				string playerID = GetPlayerIdFromMessage(message.Text);
+				string playerID = ProfileLinkParser.Parse(message.Text)?.Id;
 				if (!string.IsNullOrEmpty(playerID))
 					await API.SendMessage(await FormatPlayerInfo(playerID), message.Chat.Id, ParseMode.Html,
 											message.MessageId, null, false);
 			}
-		}
-
-		private string GetPlayerIdFromMessage(string text)
-		{
-			Match regexMatch = regex.Match(text);
-			if (regexMatch.Groups.Count > 1)
-			{
-				return regexMatch.Groups[1].Value;
-			}
-
-			return string.Empty;
 		}
 
 		private async Task<string> FormatPlayerInfo(string playerID)
@@ -124,7 +113,7 @@ namespace den0bot.Modules.Osu
 			{
 				if (msg.Text.Length > 11)
 				{
-					string player = GetPlayerIdFromMessage(msg.Text);
+					string player = ProfileLinkParser.Parse(msg.Text)?.Id;
 					if (!string.IsNullOrEmpty(player))
 					{
 						var result = await FormatRebalanceProfile(player);

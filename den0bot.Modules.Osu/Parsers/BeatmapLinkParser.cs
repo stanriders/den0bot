@@ -1,12 +1,13 @@
 ﻿// den0bot (c) StanR 2021 - MIT License
+
 using System;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
-using den0bot.Modules.Osu.Types;
+using den0bot.Modules.Osu.Types.Enums;
 using den0bot.Util;
 
-namespace den0bot.Modules.Osu
+namespace den0bot.Modules.Osu.Parsers
 {
 	public class BeatmapLinkData
 	{
@@ -20,9 +21,12 @@ namespace den0bot.Modules.Osu
 	{
 		private static readonly Regex linkRegex = new(@"(?>https?:\/\/)?(?>osu|old)\.ppy\.sh\/([b,s]|(?>beatmaps)|(?>beatmapsets))\/(\d+)\/?\#?(\w+)?\/?(\d+)?\/?(?>[&,?].+=\w+)?\s?(?>\+(\w+))?", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
-		public static BeatmapLinkData Parse(string link)
+		public static BeatmapLinkData Parse(string text)
 		{
-			Match regexMatch = linkRegex.Match(link);
+			if (string.IsNullOrEmpty(text))
+				return null;
+
+			Match regexMatch = linkRegex.Match(text);
 			if (regexMatch.Groups.Count > 1)
 			{
 				var regexGroups = regexMatch.Groups.Values.ToArray();
@@ -39,7 +43,7 @@ namespace den0bot.Modules.Osu
 
 				var mods = ConvertToMods(regexGroups[5].Value);
 				var mode = Mode.Osu;
-				if (regexGroups[3].Value != null)
+				if (!string.IsNullOrEmpty(regexGroups[3].Value))
 					Enum.TryParse(regexGroups[3].Value.Capitalize(), out mode);
 
 				if (isNew)
