@@ -9,7 +9,7 @@ namespace den0bot.Modules.Osu.Types.V2
 	public class Score : IScore
 	{
 		[JsonProperty("id")]
-		public ulong Id { get; set; }
+		public ulong? Id { get; set; }
 
 		[JsonProperty("user")]
 		public UserShort User { get; set; }

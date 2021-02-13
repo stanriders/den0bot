@@ -93,54 +93,31 @@ namespace den0bot.Modules.Osu
 				if (match.Info.EndTime == null)
 				{
 					// match still running
-					var latestEvent = match.Events.Last();
-					if (latestEvent.Id != updatingMatch.CurrentEventId && latestEvent.Game?.EndTime != null)
+					var latestEvent = match.Events.Last(x=> x.Game != null);
+					if (latestEvent.Id != updatingMatch.CurrentEventId && latestEvent.Game.EndTime != null)
 					{
 						// current event isnt the one we have stored and it ended already
 
 						if (updatingMatch.Status == null && latestEvent.Game?.TeamMode >= TeamMode.Team)
-						{
-							uint redTotalScore = 0, blueTotalScore = 0;
-							foreach (var g in match.Events.Select(x => x.Game))
-							{
-								var redGameScore = g.Scores.Where(x => x.MatchData.Team == Team.Red).Sum(x => x.Points);
-								var blueGameScore = g.Scores.Where(x => x.MatchData.Team == Team.Blue).Sum(x => x.Points);
-
-								if (redGameScore > blueGameScore)
-									redTotalScore++;
-								else
-									blueTotalScore++;
-							}
-
-							updatingMatch.Status = new MatchTeamStatus
-							{
-								RedScore = redTotalScore,
-								BlueScore = blueTotalScore,
-								Teams = MatchTeamsParser.Parse(match.Info.Name)
-							};
-						}
+							updatingMatch.Status = PopulateMatchTeamStatus(match);
 
 						var matchInfo =
 							$"<a href=\"https://osu.ppy.sh/community/matches/{match.Info.Id}\">{match.Info.Name}</a>{Environment.NewLine}";
 
 						if (updatingMatch.CurrentEventId != 0)
 						{
-							if (latestEvent.Game?.Scores != null)
+							switch (latestEvent.Game.TeamMode)
 							{
-								switch (latestEvent.Game.TeamMode)
-								{
-									case TeamMode.HeadToHead:
-									case TeamMode.Tag:
-										matchInfo += formatHeadToHeadGame(match);
-										break;
-									case TeamMode.Team:
-									case TeamMode.TeamTag:
-										matchInfo += formatTeamGame(match, updatingMatch.Status);
-										break;
-									default:
-										throw new ArgumentException();
-								}
-
+								case TeamMode.HeadToHead:
+								case TeamMode.Tag:
+									matchInfo += FormatHeadToHeadGame(match);
+									break;
+								case TeamMode.Team:
+								case TeamMode.TeamTag:
+									matchInfo += FormatTeamGame(match, updatingMatch.Status);
+									break;
+								default:
+									throw new ArgumentException();
 							}
 						}
 
@@ -169,23 +146,19 @@ namespace den0bot.Modules.Osu
 					var matchInfo =
 						$"<a href=\"https://osu.ppy.sh/community/matches/{match.Info.Id}\">{match.Info.Name}</a>{Environment.NewLine}";
 
-					var latestEvent = match.Events.Last();
-					if (latestEvent.Game?.Scores != null)
+					var latestEvent = match.Events.Last(x=> x.Game != null);
+					switch (latestEvent.Game.TeamMode)
 					{
-						switch (latestEvent.Game.TeamMode)
-						{
-							case TeamMode.HeadToHead:
-							case TeamMode.Tag:
-								matchInfo += formatHeadToHeadGame(match);
-								break;
-							case TeamMode.Team:
-							case TeamMode.TeamTag:
-								matchInfo += formatTeamGame(match, null);
-								break;
-							default:
-								throw new ArgumentException();
-						}
-
+						case TeamMode.HeadToHead:
+						case TeamMode.Tag:
+							matchInfo += FormatHeadToHeadGame(match);
+							break;
+						case TeamMode.Team:
+						case TeamMode.TeamTag:
+							matchInfo += FormatTeamGame(match, PopulateMatchTeamStatus(match));
+							break;
+						default:
+							throw new ArgumentException();
 					}
 
 					await API.SendMessage(matchInfo, message.Chat.Id, Telegram.Bot.Types.Enums.ParseMode.Html);
@@ -193,10 +166,13 @@ namespace den0bot.Modules.Osu
 			}
 		}
 
-		private string formatHeadToHeadGame(Match match)
+		private string FormatHeadToHeadGame(Match match)
 		{
 			string gamesString = string.Empty;
-			var game = match.Events.Select(x => x.Game).Last(x => x.EndTime != null);
+			var game = match.Events.Where(x => x.Game != null)
+				.Select(x => x.Game)
+				.Last(x => x.EndTime != null);
+
 			var scores = game.Scores.OrderByDescending(x => x.Points).ToList();
 
 			gamesString += $"{Environment.NewLine}{game.Beatmap.BeatmapSet.Artist} - {game.Beatmap.BeatmapSet.Title}[{game.Beatmap.Version}]{Environment.NewLine}";
@@ -212,10 +188,12 @@ namespace den0bot.Modules.Osu
 			return gamesString;
 		}
 
-		private string formatTeamGame(Match match, MatchTeamStatus status)
+		private string FormatTeamGame(Match match, MatchTeamStatus status)
 		{
 			string gamesString = string.Empty;
-			var game = match.Events.Select(x => x.Game).Last(x => x.EndTime != null);
+			var game = match.Events.Where(x => x.Game != null)
+				.Select(x => x.Game)
+				.Last(x => x.EndTime != null);
 
 			List<Score> allScores = game.Scores
 				.OrderByDescending(x => x.Points)
@@ -247,5 +225,28 @@ namespace den0bot.Modules.Osu
 
 			return gamesString;
 		}
+
+		private MatchTeamStatus PopulateMatchTeamStatus(Match match)
+		{
+			uint redTotalScore = 0, blueTotalScore = 0;
+			foreach (var g in match.Events.Where(x=> x.Game != null).Select(x => x.Game))
+			{
+				var redGameScore = g.Scores.Where(x => x.MatchData.Team == Team.Red).Sum(x => x.Points);
+				var blueGameScore = g.Scores.Where(x => x.MatchData.Team == Team.Blue).Sum(x => x.Points);
+
+				if (redGameScore > blueGameScore)
+					redTotalScore++;
+				else
+					blueTotalScore++;
+			}
+
+			return new MatchTeamStatus
+			{
+				RedScore = redTotalScore,
+				BlueScore = blueTotalScore,
+				Teams = MatchTeamsParser.Parse(match.Info.Name)
+			};
+		}
+
 	}
 }

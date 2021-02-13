@@ -87,6 +87,6 @@ namespace den0bot.Modules.Osu.Types.V2
 		public int LatestEventId { get; set; }
 
 		[JsonProperty("current_game_id")]
-		public int CurrentGameId { get; set; }
+		public int? CurrentGameId { get; set; }
 	}
 }

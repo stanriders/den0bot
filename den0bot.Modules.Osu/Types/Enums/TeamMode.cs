@@ -1,21 +1,20 @@
 ﻿// den0bot (c) StanR 2021 - MIT License
-
-using System.ComponentModel;
+using System.Runtime.Serialization;
 
 namespace den0bot.Modules.Osu.Types.Enums
 {
 	public enum TeamMode
 	{
-		[Description(@"head-to-head")]
+		[EnumMember(Value = @"head-to-head")]
 		HeadToHead,
 
-		[Description(@"tag")]
+		[EnumMember(Value = "tag")]
 		Tag,
 
-		[Description(@"team-vs")]
+		[EnumMember(Value = @"team-vs")]
 		Team,
 
-		[Description(@"team-tag")]
+		[EnumMember(Value = @"team-tag")]
 		TeamTag
 	}
 }

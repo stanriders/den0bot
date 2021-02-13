@@ -7,7 +7,7 @@ namespace den0bot.Modules.Osu.WebAPI.Requests.V2
 	{
 		public APIVersion API => APIVersion.V2;
 
-		public string Address => $"matched/{matchId}";
+		public string Address => $"matches/{matchId}";
 
 		private ulong matchId;
 
