@@ -4,7 +4,7 @@ den0bot - osu!-related telegram chat bot
 
 Uses [Telegram.Bot](https://github.com/TelegramBots/telegram.bot), [SQLite-net](https://github.com/praeclarum/sqlite-net), [Newtonsoft.Json](https://www.newtonsoft.com/json), [OppaiSharp](https://github.com/stanriders/OppaiSharp), [xFFmpeg.NET](https://github.com/cmxl/FFmpeg.NET), [Highcharts](https://highcharts.com/).
 
-# Configuring:
+# Configuring
 Empty config will generate near the app with the name `config.json`.
 ```
 {
@@ -24,6 +24,39 @@ Empty config will generate near the app with the name `config.json`.
   /* enables sending random strings instead of commands sometimes (strings can be set in locale file) */
   "UseEvents": false,
 
+  /* Cat API token, can be obtained on https://thecatapi.com/signup */
+  "CatToken": ""
+}
+```
+
+# Installing modules
+Module files must be placed into `./Modules` folder, module config will generate in the same folder with `modulename.json`.
+
+# Built-in Modules
+ * ModAnalytics: Saves various message data into the sqlite database.
+ * ModBasicCommands: Self-explanatory.
+ * ModCat: Sends random cat image when it finds "cat" in a message.
+ * ModGirls: Stores every picture sent with a tag, sends random pictures from DB with voting buttons.
+ * ModRandom: Various rng-based commands.
+ * ModSanta: Secret santa handling.
+ * ModShmalala: Generates messages using Markov chain.
+ * ModThread: Returns thread link and messages from 2ch.hk.
+  
+---
+
+# Modules.Osu
+ * ModBeatmap: Finds osu.ppy.sh/b/ID in messages and returns map info with PP values.
+ * ModMaplist: Sends random map from a google spreadsheet.
+ * ModMatchFollow: Sends updates about ongoing multiplayer match.
+ * ModProfile: Finds osu.ppy.sh/u/ID in messages and returns player info and topscores.
+ * ModRecentScores: Returns player's recent/map scores with PP info.
+ * ModYoutube: Checks youtube channel for new videos and sends them to every chat that enabled subscription.
+
+ ## Configuring
+Empty config will generate in the `Modules` directory with the name `osuconfig.json`.
+```
+{
+  /* Requiured */
   /* osu!API v1 token, can be obtained on https://osu.ppy.sh/p/api */
   "osuToken": "",
 
@@ -38,34 +71,8 @@ Empty config will generate near the app with the name `config.json`.
 
   /* Youtube channel for chat subscriptions */
   "YoutubeChannelId": null,
-
-  /* Cat API token, can be obtained on https://thecatapi.com/signup */
-  "CatToken": ""
 }
 ```
-
-# Installing modules:
-Module files must be placed into `./Modules` folder, module config will generate in the same folder with `modulename.json`.
-
-# Built-in Modules: 
- * ModAnalytics: Saves various message data into the sqlite database.
- * ModBasicCommands: Self-explanatory.
- * ModCat: Sends random cat image when it finds "cat" in a message.
- * ModGirls: Stores every picture sent with a tag, sends random pictures from DB with voting buttons.
- * ModRandom: Various rng-based commands.
- * ModSanta: Secret santa handling.
- * ModShmalala: Generates messages using Markov chain.
- * ModThread: Returns thread link and messages from 2ch.hk.
- * ModYoutube: Checks youtube channel for new videos and sends them to every chat that enabled subscription.
-  
----
-
-# Modules.Osu:
- * ModBeatmap: Finds osu.ppy.sh/b/ID in messages and returns map info with PP values.
- * ModMaplist: Sends random map from a google spreadsheet.
- * ModMatchFollow: Sends updates about ongoing multiplayer match.
- * ModProfile: Finds osu.ppy.sh/u/ID in messages and returns player info and topscores.
- * ModRecentScores: Returns player's recent/map scores with PP info.
 
  
 ---
