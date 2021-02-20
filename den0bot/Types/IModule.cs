@@ -1,6 +1,7 @@
 ﻿// den0bot (c) StanR 2021 - MIT License
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using den0bot.Util;
 using Newtonsoft.Json;
 using Telegram.Bot.Types;
 
@@ -16,19 +17,38 @@ namespace den0bot.Types
 		protected IModule()
 		{
 			configFile = $"./Modules/{GetType().Name}.json";
-			LoadConfig();
 		}
 
+		public virtual bool Init()
+		{
+			LoadConfig();
+			Log.Debug("Enabled", GetType());
+			return true;
+		}
+
+		/// <summary>
+		/// Adds a single command to the command list
+		/// </summary>
+		/// <param name="command">Command</param>
 		protected void AddCommand(Command command)
 		{
 			commands.Add(command);
 		}
 
+		/// <summary>
+		/// Adds multiple commands to the command list
+		/// </summary>
+		/// <param name="coll">Commands</param>
 		protected void AddCommands(ICollection<Command> coll)
 		{
 			commands.AddRange(coll);
 		}
 
+		/// <summary>
+		/// Finds a command by the name in the text
+		/// </summary>
+		/// <param name="name"></param>
+		/// <returns></returns>
 		protected Command GetCommand(string name)
 		{
 			if (string.IsNullOrEmpty(name) || commands.Count <= 0 || !name.StartsWith(Bot.command_trigger))
@@ -44,6 +64,11 @@ namespace den0bot.Types
 			return commands.Find(x => x.ContainsName(name.ToLowerInvariant()));
 		}
 
+		/// <summary>
+		/// Runs message through command search and then executes the command if found
+		/// </summary>
+		/// <param name="message">Telegram message</param>
+		/// <returns>Returns true if any of the commands were executed</returns>
 		public async Task<bool> RunCommands(Message message)
 		{
 			var command = GetCommand(message.Text);
@@ -53,6 +78,9 @@ namespace den0bot.Types
 			return false;
 		}
 
+		/// <summary>
+		/// Function that runs every 100 ms
+		/// </summary>
 		public virtual void Think() { }
 
 		private void LoadConfig()

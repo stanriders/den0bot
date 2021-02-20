@@ -4,8 +4,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using den0bot.Modules.Osu.Parsers;
-using den0bot.Modules.Osu.WebAPI.Requests.V2;
 using den0bot.Modules.Osu.Types;
+using den0bot.Modules.Osu.WebAPI.Requests.V2;
 using den0bot.Modules.Osu.Types.Enums;
 using den0bot.Modules.Osu.Types.V2;
 using den0bot.Util;
@@ -13,10 +13,11 @@ using Newtonsoft.Json.Linq;
 using Telegram.Bot.Types.Enums;
 using den0bot.Modules.Osu.WebAPI;
 using den0bot.Types;
+using den0bot.Modules.Osu.Util;
 
 namespace den0bot.Modules.Osu
 {
-	public class ModMaplist : IModule
+	public class ModMaplist : OsuModule
 	{
 		private readonly List<string[]> maplist = new();
 		private readonly string spreadsheet = "1AxoXTpNjFnWsFPuSa8rlMbtSnMtkYnKZyzUY_4FTbig";
@@ -25,21 +26,25 @@ namespace den0bot.Modules.Osu
 
 		public ModMaplist()
 		{
-			Start();
 			AddCommand(new Command
 			{
 				Name = "map",
 				ActionAsync = GetMap,
 				ParseMode = ParseMode.Html
 			});
-			Log.Debug($"Enabled, {maplist.Count} maps");
 		}
 
-		private bool Start()
+		public override bool Init()
 		{
 			if (string.IsNullOrEmpty(Config.Params.GoogleAPIToken))
 				return false;
 
+			Start(); // not using returned value to be able to restart later
+			return base.Init();
+		}
+
+		private bool Start()
+		{
 			Log.Debug("Loading...");
 			try
 			{
@@ -55,6 +60,8 @@ namespace den0bot.Modules.Osu
 				}
 
 				isEnabled = true;
+
+				Log.Debug($"Loaded {maplist.Count} maps");
 				return true;
 			}
 			catch (Exception ex)

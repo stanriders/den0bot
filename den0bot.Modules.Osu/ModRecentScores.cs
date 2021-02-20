@@ -11,13 +11,14 @@ using den0bot.Modules.Osu.WebAPI.Requests.V2;
 using den0bot.Modules.Osu.Types;
 using den0bot.Modules.Osu.Types.Enums;
 using den0bot.Modules.Osu.Types.V2;
+using den0bot.Modules.Osu.Util;
 using den0bot.Util;
 using Telegram.Bot.Types.Enums;
 using den0bot.Types;
 
 namespace den0bot.Modules.Osu
 {
-	public class ModRecentScores : IModule
+	public class ModRecentScores : OsuModule
 	{
 		private const int recent_amount = 5;
 		private const int score_amount = 5;
@@ -64,7 +65,6 @@ namespace den0bot.Modules.Osu
 					ParseMode = ParseMode.Html
 				}
 			});
-			Log.Debug("Enabled");
 		}
 
 		private async Task<ICommandAnswer> GetScores(Telegram.Bot.Types.Message message)

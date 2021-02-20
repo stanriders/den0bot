@@ -1,4 +1,4 @@
-﻿// den0bot (c) StanR 2020 - MIT License
+﻿// den0bot (c) StanR 2021 - MIT License
 using System;
 using System.Diagnostics;
 using System.IO;
@@ -32,6 +32,16 @@ namespace den0bot.Util
 		{
 #if DEBUG
 			string result = $"({DateTime.Now}) {NameOfCallingClass()}::{caller} ({Path.GetFileName(file)}:{line}): {text ?? "null"}{Environment.NewLine}";
+
+			Console.Write(result);
+			File.AppendAllText(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + Path.DirectorySeparatorChar + "log.txt", result);
+#endif
+		}
+
+		public static void Debug(string text, Type callingClass, [CallerMemberName] string caller = "")
+		{
+#if DEBUG
+			string result = $"({DateTime.Now}) {callingClass.Name}::{caller}: {text ?? "null"}{Environment.NewLine}";
 
 			Console.Write(result);
 			File.AppendAllText(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + Path.DirectorySeparatorChar + "log.txt", result);

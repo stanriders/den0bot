@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using den0bot.Modules.Osu.Parsers;
+using den0bot.Modules.Osu.Types;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using den0bot.Modules.Osu.WebAPI.Requests.V2;
@@ -16,7 +17,7 @@ using den0bot.Types;
 
 namespace den0bot.Modules.Osu
 {
-	public class ModProfile : IModule, IReceiveAllMessages
+	public class ModProfile : OsuModule, IReceiveAllMessages
 	{
 		private readonly int topscores_to_show = 3;
 		public ModProfile()
@@ -26,7 +27,6 @@ namespace den0bot.Modules.Osu
 				Name = "newppuser",
 				ActionAsync = GetRebalanceProfile
 			});
-			Log.Debug("Enabled");
 		}
 
 		public async Task ReceiveMessage(Message message)

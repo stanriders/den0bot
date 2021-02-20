@@ -3,25 +3,23 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using den0bot.DB;
+using den0bot.Modules.Osu.Util;
 using den0bot.Types;
 using den0bot.Util;
 using Newtonsoft.Json;
 
-namespace den0bot.Modules
+namespace den0bot.Modules.Osu
 {
 	// check a youtube channel and post new videos to all chats
 	internal class ModYoutube : IModule
 	{
-		private DateTime nextCheck;
-		private readonly bool isEnabled = false;
+		private DateTime nextCheck = DateTime.Now;
 
 		private const double check_interval = 1.0; // minutes
 		private const int default_score_amount = 3;
 
 		public ModYoutube()
 		{
-			nextCheck = DateTime.Now;
-
 			AddCommands(new []
 			{
 				new Command
@@ -76,25 +74,28 @@ namespace den0bot.Modules
 					}
 				}
 			});
+		}
 
+		public override bool Init()
+		{
 			if (string.IsNullOrEmpty(Config.Params.GoogleAPIToken))
 			{
 				Log.Error("API Key is not defined!");
+				return false;
 			}
-			else if (string.IsNullOrEmpty(Config.Params.YoutubeChannelId))
+
+			if (string.IsNullOrEmpty(Config.Params.YoutubeChannelId))
 			{
 				Log.Error("Youtube channel id is not defined!");
+				return false;
 			}
-			else
-			{
-				isEnabled = true;
-				Log.Debug("Enabled");
-			}
+
+			return base.Init();
 		}
 
 		public override void Think()
 		{
-			if (isEnabled && nextCheck < DateTime.Now)
+			if (nextCheck < DateTime.Now)
 			{
 				Update(nextCheck);
 				nextCheck = DateTime.Now.AddMinutes(check_interval);
@@ -131,9 +132,6 @@ namespace den0bot.Modules
 
 		private async Task<string> GetLastScores(int amount)
 		{
-			if (!isEnabled)
-				return "Сегодня без скоров";
-
 			string result = string.Empty;
 			try
 			{

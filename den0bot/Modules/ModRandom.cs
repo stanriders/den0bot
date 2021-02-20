@@ -5,7 +5,6 @@ using System.Numerics;
 using System.Threading.Tasks;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
-using Telegram.Bot.Types.InputFiles;
 using den0bot.DB;
 using den0bot.DB.Types;
 using den0bot.Util;
@@ -43,7 +42,6 @@ namespace den0bot.Modules
 					Action = (msg) => GetRandomDinosaur()
 				}
 			});
-			Log.Debug("Enabled");
 		}
 
 		private ICommandAnswer GetRandomDinosaur()

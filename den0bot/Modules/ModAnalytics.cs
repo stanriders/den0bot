@@ -33,11 +33,14 @@ namespace den0bot.Modules
 					IsOwnerOnly = true
 				}
 			});
+		}
 
+		public override bool Init()
+		{ 
 			using (var db = new AnalyticsDatabase())
 				db.Database.EnsureCreated();
 
-			Log.Debug("Enabled");
+			return base.Init();
 		}
 
 		public Task ReceiveMessage(Telegram.Bot.Types.Message message)

@@ -2,9 +2,9 @@
 using System;
 using System.Threading.Tasks;
 using den0bot.Modules.Osu.Types.V2;
+using den0bot.Modules.Osu.Util;
 using den0bot.Util;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 
 namespace den0bot.Modules.Osu.WebAPI
 {
@@ -48,12 +48,6 @@ namespace den0bot.Modules.Osu.WebAPI
 
 		private static async Task<Out> V2ApiRequest<In, Out>(IRequest<In, Out> request)
 		{
-			if (string.IsNullOrEmpty(Config.Params.osuClientId) || string.IsNullOrEmpty(Config.Params.osuClientSecret))
-			{
-				Log.Error("API Key is not defined!");
-				return default(Out);
-			}
-
 			if (v2AccessToken == null || v2AccessToken.Expired)
 			{
 				var authRequest = new
@@ -86,7 +80,7 @@ namespace den0bot.Modules.Osu.WebAPI
 					Log.Error(ex.InnerMessageIfAny());
 				}
 			}
-			return default(Out);
+			return default;
 		}
 	}
 }

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using den0bot.Modules.Osu.Parsers;
+using den0bot.Modules.Osu.Types;
 using den0bot.Modules.Osu.Types.Enums;
 using Telegram.Bot.Types;
 using den0bot.Modules.Osu.WebAPI.Requests.V2;
@@ -14,7 +15,7 @@ using den0bot.Types;
 
 namespace den0bot.Modules.Osu
 {
-	public class ModMatchFollow : IModule, IReceiveAllMessages
+	public class ModMatchFollow : OsuModule, IReceiveAllMessages
 	{
 		private class FollowedMatch
 		{

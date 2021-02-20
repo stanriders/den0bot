@@ -12,6 +12,8 @@ using System.Linq;
 using System.Runtime.Caching;
 using System.Threading.Tasks;
 using den0bot.Modules.Osu.Parsers;
+using den0bot.Modules.Osu.Types;
+using den0bot.Modules.Osu.Util;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.InputFiles;
 using Telegram.Bot.Types.ReplyMarkups;
@@ -19,7 +21,7 @@ using File = System.IO.File;
 
 namespace den0bot.Modules.Osu
 {
-	public class ModBeatmap : IModule, IReceiveAllMessages, IReceiveCallback
+	public class ModBeatmap : OsuModule, IReceiveAllMessages, IReceiveCallback
 	{
 		private readonly MemoryCache sentMapsCache = MemoryCache.Default;
 		private const int days_to_keep_messages = 1; // how long do we keep maps in cache
@@ -44,7 +46,6 @@ namespace den0bot.Modules.Osu
 				ActionAsync = GetRebalancePp,
 				Reply = true
 			});
-			Log.Debug("Enabled");
 		}
 
 		public async Task ReceiveMessage(Message message)

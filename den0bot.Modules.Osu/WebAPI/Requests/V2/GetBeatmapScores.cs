@@ -2,6 +2,7 @@
 using den0bot.Modules.Osu.Types;
 using den0bot.Modules.Osu.Types.Enums;
 using den0bot.Modules.Osu.Types.V2;
+using den0bot.Modules.Osu.Util;
 
 namespace den0bot.Modules.Osu.WebAPI.Requests.V2
 {

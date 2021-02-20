@@ -1,27 +1,24 @@
 ﻿// den0bot (c) StanR 2021 - MIT License
-using System.Collections.Generic;
 using System.IO;
 using Newtonsoft.Json;
 
-namespace den0bot.Util
+namespace den0bot.Modules.Osu.Util
 {
 	internal static class Config
 	{
-		internal class ConfigFile
+		public class ConfigFile
 		{
-			public List<string> Modules { get; } = new();
+			// https://osu.ppy.sh/p/api
+			public string osuToken { get; set; }
+			public string osuClientId { get; set; }
+			public string osuClientSecret { get; set; }
 
-			public bool UseEvents { get; set; }
-
-			// https://telegram.me/botfather
-			public string TelegamToken { get; set; }
-			public string OwnerUsername { get; set; }
-
-			// http://thecatapi.com/api-key-registration.html
-			public string CatToken { get; set; }
+			// https://console.developers.google.com/apis/credentials
+			public string GoogleAPIToken { get; set; }
+			public string YoutubeChannelId { get; set; }
 		}
 
-		private const string config_file = "./config.json";
+		private const string config_file = "./Modules/osuconfig.json";
 		public static ConfigFile Params { get; } = new();
 
 		static Config()

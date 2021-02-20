@@ -62,8 +62,13 @@ namespace den0bot
 								break;
 						}
 					}
+
 					if (type != null)
-						modules.Add((IModule) Activator.CreateInstance(type));
+					{
+						var module = (IModule) Activator.CreateInstance(type);
+						if (module != null && module.Init())
+							modules.Add(module);
+					}
 					else
 						Log.Error($"{moduleName} not found!");
 				}
@@ -73,8 +78,6 @@ namespace den0bot
 				Log.Error("Module list not found!");
 			}
 			Log.Info("Done!");
-
-			//Osu.IRC.Connect();
 
 			API.OnMessage += ProcessMessage;
 			API.OnCallback += ProcessCallback;

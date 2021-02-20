@@ -60,7 +60,6 @@ namespace den0bot.Modules
 					}
 				}
 			});
-			Log.Debug("Enabled");
 		}
 
 		private int FindThread()

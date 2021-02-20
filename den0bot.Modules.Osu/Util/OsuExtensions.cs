@@ -1,8 +1,8 @@
 ﻿// den0bot (c) StanR 2021 - MIT License
-using den0bot.Modules.Osu.Types;
+using System;
 using den0bot.Modules.Osu.Types.Enums;
 
-namespace den0bot.Modules.Osu
+namespace den0bot.Modules.Osu.Util
 {
 	internal static class OsuExtensions
 	{
@@ -24,7 +24,7 @@ namespace den0bot.Modules.Osu
 		public static string[] ToArray(this LegacyMods value)
 		{
 			if (value == LegacyMods.NM)
-				return new string[0];
+				return Array.Empty<string>();
 
 			return value.ToString().Split(", ");
 		}

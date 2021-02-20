@@ -88,7 +88,6 @@ namespace den0bot.Modules
 					ActionAsync = TopGirlsSeasonal
 				}
 			});
-			Log.Debug("Enabled");
 		}
 
 		public async Task ReceiveMessage(Message message)
