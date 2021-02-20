@@ -22,6 +22,8 @@ namespace den0bot
 		private readonly string module_path = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + Path.DirectorySeparatorChar + "Modules";
 		public const char command_trigger = '/';
 
+		public static string[] Modules { get; private set; }
+
 		private static bool shouldShutdown;
 		private static bool shouldCrash;
 		public static void Shutdown(bool crash = false) { shouldShutdown = true; shouldCrash = crash; }
@@ -72,6 +74,7 @@ namespace den0bot
 					else
 						Log.Error($"{moduleName} not found!");
 				}
+				Modules = modules.Select(x => x.GetType().Name).ToArray();
 			}
 			else
 			{
