@@ -14,11 +14,12 @@
 		@foreach (var user in Model.UsersTable.Users)
 		{
 		<tr>
-			<td><a href="/user/@user.Id" class="text-body"><img src="@user.Avatar" width="24px" class="border border-secondary rounded-circle" /> @user.Name</a></td>
+			<td><a href="/user/@user.Id" class="text-body text-decoration-none"><img src="@user.Avatar" width="24px" class="border border-secondary rounded-circle" /> @user.Name</a></td>
 			<td>@user.Messages</td>
 			<td>@user.Commands</td>
 			<td>@user.AverageLength.ToString("F1")</td>
 			<td>@user.Stickers</td>
+			<td>@user.Voices</td>
 			<td>@user.GirlsRequested</td>
 			<td>@user.GirlsAdded</td>
 			<td>@user.LastMessageTime.ToString(CultureInfo.InvariantCulture)</td>
@@ -97,6 +98,11 @@
 						}, {
 							title: 'Stickers',
 							field: 'stickers',
+							sortable: true,
+							align: 'center'
+						}, {
+							title: 'Voice messages',
+							field: 'voices',
 							sortable: true,
 							align: 'center'
 						}, {

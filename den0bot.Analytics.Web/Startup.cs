@@ -1,5 +1,6 @@
 // den0bot (c) StanR 2021 - MIT License
 using den0bot.Analytics.Data;
+using den0bot.Analytics.Web.Caches;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -16,6 +17,7 @@ namespace den0bot.Analytics.Web
 		{
 			Configuration = configuration;
 			telegramClient = new TelegramBotClient(configuration["TelegramAPIKey"]);
+			TelegramCache.PopulateCache();
 		}
 
 		public IConfiguration Configuration { get; }

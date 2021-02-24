@@ -1,4 +1,4 @@
-﻿// den0bot (c) StanR 2020 - MIT License
+﻿// den0bot (c) StanR 2021 - MIT License
 using den0bot.Analytics.Data.Types;
 using Microsoft.EntityFrameworkCore;
 
@@ -36,5 +36,7 @@ namespace den0bot.Analytics.Data
 		public DbSet<Message> Messages { get; set; }
 
 		public DbSet<Girl> Girls { get; set; }
+
+		public DbSet<User> Users { get; set; }
 	}
 }

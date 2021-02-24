@@ -1,10 +1,14 @@
 ﻿// den0bot (c) StanR 2021 - MIT License
 using System;
 using System.IO;
+using System.Linq;
 using System.Runtime.Caching;
 using System.Threading.Tasks;
+using den0bot.Analytics.Data;
+using Microsoft.EntityFrameworkCore;
 using Telegram.Bot;
 using Telegram.Bot.Types;
+using User = den0bot.Analytics.Data.Types.User;
 
 namespace den0bot.Analytics.Web.Caches
 {
@@ -13,9 +17,22 @@ namespace den0bot.Analytics.Web.Caches
 		private static readonly MemoryCache cache = new("tgCache");
 		private static readonly MemoryCache nullCache = new("nullCache"); // kinda stupid but re-querying api for nonexisting users/chats is taking too much time
 
+		public static void PopulateCache()
+		{
+			using (var db = new AnalyticsDatabase())
+			{
+				var users = db.Users.ToArray();
+				foreach (var user in users)
+				{
+					// keep db data cached for a short time
+					cache.Add($"user_{user.Id}", user, DateTimeOffset.Now.AddHours(1));
+				}
+			}
+		}
+
 		public static async Task<User> GetUser(TelegramBotClient client, long? chatId, long userId)
 		{
-			var cacheKey = $"user_{userId.ToString()}";
+			var cacheKey = $"user_{userId}";
 
 			if (cache.Contains(cacheKey))
 				return cache[cacheKey] as User;
@@ -25,21 +42,57 @@ namespace den0bot.Analytics.Web.Caches
 
 			try
 			{
-				var user = (await client.GetChatMemberAsync(chatId, (int)userId)).User;
-				cache.Add(cacheKey, user, DateTimeOffset.Now.AddDays(1));
-				return user;
+				using (var db = new AnalyticsDatabase())
+				{
+					var tgUser = (await client.GetChatMemberAsync(chatId, (int) userId)).User;
+					var dbUser = await db.Users.FirstOrDefaultAsync(x => x.Id == userId);
+					if (dbUser != null)
+					{
+						dbUser.FirstName = tgUser.FirstName;
+						dbUser.LastName = tgUser.LastName;
+						dbUser.Username = tgUser.Username;
+						db.Users.Update(dbUser);
+					}
+					else
+					{
+						dbUser = new User
+						{
+							Id = tgUser.Id,
+							Username = tgUser.Username,
+							FirstName = tgUser.FirstName,
+							LastName = tgUser.LastName
+						};
+						await db.Users.AddAsync(dbUser);
+					}
+					await db.SaveChangesAsync();
+					
+					cache.Add(cacheKey, dbUser, DateTimeOffset.Now.AddDays(1));
+					return dbUser;
+				}
 			}
 			catch (Exception e)
 			{
 				Console.WriteLine(e);
-				nullCache.Add(cacheKey, cacheKey, DateTimeOffset.Now.AddHours(1));
-				return null;
+				using (var db = new AnalyticsDatabase())
+				{
+					var dbUser = await db.Users.FirstOrDefaultAsync(x => x.Id == userId);
+					if (dbUser != null)
+					{
+						cache.Add(cacheKey, dbUser, DateTimeOffset.Now.AddHours(1));
+					}
+					else
+					{
+						nullCache.Add(cacheKey, cacheKey, DateTimeOffset.Now.AddHours(1));
+					}
+
+					return dbUser;
+				}
 			}
 		}
 
 		public static async Task<Chat> GetChat(TelegramBotClient client, long chatId)
 		{
-			var cacheKey = $"chat_{chatId.ToString()}";
+			var cacheKey = $"chat_{chatId}";
 
 			if (cache.Contains(cacheKey))
 				return cache[cacheKey] as Chat;
@@ -63,7 +116,7 @@ namespace den0bot.Analytics.Web.Caches
 
 		public static async Task<string> GetChatImage(TelegramBotClient client, long chatId, string fileId)
 		{
-			var cacheKey = $"chatImg_{chatId.ToString()}";
+			var cacheKey = $"chatImg_{chatId}";
 
 			if (cache.Contains(cacheKey))
 				return cache[cacheKey] as string;
@@ -93,7 +146,7 @@ namespace den0bot.Analytics.Web.Caches
 
 		public static async Task<string> GetAvatar(TelegramBotClient client, long userId)
 		{
-			var cacheKey = $"avatar_{userId.ToString()}";
+			var cacheKey = $"avatar_{userId}";
 
 			if (cache.Contains(cacheKey))
 				return cache[cacheKey] as string;

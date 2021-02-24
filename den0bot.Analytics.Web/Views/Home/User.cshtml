@@ -13,11 +13,12 @@
 	<tbody>
 		@foreach (var chat in Model.ChatsTable.Chats)
 		{
-			<tr>
-				<td><a href="/chat/@chat.Id" class="text-body"><img src="@chat.Avatar" width="24px" class="border border-secondary rounded-circle" /> @chat.Name</a></td>
-				<td>@chat.Messages</td>
-				<td>@chat.LastMessageTime.ToString(CultureInfo.InvariantCulture)</td>
-			</tr>
+		<tr>
+			<td><a href="/chat/@chat.Id" class="text-body text-decoration-none"><img src="@chat.Avatar" width="24px" class="border border-secondary rounded-circle" /> @chat.Name</a></td>
+			<td>@chat.Messages</td>
+			<td>@chat.Voices</td>
+			<td>@chat.LastMessageTime.ToString(CultureInfo.InvariantCulture)</td>
+		</tr>
 		}
 	</tbody>
 </table>
@@ -66,7 +67,7 @@
 				todayHighlight: true,
 				weekStart: 1
 			});
-			s
+			
 			$('#maintable').bootstrapTable({
 				columns: [
 					[
@@ -77,6 +78,11 @@
 						}, {
 							title: 'Messages',
 							field: 'messages',
+							sortable: true,
+							align: 'center'
+						}, {
+							title: 'Voice messages',
+							field: 'voices',
 							sortable: true,
 							align: 'center'
 						}, {

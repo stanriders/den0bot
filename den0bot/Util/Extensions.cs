@@ -27,6 +27,9 @@ namespace den0bot.Util
 				Telegram.Bot.Types.Enums.MessageType.Text => MessageType.Text,
 				Telegram.Bot.Types.Enums.MessageType.Photo => MessageType.Photo,
 				Telegram.Bot.Types.Enums.MessageType.Sticker => MessageType.Sticker,
+				Telegram.Bot.Types.Enums.MessageType.Voice => MessageType.Voice,
+				Telegram.Bot.Types.Enums.MessageType.VideoNote => MessageType.Voice,
+				Telegram.Bot.Types.Enums.MessageType.Video => MessageType.Video,
 				_ => MessageType.Other
 			};
 		}

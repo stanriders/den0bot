@@ -1,4 +1,4 @@
-﻿// den0bot (c) StanR 2019 - MIT License
+﻿// den0bot (c) StanR 2021 - MIT License
 using System.ComponentModel.DataAnnotations;
 
 namespace den0bot.Analytics.Data.Types
@@ -21,6 +21,8 @@ namespace den0bot.Analytics.Data.Types
 		Text = 0,
 		Photo = 1,
 		Sticker = 2,
+		Voice = 3,
+		Video = 4,
 		Other = 99
 	}
 }

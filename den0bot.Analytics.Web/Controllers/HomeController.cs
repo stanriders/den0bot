@@ -86,6 +86,7 @@ namespace den0bot.Analytics.Web.Controllers
 					SUM(CASE WHEN Command != '' THEN 1 ELSE 0 END) as Commands,
 					SUM(CASE WHEN Command = '/devka' OR Command = '/seasonaldevka' THEN 1 ELSE 0 END) as GirlsRequested,
 					SUM(CASE WHEN Type = 2 THEN 1 ELSE 0 END) as Stickers,
+					SUM(CASE WHEN Type = 3 THEN 1 ELSE 0 END) as Voices,
 					MAX(Timestamp) as LastMessageTimestamp
 					FROM 'Messages' WHERE ChatId = {id} GROUP BY UserId
 					ORDER BY Messages DESC").Where(x=> x.Messages > 1).ToArrayAsync();
@@ -113,6 +114,7 @@ namespace den0bot.Analytics.Web.Controllers
 						Messages = user.Messages - user.Commands,
 						Commands = user.Commands,
 						Stickers = user.Stickers,
+						Voices = user.Voices,
 						AverageLength = avgLength?.AverageLength ?? 0.0,
 						LastMessageTime = TimeAgo(new DateTime(user.LastMessageTimestamp)),
 						GirlsAdded = girlsAdded,
@@ -148,6 +150,7 @@ namespace den0bot.Analytics.Web.Controllers
 					SUM(CASE WHEN Command != '' THEN 1 ELSE 0 END) as Commands,
 					SUM(CASE WHEN Command = '/devka' OR Command = '/seasonaldevka' THEN 1 ELSE 0 END) as GirlsRequested,
 					SUM(CASE WHEN Type = 2 THEN 1 ELSE 0 END) as Stickers,
+					SUM(CASE WHEN Type = 3 THEN 1 ELSE 0 END) as Voices,
 					MAX(Timestamp) as LastMessageTimestamp
 					FROM 'Messages' WHERE UserId = {id} GROUP BY ChatId
 					ORDER BY LastMessageTimestamp DESC;").ToArrayAsync();
@@ -166,6 +169,7 @@ namespace den0bot.Analytics.Web.Controllers
 						Avatar = await TelegramCache.GetChatImage(telegramClient, chat.Id, tgChat?.Photo?.SmallFileId),
 						Messages = chat.Messages - chat.Commands,
 						Stickers = chat.Stickers,
+						Voices = chat.Voices,
 						LastMessageTime = TimeAgo(new DateTime(chat.LastMessageTimestamp))
 					});
 				}

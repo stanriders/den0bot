@@ -12,6 +12,7 @@ namespace den0bot.Analytics.Web.Models
 				public long Messages { get; set; }
 				public long Commands { get; set; }
 				public long Stickers { get; set; }
+				public long Voices { get; set; }
 				public double AverageLength { get; set; }
 				public long GirlsRequested { get; set; }
 				public long GirlsAdded { get; set; }
