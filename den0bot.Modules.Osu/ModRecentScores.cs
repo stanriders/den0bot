@@ -147,7 +147,7 @@ namespace den0bot.Modules.Osu
 				}
 			}
 
-			List<Score> lastScores = await WebApiHandler.MakeApiRequest(new GetUserScores(playerID, ScoreType.Recent, false));
+			var lastScores = await WebApiHandler.MakeApiRequest(new GetUserScores(playerID, ScoreType.Recent, false));
 			if (lastScores.Count > 0)
 			{
 				var score = lastScores[0];
@@ -200,18 +200,46 @@ namespace den0bot.Modules.Osu
 				if (playerId == null || playerId == 0)
 					return Localization.GetAnswer("recentscores_unknown_player", message.Chat.Id);
 
-				var score = await WebApiHandler.MakeApiRequest(new GetUserBeatmapScores(mapId, playerId.Value, mods));
-				if (score == null)
-					return Localization.GetAnswer("recentscores_no_scores", message.Chat.Id);
+				var result = string.Empty;
 
-				ChatBeatmapCache.StoreMap(message.Chat.Id, mapId);
+				if (mods == 0)
+				{
+					// no mods specified - use apiv1 to get all scores on a map and then get score data from apiv2
+					var scores = await WebApiHandler.MakeApiRequest(new WebAPI.Requests.V1.GetScores(playerId.Value.ToString(), mapId, mods, score_amount));
+					if (scores == null || scores.Count <= 0)
+						return Localization.GetAnswer("recentscores_no_scores", message.Chat.Id);
 
-				score.Beatmap = await WebApiHandler.MakeApiRequest(new GetBeatmap(mapId));
-				return new TextCommandAnswer(FormatScore(score, false));
+					var map = await WebApiHandler.MakeApiRequest(new GetBeatmap(mapId));
 
+					foreach (var v1Score in scores)
+					{
+						var score = await WebApiHandler.MakeApiRequest(new GetUserBeatmapScore(mapId, playerId.Value, v1Score.LegacyMods));
+						if (score != null)
+						{
+							score.Beatmap = map;
+							result += FormatScore(score, false);
+						}
+					}
+				}
+				else
+				{
+					// mods specified - get data straight from apiv2
+					var score = await WebApiHandler.MakeApiRequest(new GetUserBeatmapScore(mapId, playerId.Value, mods));
+					if (score == null)
+						return Localization.GetAnswer("recentscores_no_scores", message.Chat.Id);
+
+					score.Beatmap = await WebApiHandler.MakeApiRequest(new GetBeatmap(mapId));
+					result += FormatScore(score, false);
+				}
+				
+				if (!string.IsNullOrEmpty(result))
+				{
+					ChatBeatmapCache.StoreMap(message.Chat.Id, mapId);
+					return new TextCommandAnswer(result);
+				}
 			}
 
-			//return Localization.GetAnswer("generic_fail", message.Chat.Id);
+			return Localization.GetAnswer("generic_fail", message.Chat.Id);
 		}
 
 		private async Task<ICommandAnswer> AddMe(Telegram.Bot.Types.Message message)

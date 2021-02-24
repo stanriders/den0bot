@@ -1,12 +1,11 @@
 ﻿// den0bot (c) StanR 2021 - MIT License
-using den0bot.Modules.Osu.Types;
 using den0bot.Modules.Osu.Types.Enums;
 using den0bot.Modules.Osu.Types.V2;
 using den0bot.Modules.Osu.Util;
 
 namespace den0bot.Modules.Osu.WebAPI.Requests.V2
 {
-	public class GetUserBeatmapScores : IRequest<BeatmapUserScore, Score>
+	public class GetUserBeatmapScore : IRequest<BeatmapUserScore, Score>
 	{
 		public APIVersion API => APIVersion.V2;
 
@@ -16,7 +15,7 @@ namespace den0bot.Modules.Osu.WebAPI.Requests.V2
 		private readonly uint userId;
 		private readonly string mods;
 
-		public GetUserBeatmapScores(uint beatmapId, uint userId, LegacyMods? mods)
+		public GetUserBeatmapScore(uint beatmapId, uint userId, LegacyMods? mods)
 		{
 			this.beatmapId = beatmapId;
 			this.userId = userId;
@@ -25,7 +24,7 @@ namespace den0bot.Modules.Osu.WebAPI.Requests.V2
 			{
 				this.mods = "?mods[]=";
 
-				var modsArray = mods.Value.ToArray();
+				var modsArray = mods.Value.ToArray(false);
 				foreach (var mod in modsArray)
 				{
 					// this will produce incorrect request because of empty last mod but api allows it so whatever

@@ -21,9 +21,9 @@ namespace den0bot.Modules.Osu.Util
 			return res;
 		}
 
-		public static string[] ToArray(this LegacyMods value)
+		public static string[] ToArray(this LegacyMods value, bool trimNomod = true)
 		{
-			if (value == LegacyMods.NM)
+			if (trimNomod && value == LegacyMods.NM)
 				return Array.Empty<string>();
 
 			return value.ToString().Split(", ");
