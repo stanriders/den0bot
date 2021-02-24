@@ -147,7 +147,7 @@ namespace den0bot.Analytics.Web.Controllers
 
 				var title = $"{user.FirstName} {user.LastName}".Trim();
 				if (!string.IsNullOrEmpty(user.Username)) 
-					ViewData["Title"] = title + $"(@{user.Username})";
+					ViewData["Title"] = title + $" (@{user.Username})";
 				else
 					ViewData["Title"] = title;
 
@@ -315,9 +315,9 @@ namespace den0bot.Analytics.Web.Controllers
 					if (tgChat != null)
 					{
 						if (string.IsNullOrEmpty(tgChat.Title))
-							name = tgChat.Username;
-						else
 							name = tgChat.Id.ToString();
+						else
+							name = tgChat.Title;
 					}
 
 					var messageData = new List<LineSeriesData>();
