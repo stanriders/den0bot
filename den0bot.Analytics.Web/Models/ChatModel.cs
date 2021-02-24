@@ -8,6 +8,7 @@ namespace den0bot.Analytics.Web.Models
 			public class User
 			{
 				public string Name { get; set; }
+				public string Username { get; set; }
 				public string Avatar { get; set; }
 				public long Messages { get; set; }
 				public long Commands { get; set; }

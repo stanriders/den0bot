@@ -7,40 +7,42 @@
 	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" type="text/css" />
 	<link rel="stylesheet" href="https://unpkg.com/bootstrap-table@1.15.5/dist/bootstrap-table.min.css" type="text/css" />
 }
-
-<h1><img src="@ViewData["Image"]" width="64px" /> @ViewData["Title"]</h1>
-<table class="table table-bordered table-striped table-sm" data-toggle="bootstrap-table" id="maintable">
+<div class="card card-body">
+	<h1><img src="@ViewData["Image"]" width="64px" /> @ViewData["Title"]</h1>
+</div>
+<table class="table table-bordered table-striped table-sm mt-2" data-toggle="bootstrap-table" id="maintable">
 	<tbody>
-		@foreach (var chat in Model.ChatsTable.Chats)
-		{
+	@foreach (var chat in Model.ChatsTable.Chats)
+	{
 		<tr>
 			<td><a href="/chat/@chat.Id" class="text-body text-decoration-none"><img src="@chat.Avatar" width="24px" class="border border-secondary rounded-circle" /> @chat.Name</a></td>
 			<td>@chat.Messages</td>
 			<td>@chat.Voices</td>
 			<td>@chat.LastMessageTime.ToString(CultureInfo.InvariantCulture)</td>
 		</tr>
-		}
+	}
 	</tbody>
 </table>
-<hr />
-<form class="form-row align-items-right" method="get" data-ajax="true" data-ajax-url="/TimesChartUser/@Model.UserId" data-ajax-update="#time-chart" data-ajax-method="get" data-ajax-loading="#spinner" data-ajax-complete="createChartchart">
-	<div class="col-auto"><input type="text" id="startDatePicker" name="startTime" class="form-control" placeholder="Start date" /></div>
-	<div class="col-auto"><input type="text" id="endDatePicker" name="endTime" class="form-control" placeholder="End date" /></div>
-	<input type="submit" class="btn btn-secondary" title="Update" />
-	<span id="spinner" class="col"><i class="fa fa-spinner fa-spin"></i></span>
+<div class="card card-body mt-2">
+	<form class="row g-2 align-items-right" method="get" data-ajax="true" data-ajax-url="/TimesChartUser/@Model.UserId" data-ajax-update="#time-chart" data-ajax-method="get" data-ajax-loading="#spinner" data-ajax-complete="createChartchart">
+		<div class="col-md-2"><input type="text" id="startDatePicker" name="startTime" class="form-control" placeholder="Start date" /></div>
+		<div class="col-md-2"><input type="text" id="endDatePicker" name="endTime" class="form-control" placeholder="End date" /></div>
+		<div class="col-md-2"><input type="submit" class="btn btn-secondary" title="Update" /></div>
+		<span id="spinner" class="col-md-2"><i class="fa fa-spinner fa-spin"></i></span>
 </form>
 
-<div id="time-chart"></div>
+	<div id="time-chart"></div>
+</div>
 
-@section Scripts
+	@section Scripts
 {
-	<script src="https://ajax.aspnetcdn.com/ajax/jquery.unobtrusive-ajax/3.2.5/jquery.unobtrusive-ajax.min.js"></script>
-	<script src="https://code.highcharts.com/highcharts.js"></script>
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/js/bootstrap-datepicker.min.js" type="text/javascript"></script>
-	<script src="https://unpkg.com/bootstrap-table@1.15.5/dist/bootstrap-table.min.js"></script>
-	<script>
+		<script src="https://ajax.aspnetcdn.com/ajax/jquery.unobtrusive-ajax/3.2.5/jquery.unobtrusive-ajax.min.js"></script>
+		<script src="https://code.highcharts.com/highcharts.js"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/js/bootstrap-datepicker.min.js" type="text/javascript"></script>
+		<script src="https://unpkg.com/bootstrap-table@1.15.5/dist/bootstrap-table.min.js"></script>
+		<script>
 		$(function() {
-			
+
 			$.ajax({
 				url: '/TimesChartUser/@Model.UserId',
 				dataType: 'html',
@@ -67,7 +69,7 @@
 				todayHighlight: true,
 				weekStart: 1
 			});
-			
+
 			$('#maintable').bootstrapTable({
 				columns: [
 					[
@@ -95,5 +97,5 @@
 				]
 			});
 		});
-	</script>
-}
+		</script>
+	}
