@@ -72,7 +72,7 @@ namespace den0bot.Modules.Osu
 			if (!string.IsNullOrEmpty(info.Title))
 				title = $"<i>{info.Title}</i>\n";
 
-			return $"<b>{info.Username}</b> <a href=\"{info.AvatarUrl}\">-</a> <code>{info.Statistics.Pp}pp</code> - #{info.Statistics.Rank.Global} (#{info.Statistics.Rank.Country} {info.Country.Code})\n" +
+			return $"<b>{info.Username}</b> <a href=\"{info.AvatarUrl}\">-</a> <code>{info.Statistics.Pp}pp</code> - #{info.Statistics.GlobalRank} (#{info.Statistics.Rank.Country} {info.Country.Code})\n" +
 				   $"{title}\n" +
 				   $"<b>Playcount</b>: {info.Statistics.Playcount} ({info.Statistics.PlaytimeSeconds / 60.0 / 60.0:F2} hours)\n" +
 			       $"<b>Joined on</b>: {info.JoinDate}\n" +

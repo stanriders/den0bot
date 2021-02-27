@@ -163,6 +163,9 @@ namespace den0bot.Modules.Osu.Types.V2
 		[JsonProperty("pp")]
 		public double Pp { get; set; }
 
+		[JsonProperty("global_rank")]
+		public uint GlobalRank { get; set; }
+
 		[JsonProperty("rank")]
 		public UserRank Rank { get; set; }
 
@@ -198,8 +201,6 @@ namespace den0bot.Modules.Osu.Types.V2
 
 		public class UserRank
 		{
-			[JsonProperty("global")]
-			public uint Global { get; set; }
 			[JsonProperty("country")]
 			public uint Country { get; set; }
 		}
