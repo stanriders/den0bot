@@ -1,6 +1,7 @@
 ﻿// den0bot (c) StanR 2021 - MIT License
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading.Tasks;
 using den0bot.DB;
 using den0bot.Util;
@@ -46,6 +47,7 @@ namespace den0bot
 			}
 			BotUser = api.GetMeAsync().Result;
 
+			Log.Info("API Test successful, starting receiving...");
 			api.StartReceiving();
 
 			Log.Info("Connected!");
@@ -266,6 +268,31 @@ namespace den0bot
 				Log.Error(ex.InnerMessageIfAny());
 			}
 			return null;
+		}
+
+		/// <summary>
+		/// Downloads file from the server using File ID
+		/// </summary>
+		/// <param name="fileId">File ID to download</param>
+		/// <param name="path">Where to download</param>
+		public static async Task<bool> DownloadFile(string fileId, string path)
+		{
+			if (string.IsNullOrEmpty(fileId) || string.IsNullOrEmpty(path))
+				return false;
+
+			using (var stream = new MemoryStream())
+			{
+				var file = await api.GetFileAsync(fileId);
+				await api.DownloadFileAsync(file.FilePath, stream);
+				stream.Position = 0;
+
+				byte[] buf = new byte[stream.Length];
+				await stream.ReadAsync(buf, 0, (int)stream.Length);
+
+				await System.IO.File.WriteAllBytesAsync(path, buf);
+
+				return true;
+			}
 		}
 	}
 }

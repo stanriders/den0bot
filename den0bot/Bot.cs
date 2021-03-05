@@ -145,44 +145,50 @@ namespace den0bot
 			Message msg = messageEventArgs.Message;
 
 			if (msg == null ||
-				msg.ForwardFrom != null ||
-				msg.ForwardFromChat != null ||
 				msg.LeftChatMember != null ||
 				msg.Date < DateTime.Now.ToUniversalTime().AddSeconds(-15))
 				return;
 
 			var senderChatId = msg.Chat.Id;
+			var isForwarded = msg.ForwardFrom != null || msg.ForwardFromChat != null;
 
 			if (msg.Chat.Type != ChatType.Private)
 				await DatabaseCache.AddChat(senderChatId);
 
 			await DatabaseCache.AddUser(msg.From.Id, msg.From.Username);
 
-			if (msg.NewChatMembers != null && msg.NewChatMembers.Length > 0)
+			if (!isForwarded)
 			{
-				string greeting = Localization.NewMemberGreeting(senderChatId, msg.NewChatMembers[0].FirstName, msg.NewChatMembers[0].Id);
-				if (msg.NewChatMembers[0].Id == API.BotUser.Id)
-					greeting = Localization.Get("generic_added_to_chat", senderChatId);
-
-				await API.SendMessage(greeting, senderChatId, ParseMode.Html);
-				return;
-			}
-
-			if (Config.Params.UseEvents && 
-			    (!DatabaseCache.Chats.FirstOrDefault(x=> x.Id == senderChatId)?.DisableEvents ?? false) && 
-			    msg.Text != null && 
-			    msg.Text[0] == command_trigger)
-			{
-				// random events
-				if (TryEvent(senderChatId, out var e))
+				if (msg.NewChatMembers != null && msg.NewChatMembers.Length > 0)
 				{
-					await API.SendMessage(e, senderChatId);
+					string greeting = Localization.NewMemberGreeting(senderChatId, msg.NewChatMembers[0].FirstName,
+						msg.NewChatMembers[0].Id);
+					if (msg.NewChatMembers[0].Id == API.BotUser.Id)
+						greeting = Localization.Get("generic_added_to_chat", senderChatId);
+
+					await API.SendMessage(greeting, senderChatId, ParseMode.Html);
 					return;
+				}
+
+				if (Config.Params.UseEvents &&
+				    (!DatabaseCache.Chats.FirstOrDefault(x => x.Id == senderChatId)?.DisableEvents ?? false) &&
+				    msg.Text != null &&
+				    msg.Text[0] == command_trigger)
+				{
+					// random events
+					if (TryEvent(senderChatId, out var e))
+					{
+						await API.SendMessage(e, senderChatId);
+						return;
+					}
 				}
 			}
 
 			foreach (IModule module in modules)
 			{
+				if (isForwarded && module is not IReceiveForwards)
+					continue;
+
 				if (msg.Type == MessageType.Photo)
 					msg.Text = msg.Caption; // for consistency
 
