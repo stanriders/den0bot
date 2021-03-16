@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using den0bot.Types.Answers;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 
@@ -105,8 +106,8 @@ namespace den0bot.Types
 						throw new ArgumentException();
 				}
 
-				if (sentMessage != null && ActionResult != null)
-					ActionResult(sentMessage); // call action that receives sent message
+				if (sentMessage != null)
+					ActionResult?.Invoke(sentMessage); // call action that receives sent message
 
 				return true;
 			}

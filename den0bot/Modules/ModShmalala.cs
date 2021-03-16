@@ -7,6 +7,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using den0bot.Types;
+using den0bot.Types.Answers;
 using den0bot.Util;
 using Newtonsoft.Json;
 using Telegram.Bot.Types;

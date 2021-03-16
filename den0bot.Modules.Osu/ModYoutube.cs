@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using den0bot.DB;
 using den0bot.Modules.Osu.Util;
 using den0bot.Types;
+using den0bot.Types.Answers;
 using den0bot.Util;
 using Newtonsoft.Json;
 

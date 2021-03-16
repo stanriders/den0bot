@@ -1,5 +1,5 @@
 ﻿// den0bot (c) StanR 2021 - MIT License
-namespace den0bot.Types
+namespace den0bot.Types.Answers
 {
 	public class ImageCommandAnswer : ICommandAnswer
 	{

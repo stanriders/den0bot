@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using den0bot.DB;
 using den0bot.Types;
+using den0bot.Types.Answers;
 using Newtonsoft.Json;
 
 namespace den0bot.Util

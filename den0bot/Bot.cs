@@ -39,50 +39,13 @@ namespace den0bot
 		public void Run()
 		{
 			Log.Info("________________");
-			Log.Info("Starting modules...");
+			if (!LoadModules())
+				return;
 
-			List<Assembly> allAssemblies = new List<Assembly>();
-			if (Directory.Exists(module_path))
-				foreach (string dll in Directory.GetFiles(module_path, "*.dll"))
-					allAssemblies.Add(Assembly.LoadFile(dll));
-
-			if (Config.Params.Modules != null)
-			{
-				foreach (var moduleName in Config.Params.Modules)
-				{
-					// if it's local
-					Type type = Type.GetType($"den0bot.Modules.{moduleName}", false);
-					if (type == null)
-					{
-						// if its not local
-						foreach (var ass in allAssemblies)
-						{
-							// we only allow subclasses of IModule and only if they're in the config
-							type = ass.GetTypes().FirstOrDefault(t => t.IsPublic && t.IsSubclassOf(typeof(IModule)) && t.Name == moduleName);
-
-							if (type != null)
-								break;
-						}
-					}
-
-					if (type != null)
-					{
-						var module = (IModule) Activator.CreateInstance(type);
-						if (module != null && module.Init())
-							modules.Add(module);
-					}
-					else
-						Log.Error($"{moduleName} not found!");
-				}
-				Modules = modules.Select(x => x.GetType().Name).ToArray();
-			}
-			else
-			{
-				Log.Error("Module list not found!");
-			}
 			Log.Info("Done!");
 
 			API.OnMessage += ProcessMessage;
+			API.OnMessageEdit += ProcessMessageEdit;
 			API.OnCallback += ProcessCallback;
 
 			if (API.Connect())
@@ -120,6 +83,53 @@ namespace den0bot
 			{
 				throw new Exception("Shutdown with crash was initiated by owner");
 			}
+		}
+
+		private bool LoadModules()
+		{
+			Log.Info("Starting modules...");
+			if (Config.Params.Modules != null)
+			{
+				List<Assembly> allAssemblies = new List<Assembly>();
+				if (Directory.Exists(module_path))
+					foreach (string dll in Directory.GetFiles(module_path, "*.dll"))
+						allAssemblies.Add(Assembly.LoadFile(dll));
+
+				foreach (var moduleName in Config.Params.Modules)
+				{
+					// if it's local
+					Type type = Type.GetType($"den0bot.Modules.{moduleName}", false);
+					if (type == null)
+					{
+						// if its not local
+						foreach (var ass in allAssemblies)
+						{
+							// we only allow subclasses of IModule and only if they're in the config
+							type = ass.GetTypes().FirstOrDefault(t =>
+								t.IsPublic && t.IsSubclassOf(typeof(IModule)) && t.Name == moduleName);
+
+							if (type != null)
+								break;
+						}
+					}
+
+					if (type != null)
+					{
+						var module = (IModule) Activator.CreateInstance(type);
+						if (module != null && module.Init())
+							modules.Add(module);
+					}
+					else
+						Log.Error($"{moduleName} not found!");
+				}
+
+				Modules = modules.Select(x => x.GetType().Name).ToArray();
+
+				return true;
+			}
+
+			Log.Error("Module list not found!");
+			return false;
 		}
 
 		private bool TryEvent(long chatID, out string text)
@@ -194,7 +204,7 @@ namespace den0bot
 
 				if (module is IReceiveAllMessages messages)
 				{
-					if (!(msg.Text != null && msg?.Text[0] == command_trigger))
+					if (!(msg.Text != null && msg.Text[0] == command_trigger))
 					{
 						await messages.ReceiveMessage(msg);
 					}
@@ -215,11 +225,22 @@ namespace den0bot
 		{
 			foreach (IModule m in modules)
 			{
-				if (m is IReceiveCallback module)
+				if (m is IReceiveCallbacks module)
 				{
 					var result = await module.ReceiveCallback(callbackEventArgs.CallbackQuery);
 					if (!string.IsNullOrEmpty(result))
 						await API.AnswerCallbackQuery(callbackEventArgs.CallbackQuery.Id, result);
+				}
+			}
+		}
+
+		private async void ProcessMessageEdit(object sender, MessageEventArgs messageEventArgs)
+		{
+			foreach (IModule m in modules)
+			{
+				if (m is IReceiveMessageEdits module)
+				{
+					await module.ReceiveMessageEdit(messageEventArgs.Message);
 				}
 			}
 		}

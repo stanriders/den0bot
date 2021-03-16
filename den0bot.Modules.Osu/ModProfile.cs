@@ -14,6 +14,7 @@ using Newtonsoft.Json;
 using den0bot.Modules.Osu.WebAPI;
 using Microsoft.EntityFrameworkCore;
 using den0bot.Types;
+using den0bot.Types.Answers;
 
 namespace den0bot.Modules.Osu
 {

@@ -36,9 +36,10 @@ namespace den0bot
 			Log.Info("Connecting...");
 			api = new TelegramBotClient(Config.Params.TelegamToken);
 			api.OnMessage += OnMessage;
+			api.OnMessageEdited += OnMessageEdit;
 			api.OnCallbackQuery += OnCallback;
-			api.OnReceiveGeneralError += delegate (object sender, ReceiveGeneralErrorEventArgs args) { Log.Error(args.Exception.InnerMessageIfAny()); };
-			api.OnReceiveError += delegate (object sender, ReceiveErrorEventArgs args) { Log.Error(args.ApiRequestException.InnerMessageIfAny()); };
+			api.OnReceiveGeneralError += delegate (object _, ReceiveGeneralErrorEventArgs args) { Log.Error(args.Exception.InnerMessageIfAny()); };
+			api.OnReceiveError += delegate (object _, ReceiveErrorEventArgs args) { Log.Error(args.ApiRequestException.InnerMessageIfAny()); };
 
 			if (!api.TestApiAsync().Result)
 			{
@@ -61,6 +62,7 @@ namespace den0bot
 		}
 
 		public static event EventHandler<MessageEventArgs> OnMessage;
+		public static event EventHandler<MessageEventArgs> OnMessageEdit;
 		public static event EventHandler<CallbackQueryEventArgs> OnCallback;
 
 		/// <summary>
@@ -183,7 +185,7 @@ namespace den0bot
 		}
 
 		/// <summary>
-		/// Returns List of chat memebers that are admins
+		/// Returns array of chat memebers that are admins
 		/// </summary>
 		public static async Task<ChatMember[]> GetAdmins(long chatID)
 		{

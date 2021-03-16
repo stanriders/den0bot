@@ -12,10 +12,11 @@ using den0bot.DB.Types;
 using den0bot.Util;
 using Microsoft.EntityFrameworkCore;
 using den0bot.Types;
+using den0bot.Types.Answers;
 
 namespace den0bot.Modules
 {
-	internal class ModGirls : IModule, IReceiveAllMessages, IReceiveCallback
+	internal class ModGirls : IModule, IReceiveAllMessages, IReceiveCallbacks
 	{
 		private class SentGirl
 		{
@@ -41,6 +42,7 @@ namespace den0bot.Modules
 
 		private readonly Dictionary<long, Queue<SentGirl>> antispamBuffer = new(); // chatID, queue
 		private const int antispam_cooldown = 15; // seconds
+		private const int antispam_buffer_capacity = 4;
 
 		private const int top_girls_amount = 9;
 		private const int delete_rating_threshold = -10; // lowest rating a girl can have before completely removing her from db
@@ -131,7 +133,7 @@ namespace den0bot.Modules
 				return Localization.GetAnswer("girls_not_found", chatID);
 
 			if (!antispamBuffer.ContainsKey(chatID))
-				antispamBuffer.Add(chatID, new Queue<SentGirl>(3));
+				antispamBuffer.Add(chatID, new Queue<SentGirl>(antispam_buffer_capacity));
 
 			var picture = seasonal ? await GetGirlSeasonal(chatID) : await GetGirl(chatID);
 			if (picture != null && picture.Link != string.Empty)
@@ -161,7 +163,7 @@ namespace den0bot.Modules
 					sentGirlsCache.Add(sentMessage.MessageId.ToString(), girl, DateTimeOffset.Now.AddDays(days_to_keep_messages));
 					antispamBuffer[chatID].Enqueue(girl);
 
-					if (antispamBuffer[chatID].Count == 3)
+					if (antispamBuffer[chatID].Count == antispam_buffer_capacity)
 					{
 						// check if third girl in a queue was posted less than antispam_cooldown seconds ago and remove it
 						var oldestGirl = antispamBuffer[chatID].Dequeue();

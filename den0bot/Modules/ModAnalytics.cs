@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using den0bot.Analytics.Data;
 using den0bot.Analytics.Data.Types;
 using den0bot.Types;
+using den0bot.Types.Answers;
 using den0bot.Util;
 
 namespace den0bot.Modules

@@ -14,6 +14,7 @@ using Telegram.Bot.Types.Enums;
 using den0bot.Modules.Osu.WebAPI;
 using den0bot.Types;
 using den0bot.Modules.Osu.Util;
+using den0bot.Types.Answers;
 
 namespace den0bot.Modules.Osu
 {

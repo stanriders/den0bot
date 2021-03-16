@@ -1,7 +1,8 @@
 ﻿// den0bot (c) StanR 2021 - MIT License
+
 using Telegram.Bot.Types.InputFiles;
 
-namespace den0bot.Types
+namespace den0bot.Types.Answers
 {
 	public class StickerCommandAnswer : ICommandAnswer
 	{

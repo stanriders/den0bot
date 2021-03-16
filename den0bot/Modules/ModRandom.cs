@@ -10,6 +10,7 @@ using den0bot.DB.Types;
 using den0bot.Util;
 using Microsoft.EntityFrameworkCore;
 using den0bot.Types;
+using den0bot.Types.Answers;
 
 namespace den0bot.Modules
 {
