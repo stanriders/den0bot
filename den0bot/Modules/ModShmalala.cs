@@ -75,7 +75,7 @@ namespace den0bot.Modules
 					}
 
 					// if chain is getting really big it might take a while to unpack
-					ThreadPool.QueueUserWorkItem((a) =>
+					ThreadPool.QueueUserWorkItem(_ =>
 					{
 						Parallel.ForEach(packedChain, (word) =>
 						{
@@ -273,62 +273,59 @@ namespace den0bot.Modules
 
 		public async Task ReceiveMessage(Message message)
 		{
-			if (!string.IsNullOrEmpty(message.Text) && message.Chat.Type != ChatType.Private)
+			if (string.IsNullOrEmpty(message.Text) || message.Chat.Type == ChatType.Private || !markovChain.Ready)
+				return;
+
+			var text = message.Text.ToLower();
+			text = cleanWordRegex.Replace(text, string.Empty);
+			if (text.StartsWith(Localization.Get("shmalala_trigger", message.Chat.Id)))
 			{
-				if (markovChain.Ready)
+				if (markovChain.Nodes.Count <= min_nodes)
+					return;
+
+				// use random word from message to start our response from
+				var words = text.Split(' ');
+				if (words.Length > 1)
 				{
-					var text = message.Text.ToLower();
-					text = cleanWordRegex.Replace(text, string.Empty);
-					if (text.StartsWith(Localization.Get("shmalala_trigger", message.Chat.Id)))
+					var textBuilder = new StringBuilder();
+
+					// Use Markov chain to generate random message, composed of one or more sentences.
+					for (int i = 0; i < RNG.NextNoMemory(1, 4); i++)
+						textBuilder.Append(GenerateRandomSentence(words[RNG.NextNoMemory(1, words.Length)]));
+
+					var completeMessage = textBuilder.ToString();
+					if (!string.IsNullOrEmpty(completeMessage))
 					{
-						if (markovChain.Nodes.Count <= min_nodes)
-							return;
-
-						// use random word from message to start our response from
-						var words = text.Split(' ');
-						if (words.Length > 1)
-						{
-							var textBuilder = new StringBuilder();
-
-							// Use Markov chain to generate random message, composed of one or more sentences.
-							for (int i = 0; i < RNG.NextNoMemory(1, 4); i++)
-								textBuilder.Append(GenerateRandomSentence(words[RNG.NextNoMemory(1, words.Length)]));
-
-							var completeMessage = textBuilder.ToString();
-							if (!string.IsNullOrEmpty(completeMessage))
-							{
-								await API.SendMessage(completeMessage, message.Chat.Id, replyID: message.MessageId);
-							}
-						}
-
-						return;
+						await API.SendMessage(completeMessage, message.Chat.Id, replyID: message.MessageId);
 					}
-
-					// Train Markov generator from received message text.
-					// Assume it is composed of one or more coherent sentences that are themselves are composed of words.
-					var sentences = text.ToLower().Split(sentenceSeparators);
-					foreach (var s in sentences)
-					{
-						string lastWord = null;
-						foreach (var w in s.Split(' '))
-						{
-							if (string.IsNullOrEmpty(w))
-								continue;
-
-							markovChain.Train(lastWord, w);
-							lastWord = w;
-						}
-
-						markovChain.Train(lastWord, null);
-					}
-
-					numTrainingMessagesReceived++;
-
-					// save whole chain every 10 messages
-					if (numTrainingMessagesReceived % 10 == 0)
-						markovChain.SaveToFile();
 				}
+
+				return;
 			}
+
+			// Train Markov generator from received message text.
+			// Assume it is composed of one or more coherent sentences that are themselves are composed of words.
+			var sentences = text.ToLower().Split(sentenceSeparators);
+			foreach (var s in sentences)
+			{
+				string lastWord = null;
+				foreach (var w in s.Split(' '))
+				{
+					if (string.IsNullOrEmpty(w))
+						continue;
+
+					markovChain.Train(lastWord, w);
+					lastWord = w;
+				}
+
+				markovChain.Train(lastWord, null);
+			}
+
+			numTrainingMessagesReceived++;
+
+			// save whole chain every 10 messages
+			if (numTrainingMessagesReceived % 10 == 0)
+				markovChain.SaveToFile();
 		}
 
 		public void Shutdown()
