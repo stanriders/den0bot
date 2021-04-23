@@ -30,7 +30,7 @@ namespace den0bot.Analytics.Web.Controllers
 		public async Task<IActionResult> Index()
 		{
 			var model = new List<ShortChatModel>();
-			using (var db = new AnalyticsDatabase())
+			await using (var db = new AnalyticsDatabase())
 			{
 				var chats = await db.Messages.AsNoTracking()
 					.Where(x => x.Timestamp > DateTime.UtcNow.AddDays(-last_message_days_ago).Ticks)
@@ -43,7 +43,11 @@ namespace den0bot.Analytics.Web.Controllers
 					var tgChat = await TelegramCache.GetChat(telegramClient, chat.Id);
 					if (tgChat != null && tgChat.Type != ChatType.Private)
 					{
-						var lastMessageTimestamp = (await db.Messages.Where(x => x.ChatId == chat.Id).OrderByDescending(x => x.Timestamp).FirstAsync()).Timestamp;
+						var lastMessageTimestamp = (await db.Messages.AsNoTracking()
+							.Where(x => x.ChatId == chat.Id)
+							.OrderByDescending(x => x.Timestamp)
+							.FirstAsync()).Timestamp;
+
 						model.Add(new ShortChatModel
 						{
 							Name = tgChat.Title,
@@ -62,7 +66,7 @@ namespace den0bot.Analytics.Web.Controllers
 		public async Task<IActionResult> Chat(long id)
 		{
 			var model = new ChatModel { ChatId = id };
-			using (var db = new AnalyticsDatabase())
+			await using (var db = new AnalyticsDatabase())
 			{
 				db.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
 
@@ -133,11 +137,11 @@ namespace den0bot.Analytics.Web.Controllers
 			return View(model);
 		}
 
-
-		public async Task<IActionResult> User(long id)
+		[Route("user/{id}")]
+		public async Task<IActionResult> GetUser(long id)
 		{
 			var model = new UserModel { UserId = id };
-			using (var db = new AnalyticsDatabase())
+			await using (var db = new AnalyticsDatabase())
 			{
 				db.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
 

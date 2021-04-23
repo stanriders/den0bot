@@ -1,4 +1,4 @@
-﻿
+﻿// den0bot (c) StanR 2021 - MIT License
 using den0bot.Modules.Osu.Types.V2;
 
 namespace den0bot.Modules.Osu.WebAPI.Requests.V2
@@ -9,7 +9,7 @@ namespace den0bot.Modules.Osu.WebAPI.Requests.V2
 
 		public string Address => $"matches/{matchId}";
 
-		private ulong matchId;
+		private readonly ulong matchId;
 
 		public GetMatch(ulong matchId)
 		{

@@ -8,12 +8,12 @@ namespace den0bot.Modules.Osu.WebAPI
 		V2
 	}
 
-	public interface IRequest<In, Out>
+	public interface IRequest<in TIn, out TOut>
 	{
 		APIVersion API { get; }
 
 		string Address { get; }
 
-		Out Process(In data);
+		TOut Process(TIn data);
 	}
 }

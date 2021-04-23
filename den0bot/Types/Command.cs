@@ -103,7 +103,7 @@ namespace den0bot.Types
 					case StickerCommandAnswer answer:
 						sentMessage = await API.SendSticker(answer.Sticker, senderChatId); break;
 					default:
-						throw new ArgumentException();
+						throw new ArgumentException("Invalid command answer type");
 				}
 
 				if (sentMessage != null)

@@ -9,7 +9,7 @@ namespace den0bot.Modules.Osu.WebAPI.Requests.V2
 
 		public string Address => $"users/{username}";
 
-		private string username;
+		private readonly string username;
 
 		public GetUser(string username)
 		{

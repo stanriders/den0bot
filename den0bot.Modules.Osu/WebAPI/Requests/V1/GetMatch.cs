@@ -9,7 +9,7 @@ namespace den0bot.Modules.Osu.WebAPI.Requests.V1
 
 		public string Address => $"get_match?mp={id}";
 
-		private ulong id;
+		private readonly ulong id;
 
 		public GetMatch(ulong id)
 		{

@@ -17,7 +17,7 @@ namespace den0bot
 {
 	public static class API
 	{
-		public static User BotUser;
+		public static User BotUser { get; private set; }
 		private static TelegramBotClient api;
 
 		public static bool IsConnected => api.IsReceiving;
@@ -282,19 +282,18 @@ namespace den0bot
 			if (string.IsNullOrEmpty(fileId) || string.IsNullOrEmpty(path))
 				return false;
 
-			using (var stream = new MemoryStream())
-			{
-				var file = await api.GetFileAsync(fileId);
-				await api.DownloadFileAsync(file.FilePath, stream);
-				stream.Position = 0;
+			await using var stream = new MemoryStream();
 
-				byte[] buf = new byte[stream.Length];
-				await stream.ReadAsync(buf, 0, (int)stream.Length);
+			var file = await api.GetFileAsync(fileId);
+			await api.DownloadFileAsync(file.FilePath, stream);
+			stream.Position = 0;
 
-				await System.IO.File.WriteAllBytesAsync(path, buf);
+			Memory<byte> buf = new Memory<byte>();
+			await stream.ReadAsync(buf);
 
-				return true;
-			}
+			await System.IO.File.WriteAllBytesAsync(path, buf.ToArray());
+
+			return true;
 		}
 	}
 }

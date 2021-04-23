@@ -182,17 +182,16 @@ namespace den0bot.Analytics.Web.Caches
 			if (string.IsNullOrEmpty(fileId) || string.IsNullOrEmpty(path))
 				return;
 
-			using (var stream = new MemoryStream())
-			{
-				var file = await client.GetFileAsync(fileId);
-				await client.DownloadFileAsync(file.FilePath, stream);
-				stream.Position = 0;
+			await using var stream = new MemoryStream();
 
-				byte[] buf = new byte[stream.Length];
-				await stream.ReadAsync(buf, 0, (int)stream.Length);
+			var file = await client.GetFileAsync(fileId);
+			await client.DownloadFileAsync(file.FilePath, stream);
+			stream.Position = 0;
 
-				await System.IO.File.WriteAllBytesAsync(path, buf);
-			}
+			Memory<byte> buf = new Memory<byte>();
+			await stream.ReadAsync(buf);
+
+			await System.IO.File.WriteAllBytesAsync(path, buf.ToArray());
 		}
 	}
 }

@@ -82,12 +82,7 @@ namespace den0bot.Modules.Osu.Types.V2
 
 		public override string Thumbnail => "https://assets.ppy.sh/beatmaps/" + BeatmapSetId + "/covers/card@2x.jpg";
 
-		private uint? maxCombo;
-		public override uint? MaxCombo
-		{
-			get => maxCombo;
-			set { maxCombo = value; }
-		}
+		public override uint? MaxCombo { get; set; }
 
 		public override string GetFormattedMapInfo(LegacyMods mods)
 		{

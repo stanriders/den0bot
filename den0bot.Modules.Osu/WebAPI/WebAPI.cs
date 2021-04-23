@@ -12,7 +12,7 @@ namespace den0bot.Modules.Osu.WebAPI
 	{
 		private static AccessToken v2AccessToken;
 
-		public static async Task<Out> MakeApiRequest<In, Out>(IRequest<In,Out> request)
+		public static async Task<TOut> MakeApiRequest<TIn, TOut>(IRequest<TIn, TOut> request)
 		{
 			return request.API switch
 			{
@@ -22,12 +22,12 @@ namespace den0bot.Modules.Osu.WebAPI
 			};
 		}
 
-		private static async Task<Out> V1ApiRequest<In, Out>(IRequest<In, Out> request)
+		private static async Task<TOut> V1ApiRequest<TIn, TOut>(IRequest<TIn, TOut> request)
 		{
 			if (string.IsNullOrEmpty(Config.Params.osuToken))
 			{
 				Log.Error("API Key is not defined!");
-				return default(Out);
+				return default;
 			}
 
 			try
@@ -35,7 +35,7 @@ namespace den0bot.Modules.Osu.WebAPI
 				string json =
 					await Web.DownloadString($"https://osu.ppy.sh/api/{request.Address}&k={Config.Params.osuToken}");
 
-				var deserializedObject = JsonConvert.DeserializeObject<In>(json, new JsonSerializerSettings { DateTimeZoneHandling = DateTimeZoneHandling.Utc });
+				var deserializedObject = JsonConvert.DeserializeObject<TIn>(json, new JsonSerializerSettings { DateTimeZoneHandling = DateTimeZoneHandling.Utc });
 				if (deserializedObject != null)
 					return request.Process(deserializedObject);
 			}
@@ -43,10 +43,10 @@ namespace den0bot.Modules.Osu.WebAPI
 			{
 				Log.Error(ex.InnerMessageIfAny());
 			}
-			return default(Out);
+			return default;
 		}
 
-		private static async Task<Out> V2ApiRequest<In, Out>(IRequest<In, Out> request)
+		private static async Task<TOut> V2ApiRequest<TIn, TOut>(IRequest<TIn, TOut> request)
 		{
 			if (v2AccessToken == null || v2AccessToken.Expired)
 			{
@@ -71,7 +71,7 @@ namespace den0bot.Modules.Osu.WebAPI
 				{
 					string json = await Web.DownloadString($"https://osu.ppy.sh/api/v2/{request.Address}", v2AccessToken.Token);
 
-					var deserializedObject = JsonConvert.DeserializeObject<In>(json, new JsonSerializerSettings { DateTimeZoneHandling = DateTimeZoneHandling.Utc });
+					var deserializedObject = JsonConvert.DeserializeObject<TIn>(json, new JsonSerializerSettings { DateTimeZoneHandling = DateTimeZoneHandling.Utc });
 					if (deserializedObject != null)
 						return request.Process(deserializedObject);
 				}

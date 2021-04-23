@@ -10,8 +10,8 @@ namespace den0bot.Modules.Osu.WebAPI.Requests.V1
 
 		public string Address => $"get_user_best?limit={amount}&u={username}";
 
-		private string username;
-		private int amount;
+		private readonly string username;
+		private readonly int amount;
 
 		public GetTopscores(string username, int amount)
 		{

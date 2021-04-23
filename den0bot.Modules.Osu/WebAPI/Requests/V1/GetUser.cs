@@ -10,7 +10,7 @@ namespace den0bot.Modules.Osu.WebAPI.Requests.V1
 
 		public string Address => $"get_user?u={username}";
 
-		private string username;
+		private readonly string username;
 
 		public GetUser(string username)
 		{

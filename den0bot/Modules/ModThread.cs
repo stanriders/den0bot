@@ -63,11 +63,9 @@ namespace den0bot.Modules
 			});
 		}
 
+#if !ENDLESSTHREAD
 		private int FindThread()
 		{
-#if ENDLESSTHREAD
-			return 4011800;
-#else
 			try
 			{
 				var data = new WebClient().DownloadData("https://2ch.hk/a/catalog_num.json");
@@ -87,8 +85,8 @@ namespace den0bot.Modules
 			catch (Exception ex) { Log.Error(this, ex.InnerMessageIfAny()); }
 
 			return 0;
-#endif
 		}
+#endif
 
 		private string FilterPost(string value)
 		{
@@ -106,9 +104,13 @@ namespace den0bot.Modules
 
 		private async Task<string> GetLastPosts(int amount)
 		{
+#if !ENDLESSTHREAD
 			int threadID = FindThread();
 			if (threadID == 0)
 				return "А треда-то нет!";
+#else
+			const int threadID = 4011800;
+#endif
 
 			try
 			{

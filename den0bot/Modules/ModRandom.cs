@@ -92,7 +92,7 @@ namespace den0bot.Modules
 				if (memeCount <= 0)
 					return Localization.GetAnswer("random_no_memes", sender.Id);
 
-				var memes = await db.Memes.ToArrayAsync();
+				var memes = await db.Memes.Where(x => x.ChatID == sender.Id).ToArrayAsync();
 				if (memes.All(x => x.Used))
 				{
 					foreach (var usedMeme in memes)

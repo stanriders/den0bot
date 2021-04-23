@@ -38,7 +38,7 @@ namespace den0bot.Modules.Osu.Parsers
 				// 5 - mods
 
 				bool isNew = regexGroups[1].Value != "b" && regexGroups[1].Value != "s"; // are we using new website or not
-				bool isSet = (regexGroups[1].Value == "beatmapsets" && regexGroups.Length > 4) || regexGroups[1].Value == "s";
+				bool isSet = (regexGroups[1].Value == "beatmapsets" && regexGroups.Length < 4) || regexGroups[1].Value == "s";
 
 				var mods = ConvertToMods(regexGroups[5].Value);
 				var mode = Mode.Osu;

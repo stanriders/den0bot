@@ -2,7 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using den0bot.DB;
 using den0bot.Modules.Osu.Parsers;
@@ -195,49 +194,48 @@ namespace den0bot.Modules.Osu
 			if (mapId == 0)
 				return Localization.GetAnswer("generic_fail", message.Chat.Id);
 
-			using (var db = new DatabaseOsu())
+			await using var db = new DatabaseOsu();
+
+			var playerId = db.Players.FirstOrDefault(x => x.TelegramID == message.From.Id)?.OsuID;
+			if (playerId == null || playerId == 0)
+				return Localization.GetAnswer("recentscores_unknown_player", message.Chat.Id);
+
+			var result = string.Empty;
+
+			if (mods == 0)
 			{
-				var playerId = db.Players.FirstOrDefault(x => x.TelegramID == message.From.Id)?.OsuID;
-				if (playerId == null || playerId == 0)
-					return Localization.GetAnswer("recentscores_unknown_player", message.Chat.Id);
+				// no mods specified - use apiv1 to get all scores on a map and then get score data from apiv2
+				var scores = await WebApiHandler.MakeApiRequest(new WebAPI.Requests.V1.GetScores(playerId.Value.ToString(), mapId, mods, score_amount));
+				if (scores == null || scores.Count <= 0)
+					return Localization.GetAnswer("recentscores_no_scores", message.Chat.Id);
 
-				var result = string.Empty;
+				var map = await WebApiHandler.MakeApiRequest(new GetBeatmap(mapId));
 
-				if (mods == 0)
+				foreach (var v1Score in scores)
 				{
-					// no mods specified - use apiv1 to get all scores on a map and then get score data from apiv2
-					var scores = await WebApiHandler.MakeApiRequest(new WebAPI.Requests.V1.GetScores(playerId.Value.ToString(), mapId, mods, score_amount));
-					if (scores == null || scores.Count <= 0)
-						return Localization.GetAnswer("recentscores_no_scores", message.Chat.Id);
-
-					var map = await WebApiHandler.MakeApiRequest(new GetBeatmap(mapId));
-
-					foreach (var v1Score in scores)
+					var score = await WebApiHandler.MakeApiRequest(new GetUserBeatmapScore(mapId, playerId.Value, v1Score.LegacyMods));
+					if (score != null)
 					{
-						var score = await WebApiHandler.MakeApiRequest(new GetUserBeatmapScore(mapId, playerId.Value, v1Score.LegacyMods));
-						if (score != null)
-						{
-							score.Beatmap = map;
-							result += FormatScore(score, false);
-						}
+						score.Beatmap = map;
+						result += FormatScore(score, false);
 					}
 				}
-				else
-				{
-					// mods specified - get data straight from apiv2
-					var score = await WebApiHandler.MakeApiRequest(new GetUserBeatmapScore(mapId, playerId.Value, mods));
-					if (score == null)
-						return Localization.GetAnswer("recentscores_no_scores", message.Chat.Id);
+			}
+			else
+			{
+				// mods specified - get data straight from apiv2
+				var score = await WebApiHandler.MakeApiRequest(new GetUserBeatmapScore(mapId, playerId.Value, mods));
+				if (score == null)
+					return Localization.GetAnswer("recentscores_no_scores", message.Chat.Id);
 
-					score.Beatmap = await WebApiHandler.MakeApiRequest(new GetBeatmap(mapId));
-					result += FormatScore(score, false);
-				}
+				score.Beatmap = await WebApiHandler.MakeApiRequest(new GetBeatmap(mapId));
+				result += FormatScore(score, false);
+			}
 				
-				if (!string.IsNullOrEmpty(result))
-				{
-					ChatBeatmapCache.StoreMap(message.Chat.Id, mapId);
-					return new TextCommandAnswer(result);
-				}
+			if (!string.IsNullOrEmpty(result))
+			{
+				ChatBeatmapCache.StoreMap(message.Chat.Id, mapId);
+				return new TextCommandAnswer(result);
 			}
 
 			return Localization.GetAnswer("generic_fail", message.Chat.Id);
@@ -342,17 +340,14 @@ namespace den0bot.Modules.Osu
 			// html-filtered map title
 			string mapInfo = $"{beatmap.BeatmapSet.Artist} - {beatmap.BeatmapSet.Title} [{score.Beatmap.Version}]".FilterToHTML();
 
-			string pp = string.Empty;
+			string pp = $"| {score.Pp:N2}pp";
 			if (beatmap.Mode == Mode.Osu)
 			{
 				try
 				{
 					// Add pp values
-					double? scorePP = score.Pp;
-					if (scorePP == null)
-						scorePP = Oppai.GetBeatmapPP(score.Beatmap, score);
-
-					string possiblePP = string.Empty;
+					double scorePp = score.Pp ?? Oppai.GetBeatmapPP(score.Beatmap, score);
+					string possiblePp = string.Empty;
 
 					if (score.ComboBasedMissCount(beatmap.MaxCombo.Value, beatmap.Sliders.Value) > 0)
 					{
@@ -370,10 +365,10 @@ namespace den0bot.Modules.Osu
 						};
 
 						double possiblePPval = Oppai.GetBeatmapPP(score.Beatmap, fcScore);
-						possiblePP = $"(~{possiblePPval:N2}pp if FC)";
+						possiblePp = $"(~{possiblePPval:N2}pp if FC)";
 					}
 
-					pp = $"| {(scorePP == null ? "~" : "")}{scorePP:N2}pp {possiblePP}";
+					pp = $"| {(score.Pp == null ? "~" : "")}{scorePp:N2}pp {possiblePp}";
 				}
 				catch (Exception e)
 				{

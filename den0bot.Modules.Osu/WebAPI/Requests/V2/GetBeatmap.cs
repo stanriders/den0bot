@@ -9,7 +9,7 @@ namespace den0bot.Modules.Osu.WebAPI.Requests.V2
 
 		public string Address => $"beatmaps/{id}";
 
-		private uint id;
+		private readonly uint id;
 
 		public GetBeatmap(uint id)
 		{

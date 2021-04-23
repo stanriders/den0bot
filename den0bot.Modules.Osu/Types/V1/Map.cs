@@ -14,20 +14,20 @@ namespace den0bot.Modules.Osu.Types.V1
 		public override uint BeatmapSetId { get; set; }
 
 		[JsonProperty("last_update")]
-		public DateTime? UpdatedDate;
+		public DateTime? UpdatedDate { get; set; }
 		[JsonProperty("approved_date")]
-		public DateTime? RankedDate;
+		public DateTime? RankedDate { get; set; }
 		[JsonProperty("approved")]
 		public override RankedStatus Status { get; set; }
 
 		[JsonProperty("artist")]
-		public string Artist;
+		public string Artist { get; set; }
 		[JsonProperty("title")]
-		public string Title;
+		public string Title { get; set; }
 		[JsonProperty("version")]
 		public override string Version { get; set; }
 		[JsonProperty("creator")]
-		public string Creator;
+		public string Creator { get; set; }
 		[JsonProperty("mode")]
 		public override Mode Mode { get; set; }
 

@@ -202,12 +202,10 @@ namespace den0bot
 				if (msg.Type == MessageType.Photo)
 					msg.Text = msg.Caption; // for consistency
 
-				if (module is IReceiveAllMessages messages)
+				if (module is IReceiveAllMessages messages &&
+				    !(msg.Text != null && msg.Text[0] == command_trigger))
 				{
-					if (!(msg.Text != null && msg.Text[0] == command_trigger))
-					{
-						await messages.ReceiveMessage(msg);
-					}
+					await messages.ReceiveMessage(msg);
 				}
 
 				if (await module.RunCommands(msg))

@@ -12,7 +12,7 @@ namespace den0bot.Analytics.Web
 {
 	public class Startup
 	{
-		private static TelegramBotClient telegramClient;
+		private readonly TelegramBotClient telegramClient;
 		public Startup(IConfiguration configuration)
 		{
 			Configuration = configuration;
