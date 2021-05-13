@@ -254,7 +254,7 @@ namespace den0bot.Modules.Osu
 					if (!string.IsNullOrEmpty(player))
 					{
 						if(db.Players.Any(x=> x.TelegramID == message.From.Id))
-							return Localization.GetAnswer("recentscores_player_add_failed", message.Chat.Id);
+							return Localization.GetAnswer($"annoy_{RNG.NextNoMemory(1, 10)}", message.Chat.Id);
 
 						if (!uint.TryParse(player, out var osuID))
 						{
