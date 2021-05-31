@@ -13,6 +13,7 @@ using den0bot.DB;
 using den0bot.Modules;
 using den0bot.Util;
 using den0bot.Types;
+using Serilog;
 
 namespace den0bot
 {
@@ -31,6 +32,13 @@ namespace den0bot
 		public static void Main()
 		{
 			Thread.CurrentThread.CurrentCulture = new CultureInfo("ru-RU", false);
+
+			Log.Logger = new LoggerConfiguration()
+				.WriteTo.Sentry(o => o.Dsn = Config.Params.SentryDsn)
+				.WriteTo.File(@"log.txt", rollingInterval: RollingInterval.Month)
+				.WriteTo.Console()
+				.CreateLogger();
+
 			AppDomain.CurrentDomain.UnhandledException += (s, e) => { Log.Error((e.ExceptionObject as Exception)?.ToString()); };
 			var bot = new Bot();
 			bot.Run();
@@ -38,11 +46,11 @@ namespace den0bot
 
 		public void Run()
 		{
-			Log.Info("________________");
+			Log.Information("________________");
 			if (!LoadModules())
 				return;
 
-			Log.Info("Done!");
+			Log.Information("Done!");
 
 			API.OnMessage += ProcessMessage;
 			API.OnMessageEdit += ProcessMessageEdit;
@@ -50,14 +58,14 @@ namespace den0bot
 
 			if (API.Connect())
 			{
-				Log.Info("Started thinking...");
+				Log.Information("Started thinking...");
 				Think();
 			}
 			else
 			{
 				Log.Error("Can't connect to Telegram API!");
 			}
-			Log.Info("Exiting...");
+			Log.Information("Exiting...");
 		}
 
 		private void Think()
@@ -87,7 +95,7 @@ namespace den0bot
 
 		private bool LoadModules()
 		{
-			Log.Info("Starting modules...");
+			Log.Information("Starting modules...");
 			if (Config.Params.Modules != null)
 			{
 				List<Assembly> allAssemblies = new List<Assembly>();

@@ -3,6 +3,7 @@ using System;
 using den0bot.Modules.Osu.Types.Enums;
 using den0bot.Util;
 using Newtonsoft.Json;
+using Serilog;
 
 namespace den0bot.Modules.Osu.Types.V1
 {

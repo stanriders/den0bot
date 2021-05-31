@@ -15,6 +15,7 @@ using den0bot.Util;
 using Telegram.Bot.Types.Enums;
 using den0bot.Types;
 using den0bot.Types.Answers;
+using Serilog;
 
 namespace den0bot.Modules.Osu
 {

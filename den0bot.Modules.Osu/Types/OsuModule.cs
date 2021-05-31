@@ -2,6 +2,7 @@
 using den0bot.Modules.Osu.Util;
 using den0bot.Types;
 using den0bot.Util;
+using Serilog;
 
 namespace den0bot.Modules.Osu.Types
 {

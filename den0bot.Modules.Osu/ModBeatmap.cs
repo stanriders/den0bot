@@ -15,6 +15,7 @@ using den0bot.Modules.Osu.Parsers;
 using den0bot.Modules.Osu.Types;
 using den0bot.Modules.Osu.Util;
 using den0bot.Types.Answers;
+using Serilog;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.InputFiles;
 using Telegram.Bot.Types.ReplyMarkups;
@@ -111,7 +112,7 @@ namespace den0bot.Modules.Osu
 				await new Engine("ffmpeg")
 					.ConvertAsync(new MediaFile($"./{mapsetId}.mp3"), new MediaFile($"./{mapsetId}.ogg"));
 
-				using (FileStream fs = File.Open($"./{mapsetId}.ogg", FileMode.Open, FileAccess.Read))
+				await using (FileStream fs = File.Open($"./{mapsetId}.ogg", FileMode.Open, FileAccess.Read))
 					await API.SendVoice(new InputOnlineFile(fs), callback.Message.Chat.Id, replyTo: callback.Message.MessageId, duration: 10);
 
 				File.Delete($"./{mapsetId}.mp3");

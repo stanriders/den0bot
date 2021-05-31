@@ -9,6 +9,7 @@ using den0bot.Types;
 using den0bot.Types.Answers;
 using den0bot.Util;
 using Newtonsoft.Json;
+using Serilog;
 using Telegram.Bot.Types.Enums;
 
 namespace den0bot.Modules
@@ -76,7 +77,7 @@ namespace den0bot.Modules
 					string subject = o["subject"].ToString().ToLower();
 					if (subject == ("osu!thread"))
 					{
-						Log.Info(this, subject + " | " + o["num"].ToString());
+						Log.Information(this, subject + " | " + o["num"].ToString());
 						return o["num"].Value<int>();
 					}
 

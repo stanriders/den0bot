@@ -15,6 +15,7 @@ using den0bot.Modules.Osu.WebAPI;
 using den0bot.Types;
 using den0bot.Modules.Osu.Util;
 using den0bot.Types.Answers;
+using Serilog;
 
 namespace den0bot.Modules.Osu
 {
@@ -116,7 +117,7 @@ namespace den0bot.Modules.Osu
 			}
 			else
 			{
-				Log.Info("Trying to start again");
+				Log.Information("Trying to start again");
 				if (!Start())
 					return null;
 			}

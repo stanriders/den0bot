@@ -5,6 +5,7 @@ using den0bot.Util;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Serialization;
+using Serilog;
 
 namespace den0bot.Modules.Osu.Types.V2
 {

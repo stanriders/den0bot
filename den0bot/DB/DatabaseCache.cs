@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Serilog;
 
 namespace den0bot.DB
 {
@@ -150,7 +151,7 @@ namespace den0bot.DB
 					await db.Chats.AddAsync(chat);
 					await db.SaveChangesAsync();
 
-					Log.Info($"Added chat '{chatID}' to the chat list");
+					Log.Information($"Added chat '{chatID}' to the chat list");
 				}
 			}
 		}

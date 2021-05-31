@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using den0bot.Util;
 using Newtonsoft.Json;
+using Serilog;
 using Telegram.Bot.Types;
 
 namespace den0bot.Types

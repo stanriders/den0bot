@@ -5,6 +5,7 @@ using System.IO;
 using System.Threading.Tasks;
 using den0bot.DB;
 using den0bot.Util;
+using Serilog;
 using Telegram.Bot;
 using Telegram.Bot.Args;
 using Telegram.Bot.Exceptions;
@@ -33,7 +34,7 @@ namespace den0bot
 				return false;
 			}
 
-			Log.Info("Connecting...");
+			Log.Information("Connecting...");
 			api = new TelegramBotClient(Config.Params.TelegamToken);
 			api.OnMessage += OnMessage;
 			api.OnMessageEdited += OnMessageEdit;
@@ -48,16 +49,16 @@ namespace den0bot
 			}
 			BotUser = api.GetMeAsync().Result;
 
-			Log.Info("API Test successful, starting receiving...");
+			Log.Information("API Test successful, starting receiving...");
 			api.StartReceiving();
 
-			Log.Info("Connected!");
+			Log.Information("Connected!");
 			return true;
 		}
 
 		public static void Disconnect()
 		{
-			Log.Info("Disconnecting...");
+			Log.Information("Disconnecting...");
 			api.StopReceiving();
 		}
 
@@ -100,7 +101,7 @@ namespace den0bot
                 if (chat == null)
 				{
 					await DatabaseCache.RemoveChat(receiver.Id);
-					Log.Info($"Chat {receiver.Id} removed");
+					Log.Information($"Chat {receiver.Id} removed");
 					return;
 				}
 				else if (!receiver.DisableAnnouncements ?? false)
