@@ -8,17 +8,19 @@ namespace den0bot.Modules.Osu.WebAPI.Requests.V2
 	{
 		public APIVersion API => APIVersion.V2;
 
-		public string Address => $"users/{username}/scores/{type}?include_fails={includeFails.ToString().ToLower()}";
+		public string Address => $"users/{username}/scores/{type}?include_fails={includeFails.ToString().ToLower()}&limit={limit}";
 
 		private readonly string username;
 		private readonly string type;
 		private readonly bool includeFails;
+		private readonly int limit;
 
-		public GetUserScores(string username, ScoreType type, bool includeFails = false)
+		public GetUserScores(string username, ScoreType type, bool includeFails = false, int limit = 10)
 		{
 			this.username = username;
 			this.type = type.ToString().ToLower();
 			this.includeFails = includeFails;
+			this.limit = limit;
 		}
 
 		public List<Score> Process(List<Score> data) => data;
