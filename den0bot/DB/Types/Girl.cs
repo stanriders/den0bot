@@ -1,5 +1,6 @@
-﻿// den0bot (c) StanR 2020 - MIT License
+﻿// den0bot (c) StanR 2021 - MIT License
 
+using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -15,7 +16,7 @@ namespace den0bot.DB.Types
 
 		public long ChatID { get; set; }
 
-		public bool Used { get; set; }
+		public DateTime? LastUsed { get; set; }
 
 		public int Rating { get; set; }
 
@@ -24,6 +25,6 @@ namespace den0bot.DB.Types
 
 		public int SeasonRating { get; set; }
 
-		public bool SeasonUsed { get; set; }
+		public DateTime? SeasonLastUsed { get; set; }
 	}
 }

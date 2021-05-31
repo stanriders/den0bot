@@ -1,6 +1,9 @@
-﻿// den0bot (c) StanR 2020 - MIT License
+﻿// den0bot (c) StanR 2021 - MIT License
 using System;
+using System.Linq;
 using System.Numerics;
+using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 
 namespace den0bot.Util
 {
@@ -48,6 +51,19 @@ namespace den0bot.Util
 			} while (result >= max || result == 0);
 
 			return result;
+		}
+
+		public static async Task<T> DatabaseRandom<T>(IQueryable<T> query, int amount = -1)
+		{
+			if (amount == -1)
+			{
+				amount = await query.CountAsync();
+				if (amount <= 0)
+					return default;
+			}
+
+			int num = Next(max: amount);
+			return await query.Skip(num).FirstOrDefaultAsync();
 		}
 	}
 }
