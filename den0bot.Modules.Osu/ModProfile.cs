@@ -1,7 +1,6 @@
 ﻿// den0bot (c) StanR 2021 - MIT License
 using System;
 using System.Collections.Generic;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using den0bot.Modules.Osu.Parsers;
 using den0bot.Modules.Osu.Types;
@@ -20,7 +19,7 @@ namespace den0bot.Modules.Osu
 {
 	public class ModProfile : OsuModule, IReceiveAllMessages
 	{
-		private readonly int topscores_to_show = 3;
+		private readonly int topscores_to_show = 5;
 		public ModProfile()
 		{
 			AddCommand(new Command
@@ -34,10 +33,12 @@ namespace den0bot.Modules.Osu
 		{
 			if (!string.IsNullOrEmpty(message.Text))
 			{
-				string playerID = ProfileLinkParser.Parse(message.Text)?.Id;
-				if (!string.IsNullOrEmpty(playerID))
-					await API.SendMessage(await FormatPlayerInfo(playerID), message.Chat.Id, ParseMode.Html,
-											message.MessageId, null, false);
+				string playerId = ProfileLinkParser.Parse(message.Text)?.Id;
+				if (!string.IsNullOrEmpty(playerId))
+				{
+					await API.SendMessage(await FormatPlayerInfo(playerId), message.Chat.Id, ParseMode.Html,
+						message.MessageId, disablePreview: false);
+				}
 			}
 		}
 
@@ -48,8 +49,7 @@ namespace den0bot.Modules.Osu
 			if (info == null)
 				return string.Empty;
 
-			List<Score> topscores = await WebApiHandler.MakeApiRequest(new GetUserScores(info.Id.ToString(), ScoreType.Best));
-
+			var topscores = await WebApiHandler.MakeApiRequest(new GetUserScores(info.Id.ToString(), ScoreType.Best, limit: topscores_to_show));
 			if (topscores == null || topscores.Count <= 0)
 				return string.Empty;
 
@@ -66,7 +66,7 @@ namespace den0bot.Modules.Osu
 				// 1. 123pp | Artist - Title [Diffname] +Mods (Rank, Accuracy%)
 				string mapName = $"{score.BeatmapSet.Artist} - {score.BeatmapSet.Title} [{score.Beatmap.Version}]".FilterToHTML();
 				formatedTopscores +=
-					$"<b>{(i + 1)}</b>. <code>{score.Pp:F1}pp</code> | {mapName}{mods} (<b>{score.Grade.GetDescription()}</b>, {score.Accuracy:N2}%)\n";
+					$"<b>{(i + 1)}</b>. <code>{score.Pp:F1}pp</code> | (<b>{score.Grade.GetDescription()}</b>) {mapName}{mods} ({score.Accuracy:N2}%)\n";
 			}
 
 			var title = string.Empty;
@@ -85,26 +85,24 @@ namespace den0bot.Modules.Osu
 		{
 			try
 			{
-				var playerJson = await Web.DownloadString($"https://newpp.stanr.info/api/GetResults?player={username}");
+				var playerJson = await Web.DownloadString($"https://newpp.stanr.info/api/player/{username}");
 				if (!string.IsNullOrEmpty(playerJson))
 				{
 					dynamic player = JsonConvert.DeserializeObject(playerJson);
-
-					string formattedTopscores = string.Empty;
-					for (int i = 0; i < topscores_to_show; i++)
+					if (player != null)
 					{
-						var map = string.Join(" - ", player.Beatmaps[i].Beatmap.ToString().Split(" - ").Skip(1));
-						formattedTopscores +=
-							$"{map} | {player.Beatmaps[i].LocalPP}pp ({player.Beatmaps[i].PPChange})\n";
-					}
+						string formattedTopscores = string.Empty;
+						for (int i = 0; i < topscores_to_show; i++)
+						{
+							formattedTopscores += $"{player.Scores[i].Map.Name} +{player.Scores[i].Mods} | {player.Scores[i].LocalPp}pp\n";
+						}
 
-					return $"{player.Username}\nLive PP: {player.LivePP}\nLocal PP: {player.LocalPP}\n__________\n{formattedTopscores}";
+						return $"{player.Name}\nLive PP: {player.LivePp}\nLocal PP: {player.LocalPp}\n__________\n{formattedTopscores}";
+					}
 				}
 			}
-			catch (Exception)
-			{
-				return string.Empty;
-			}
+			catch (Exception) { }
+
 			return string.Empty;
 		}
 
@@ -124,7 +122,7 @@ namespace den0bot.Modules.Osu
 				}
 				else
 				{
-					using (var db = new DatabaseOsu())
+					await using (var db = new DatabaseOsu())
 					{
 						var osuId = await db.Players.FirstOrDefaultAsync(x=> x.TelegramID == msg.From.Id);
 						if (osuId != null)
