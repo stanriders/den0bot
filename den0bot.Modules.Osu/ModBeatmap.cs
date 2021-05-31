@@ -75,8 +75,7 @@ namespace den0bot.Modules.Osu
 							message.Chat.Id, 
 							map.GetFormattedMapInfo(beatmapLinkData.Mods),
 							Telegram.Bot.Types.Enums.ParseMode.Html, 
-							0, 
-							buttons);
+							replyMarkup: buttons);
 
 						if (sentMessage != null)
 						{
@@ -135,8 +134,7 @@ namespace den0bot.Modules.Osu
 					var json = new { Map = beatmapLinkData.ID.ToString(), Mods = beatmapLinkData.Mods.ToArray() };
 					try
 					{
-						var mapJson = await Web.PostJson("https://newpp.stanr.info/api/CalculateMap",
-							JsonConvert.SerializeObject(json));
+						var mapJson = await Web.PostJson("https://newpp.stanr.info/api/maps/calculate", JsonConvert.SerializeObject(json));
 						if (!string.IsNullOrEmpty(mapJson))
 						{
 							var map = JsonConvert.DeserializeObject<RebalanceMap>(mapJson);
