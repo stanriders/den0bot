@@ -186,12 +186,8 @@ namespace den0bot.Analytics.Web.Caches
 
 			var file = await client.GetFileAsync(fileId);
 			await client.DownloadFileAsync(file.FilePath, stream);
-			stream.Position = 0;
 
-			Memory<byte> buf = new Memory<byte>();
-			await stream.ReadAsync(buf);
-
-			await System.IO.File.WriteAllBytesAsync(path, buf.ToArray());
+			await System.IO.File.WriteAllBytesAsync(path, stream.ToArray());
 		}
 	}
 }

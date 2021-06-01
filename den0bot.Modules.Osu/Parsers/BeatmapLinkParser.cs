@@ -28,7 +28,7 @@ namespace den0bot.Modules.Osu.Parsers
 			Match regexMatch = linkRegex.Match(text);
 			if (regexMatch.Groups.Count > 1)
 			{
-				var regexGroups = regexMatch.Groups.Values.ToArray();
+				var regexGroups = regexMatch.Groups.Values.Where(x => x.Success).ToArray();
 				// Groups:
 				// 0 - full match
 				// 1 - link type (b/s/beatmapsets/beatmaps)

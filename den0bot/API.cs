@@ -287,12 +287,8 @@ namespace den0bot
 
 			var file = await api.GetFileAsync(fileId);
 			await api.DownloadFileAsync(file.FilePath, stream);
-			stream.Position = 0;
 
-			Memory<byte> buf = new Memory<byte>();
-			await stream.ReadAsync(buf);
-
-			await System.IO.File.WriteAllBytesAsync(path, buf.ToArray());
+			await System.IO.File.WriteAllBytesAsync(path, stream.ToArray());
 
 			return true;
 		}
