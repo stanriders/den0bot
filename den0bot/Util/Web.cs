@@ -12,20 +12,11 @@ namespace den0bot.Util
 	{
 		private static readonly HttpClient client = new();
 
-		public static Task<string> DownloadString(string address) => client.GetStringAsync(address);
-
 		public static Task<byte[]> DownloadBytes(string address) => client.GetByteArrayAsync(address);
 
 		public static Task<Stream> DownloadStream(string address) => client.GetStreamAsync(address);
 
-		public static async Task<string> PostJson(string address, string json)
-		{
-			var response = await client.PostAsync(address, new StringContent(json, Encoding.UTF8, "application/json"));
-			if (response.IsSuccessStatusCode)
-				return await response.Content.ReadAsStringAsync();
-
-			return string.Empty;
-		}
+		public static Task<string> DownloadString(string address) => client.GetStringAsync(address);
 
 		public static async Task<string> DownloadString(string address, string bearer)
 		{
@@ -59,6 +50,15 @@ namespace den0bot.Util
 				if (response.IsSuccessStatusCode)
 					return await response.Content.ReadAsStringAsync();
 			}
+
+			return string.Empty;
+		}
+
+		public static async Task<string> PostJson(string address, string json)
+		{
+			var response = await client.PostAsync(address, new StringContent(json, Encoding.UTF8, "application/json"));
+			if (response.IsSuccessStatusCode)
+				return await response.Content.ReadAsStringAsync();
 
 			return string.Empty;
 		}

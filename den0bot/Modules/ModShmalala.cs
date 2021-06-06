@@ -174,7 +174,7 @@ namespace den0bot.Modules
 				System.IO.File.WriteAllText(file_path, JsonConvert.SerializeObject(packedChain, Formatting.Indented));
 			}
 
-			public void DeleteFile()
+			public static void DeleteFile()
 			{
 				if (System.IO.File.Exists(file_path))
 					System.IO.File.Delete(file_path);
@@ -229,7 +229,7 @@ namespace den0bot.Modules
 					Name = "talkwipe",
 					Action = msg =>
 					{
-						markovChain.DeleteFile();
+						MarkovChain.DeleteFile();
 						markovChain = new MarkovChain();
 						return new TextCommandAnswer("Done!");
 					},
@@ -363,7 +363,7 @@ namespace den0bot.Modules
 			markovChain.SaveToFile();
 		}
 #if GPT_YANDEX
-		private async Task<string> GetGptResponse(string input)
+		private static async Task<string> GetGptResponse(string input)
 		{
 			var response = await Web.PostJson("https://yandex.ru/lab/api/gpt3/text2", JsonConvert.SerializeObject(new
 			{
@@ -387,7 +387,7 @@ namespace den0bot.Modules
 			return string.Empty;
 		}
 #elif GPT_SBERBANK
-		private async Task<string> GetGptResponse(string input)
+		private static async Task<string> GetGptResponse(string input)
 		{
 			var response = await Web.PostJson("https://api.aicloud.sbercloud.ru/public/v1/public_inference/gpt3/predict", JsonConvert.SerializeObject(new
 			{

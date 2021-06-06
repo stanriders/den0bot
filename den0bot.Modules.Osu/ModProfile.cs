@@ -1,6 +1,5 @@
 ﻿// den0bot (c) StanR 2021 - MIT License
 using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using den0bot.Modules.Osu.Parsers;
 using den0bot.Modules.Osu.Types;
@@ -14,6 +13,7 @@ using den0bot.Modules.Osu.WebAPI;
 using Microsoft.EntityFrameworkCore;
 using den0bot.Types;
 using den0bot.Types.Answers;
+using Serilog;
 
 namespace den0bot.Modules.Osu
 {
@@ -94,14 +94,19 @@ namespace den0bot.Modules.Osu
 						string formattedTopscores = string.Empty;
 						for (int i = 0; i < topscores_to_show; i++)
 						{
-							formattedTopscores += $"{player.Scores[i].Map.Name} +{player.Scores[i].Mods} | {player.Scores[i].LocalPp}pp\n";
+							formattedTopscores +=
+								$"{player.Scores[i].Map.Name} +{player.Scores[i].Mods} | {player.Scores[i].LocalPp}pp\n";
 						}
 
-						return $"{player.Name}\nLive PP: {player.LivePp}\nLocal PP: {player.LocalPp}\n__________\n{formattedTopscores}";
+						return
+							$"{player.Name}\nLive PP: {player.LivePp}\nLocal PP: {player.LocalPp}\n__________\n{formattedTopscores}";
 					}
 				}
 			}
-			catch (Exception) { }
+			catch (Exception e)
+			{
+				Log.Warning($"FormatRebalanceProfile failed: {e}");
+			}
 
 			return string.Empty;
 		}

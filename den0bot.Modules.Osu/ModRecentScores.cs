@@ -76,15 +76,12 @@ namespace den0bot.Modules.Osu
 			List<string> msgSplit = message.Text.Split(' ').ToList();
 			msgSplit.RemoveAt(0);
 
-			if (msgSplit.Count > 0)
+			if (msgSplit.Count > 0 && int.TryParse(msgSplit.Last(), out amount))
 			{
-				if (int.TryParse(msgSplit.Last(), out amount))
-				{
-					if (amount > recent_amount)
-						amount = recent_amount;
+				if (amount > recent_amount)
+					amount = recent_amount;
 
-					msgSplit.Remove(msgSplit.Last());
-				}
+				msgSplit.Remove(msgSplit.Last());
 			}
 
 			if (msgSplit.Count > 0)
@@ -342,7 +339,7 @@ namespace den0bot.Modules.Osu
 			}
 		}
 
-		private string FormatScore(IScore score, bool useAgo)
+		private static string FormatScore(IScore score, bool useAgo)
 		{
 			string mods = string.Empty;
 			if (score.LegacyMods != LegacyMods.NM)

@@ -140,7 +140,7 @@ namespace den0bot
 			return false;
 		}
 
-		private bool TryEvent(long chatID, out string text)
+		private static bool TryEvent(long chatID, out string text)
 		{
 			text = (RNG.NextNoMemory(0, 1000)) switch
 			{

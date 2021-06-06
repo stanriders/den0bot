@@ -9,11 +9,11 @@ namespace den0bot.Modules.Osu.Types.V2
 		[JsonProperty("token_type")]
 		public string Type { get; set; }
 
-		public DateTime expireDate;
-
+		private DateTime expireDate;
 		[JsonProperty("expires_in")]
-		public int ExpiresIn
+		public long ExpiresIn
 		{
+			get => expireDate.Ticks;
 			set => expireDate = DateTime.Now.AddSeconds(value);
 		}
 

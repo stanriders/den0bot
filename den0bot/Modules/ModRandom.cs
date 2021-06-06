@@ -30,7 +30,7 @@ namespace den0bot.Modules
 				{
 					Name = "addmeme",
 					IsAdminOnly = true,
-					Action = AddMeme
+					ActionAsync = AddMeme
 				},
 				new Command
 				{
@@ -45,7 +45,7 @@ namespace den0bot.Modules
 			});
 		}
 
-		private ICommandAnswer GetRandomDinosaur()
+		private static ICommandAnswer GetRandomDinosaur()
 		{
 			switch (RNG.Next(1, 4))
 			{
@@ -56,7 +56,7 @@ namespace den0bot.Modules
 			}
 		}
 
-		private ICommandAnswer Roll(Message msg)
+		private static ICommandAnswer Roll(Message msg)
 		{
 			string[] msgArr = msg.Text.Split(' ');
 
@@ -66,25 +66,25 @@ namespace den0bot.Modules
 			return new TextCommandAnswer(Localization.Get("random_roll", msg.Chat.Id) + RNG.Next(max: 101));
 		}
 
-		private ICommandAnswer AddMeme(Message message)
+		private static async Task<ICommandAnswer> AddMeme(Message message)
 		{
 			long chatId = message.Chat.Id;
 			string link = message.Text.Substring(7);
 
 			if (link.StartsWith("http") && (link.EndsWith(".jpg") || link.EndsWith(".png")))
 			{
-				AddMemeToDatabase(link, chatId);
+				await AddMemeToDatabase(link, chatId);
 				return new TextCommandAnswer(Localization.Get("random_meme_added", chatId));
 			}
-			else if (message.Type == MessageType.Photo)
+			if (message.Type == MessageType.Photo)
 			{
-				AddMemeToDatabase(message.Photo[0].FileId, chatId);
+				await AddMemeToDatabase(message.Photo[0].FileId, chatId);
 				return new TextCommandAnswer(Localization.Get("random_meme_added", chatId));
 			}
 			return new TextCommandAnswer(Localization.Get("random_meme_add_failed", chatId));
 		}
 
-		private async Task<ICommandAnswer> GetRandomMeme(Telegram.Bot.Types.Chat sender)
+		private static async Task<ICommandAnswer> GetRandomMeme(Telegram.Bot.Types.Chat sender)
 		{
 			await using (var db = new Database())
 			{
@@ -127,13 +127,13 @@ namespace den0bot.Modules
 			}
 		}
 
-		private void AddMemeToDatabase(string link, long chatID)
+		private static async Task AddMemeToDatabase(string link, long chatID)
 		{
-			using (var db = new Database())
+			await using (var db = new Database())
 			{
 				if (!db.Memes.Any(x => x.Link == link))
 				{
-					db.Memes.Add(new Meme
+					await db.Memes.AddAsync(new Meme
 					{
 						Link = link,
 						ChatID = chatID

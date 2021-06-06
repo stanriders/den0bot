@@ -84,29 +84,27 @@ namespace den0bot.Modules.Osu.Parsers
 
 		private static LegacyMods ConvertToMods(string mods)
 		{
-			if (string.IsNullOrEmpty(mods))
+			if (string.IsNullOrEmpty(mods) || mods.Length > 36) // every mod combination possible
 				return LegacyMods.NM;
 
-			if (Enum.TryParse(mods, true, out LegacyMods result) || string.IsNullOrEmpty(mods) || mods.Length > 36) // every mod combination possible
+			if (Enum.TryParse(mods, true, out LegacyMods result))
 				return result;
-			else
+
+			StringBuilder builder = new StringBuilder(mods.Length * 2);
+			bool secondChar = false;
+			foreach (char c in mods)
 			{
-				StringBuilder builder = new StringBuilder(mods.Length * 2);
-				bool secondChar = false;
-				foreach (char c in mods)
+				builder.Append(c);
+				if (secondChar)
 				{
-					builder.Append(c);
-					if (secondChar)
-					{
-						builder.Append(',');
-						builder.Append(' ');
-					}
-					secondChar = !secondChar;
+					builder.Append(',');
+					builder.Append(' ');
 				}
-				builder.Remove(builder.Length - 2, 2);
-				Enum.TryParse(builder.ToString(), true, out result);
-				return result;
+				secondChar = !secondChar;
 			}
+			builder.Remove(builder.Length - 2, 2);
+			Enum.TryParse(builder.ToString(), true, out result);
+			return result;
 		}
 	}
 }

@@ -29,14 +29,14 @@ namespace den0bot.Modules.Osu
 		{
 			public uint RedScore { get; set; }
 			public uint BlueScore { get; set; }
-			public MatchTeamNames Teams { get; set; }
+			public MatchTeamNames Teams { get; init; }
 		}
 
 		private readonly List<FollowedMatch> followList = new();
 		private DateTime nextCheck = DateTime.Now;
 
-		private int currentMatchId = 0;
-		private bool updating = false;
+		private int currentMatchId;
+		private bool updating;
 
 		private readonly int update_time = 1; //seconds
 
@@ -167,7 +167,7 @@ namespace den0bot.Modules.Osu
 			}
 		}
 
-		private string FormatHeadToHeadGame(Match match)
+		private static string FormatHeadToHeadGame(Match match)
 		{
 			string gamesString = string.Empty;
 			var game = match.Events.Where(x => x.Game != null)
@@ -189,7 +189,7 @@ namespace den0bot.Modules.Osu
 			return gamesString;
 		}
 
-		private string FormatTeamGame(Match match, MatchTeamStatus status)
+		private static string FormatTeamGame(Match match, MatchTeamStatus status)
 		{
 			string gamesString = string.Empty;
 			var game = match.Events.Where(x => x.Game != null)
@@ -227,7 +227,7 @@ namespace den0bot.Modules.Osu
 			return gamesString;
 		}
 
-		private MatchTeamStatus PopulateMatchTeamStatus(Match match)
+		private static MatchTeamStatus PopulateMatchTeamStatus(Match match)
 		{
 			uint redTotalScore = 0, blueTotalScore = 0;
 			foreach (var g in match.Events.Where(x=> x.Game != null).Select(x => x.Game))

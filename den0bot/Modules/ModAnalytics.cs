@@ -65,20 +65,19 @@ namespace den0bot.Modules
 
 		public override void Think()
 		{
-			if (messageBuffer.Count > 0 && nextFlush < DateTime.Now)
+			if (messageBuffer.IsEmpty && nextFlush < DateTime.Now)
 			{
 				Flush();
 				nextFlush = DateTime.Now.AddMinutes(buffer_flush_interval);
 			}
 		}
 
-		private void Flush()
+		private static void Flush()
 		{
 			using var db = new AnalyticsDatabase();
-
-				db.Messages.AddRange(messageBuffer);
-				db.SaveChanges();
-				messageBuffer.Clear();
+			db.Messages.AddRange(messageBuffer);
+			db.SaveChanges();
+			messageBuffer.Clear();
 
 		}
 
