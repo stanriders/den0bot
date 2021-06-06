@@ -204,7 +204,7 @@ namespace den0bot.Analytics.Web.Controllers
 			if (startTime < minimal_date || startTime > DateTime.Today)
 				startTime = endTime.AddDays(-6);
 
-			using (var db = new AnalyticsDatabase())
+			await using (var db = new AnalyticsDatabase())
 			{
 				db.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
 
@@ -278,7 +278,7 @@ namespace den0bot.Analytics.Web.Controllers
 			if (startTime < minimal_date || startTime > DateTime.Today)
 				startTime = endTime.AddDays(-6);
 
-			using (var db = new AnalyticsDatabase())
+			await using (var db = new AnalyticsDatabase())
 			{
 				db.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
 

@@ -30,7 +30,7 @@ namespace den0bot.Modules.Osu
 					IsAdminOnly = true,
 					ActionAsync = async (msg) =>
 					{
-						using(var db = new Database())
+						await using(var db = new Database())
 						{
 							var chat = db.Chats.First(x=> x.Id == msg.Chat.Id);
 							chat.DisableAnnouncements = false;
@@ -46,7 +46,7 @@ namespace den0bot.Modules.Osu
 					IsAdminOnly = true,
 					ActionAsync = async (msg) =>
 					{
-						using(var db = new Database())
+						await using(var db = new Database())
 						{
 							var chat = db.Chats.First(x=> x.Id == msg.Chat.Id);
 							chat.DisableAnnouncements = true;

@@ -86,7 +86,7 @@ namespace den0bot.Modules
 
 		private async Task<ICommandAnswer> GetRandomMeme(Telegram.Bot.Types.Chat sender)
 		{
-			using (var db = new Database())
+			await using (var db = new Database())
 			{
 				int memeCount = db.Memes.Count(x => x.ChatID == sender.Id);
 				if (memeCount <= 0)

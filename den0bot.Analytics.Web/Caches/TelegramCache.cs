@@ -42,7 +42,7 @@ namespace den0bot.Analytics.Web.Caches
 
 			try
 			{
-				using (var db = new AnalyticsDatabase())
+				await using (var db = new AnalyticsDatabase())
 				{
 					var tgUser = (await client.GetChatMemberAsync(chatId, (int) userId)).User;
 					var dbUser = await db.Users.FirstOrDefaultAsync(x => x.Id == userId);
@@ -73,7 +73,7 @@ namespace den0bot.Analytics.Web.Caches
 			catch (Exception e)
 			{
 				Console.WriteLine(e);
-				using (var db = new AnalyticsDatabase())
+				await using (var db = new AnalyticsDatabase())
 				{
 					var dbUser = await db.Users.FirstOrDefaultAsync(x => x.Id == userId);
 					if (dbUser != null)

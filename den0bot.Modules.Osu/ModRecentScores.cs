@@ -93,7 +93,7 @@ namespace den0bot.Modules.Osu
 			}
 			else
 			{
-				using (var db = new DatabaseOsu())
+				await using (var db = new DatabaseOsu())
 				{
 					var id = db.Players.FirstOrDefault(x=> x.TelegramID == message.From.Id)?.OsuID;
 					if (id == null || id == 0)
@@ -138,7 +138,7 @@ namespace den0bot.Modules.Osu
 			}
 			else
 			{
-				using (var db = new DatabaseOsu())
+				await using (var db = new DatabaseOsu())
 				{
 					var id = db.Players.FirstOrDefault(x => x.TelegramID == message.From.Id)?.OsuID;
 					if (id == null || id == 0)
@@ -264,7 +264,7 @@ namespace den0bot.Modules.Osu
 		{
 			if (message.Text.Length > 6)
 			{
-				using (var db = new DatabaseOsu())
+				await using (var db = new DatabaseOsu())
 				{
 					string player = ProfileLinkParser.Parse(message.Text)?.Id;
 					if (string.IsNullOrEmpty(player))
@@ -306,7 +306,7 @@ namespace den0bot.Modules.Osu
 
 		private async Task<ICommandAnswer> RemoveMe(Telegram.Bot.Types.Message message)
 		{
-			using (var db = new DatabaseOsu())
+			await using (var db = new DatabaseOsu())
 			{
 				var player = db.Players.FirstOrDefault(x=> x.TelegramID == message.From.Id);
 				if (player != null)
@@ -323,7 +323,7 @@ namespace den0bot.Modules.Osu
 
 		private async Task<ICommandAnswer> RemovePlayer(Telegram.Bot.Types.Message message)
 		{
-			using (var db = new DatabaseOsu())
+			await using (var db = new DatabaseOsu())
 			{
 				var tgId = DatabaseCache.GetUserID(message.Text.Split()[1]);
 				if (tgId != 0)

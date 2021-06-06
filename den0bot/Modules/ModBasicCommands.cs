@@ -66,7 +66,7 @@ namespace den0bot.Modules
 						var locale = message.Text.Substring(11);
 						if (Localization.GetAvailableLocales().Contains(locale))
 						{
-							using (var db = new Database())
+							await using (var db = new Database())
 							{
 								var chat = db.Chats.First(x=> x.Id == message.Chat.Id);
 								chat.Locale = locale;
@@ -86,7 +86,7 @@ namespace den0bot.Modules
 					IsAdminOnly = true,
 					ActionAsync = async (message) =>
 					{
-						using (var db = new Database())
+						await using (var db = new Database())
 						{
 							var text = message.Text.Substring(17);
 							var chat = db.Chats.First(x=> x.Id == message.Chat.Id);
@@ -102,7 +102,7 @@ namespace den0bot.Modules
 					IsOwnerOnly = true,
 					ActionAsync = async (message) =>
 					{
-						using (var db = new Database())
+						await using (var db = new Database())
 						{
 							var chat = db.Chats.First(x=> x.Id == message.Chat.Id);
 							chat.DisableEvents = !chat.DisableEvents;

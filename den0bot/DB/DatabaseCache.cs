@@ -53,7 +53,7 @@ namespace den0bot.DB
 		{
 			if (Users.All(x => x.Username != username))
 			{
-				using (var db = new Database())
+				await using (var db = new Database())
 				{
 					var user = new User
 					{
@@ -138,7 +138,7 @@ namespace den0bot.DB
 		{
 			if (Chats.All(x => x.Id != chatID))
 			{
-				using (var db = new Database())
+				await using (var db = new Database())
 				{
 					var chat = new Chat
 					{
@@ -160,7 +160,7 @@ namespace den0bot.DB
 			var chat = Chats.FirstOrDefault(x => x.Id == chatID);
 			if (chat != null)
 			{
-				using (var db = new Database())
+				await using (var db = new Database())
 				{
 					Chats.Remove(chat);
 					db.Chats.Remove(chat);

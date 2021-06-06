@@ -99,7 +99,7 @@ namespace den0bot.Modules
 				if (message.Type == MessageType.Photo &&
 				    message.Caption == Localization.Get("girls_tag", message.Chat.Id))
 				{
-					using (var db = new Database())
+					await using (var db = new Database())
 					{
 						var link = message.Photo.Last().FileId;
 						if (!db.Girls.Any(x => x.Link == link))
@@ -127,7 +127,7 @@ namespace den0bot.Modules
 		private async Task<ICommandAnswer> GetRandomGirl(Message msg, bool seasonal = false)
 		{
 			long chatID = msg.Chat.Id;
-			using var db = new Database();
+			await using var db = new Database();
 
 			if (await db.Girls.CountAsync(x=> x.ChatID == chatID) <= 0)
 				return Localization.GetAnswer("girls_not_found", chatID);
@@ -185,7 +185,7 @@ namespace den0bot.Modules
 
 		private async Task<ICommandAnswer> GetRandomPlatinumGirl(Telegram.Bot.Types.Chat sender)
 		{
-			using (var db = new Database())
+			await using (var db = new Database())
 			{
 				var girls = await db.Girls.Where(x => x.ChatID == sender.Id && x.Rating >= 10).ToArrayAsync();
 				if (girls.Length > 0)
@@ -203,7 +203,7 @@ namespace den0bot.Modules
 
 		private async Task<ICommandAnswer> TopGirls(long chatID, bool reverse = false)
 		{
-			using (var db = new Database())
+			await using (var db = new Database())
 			{
 				var topGirls = await db.Girls.Where(x => x.ChatID == chatID).OrderByDescending(x => x.Rating).ToListAsync();
 				if (topGirls != null)
@@ -246,7 +246,7 @@ namespace den0bot.Modules
 				season = s;
 			}
 
-			using (var db = new Database())
+			await using (var db = new Database())
 			{
 				var topGirls = await db.Girls
 					.Where(x => x.ChatID == msg.Chat.Id && x.Season == season)
@@ -295,7 +295,7 @@ namespace den0bot.Modules
 				return Localization.Get($"rating_repeat_{RNG.NextNoMemory(1, 10)}", chatId);
 			}
 
-			using (var db = new Database())
+			await using (var db = new Database())
 			{
 				var dbGirl = await db.Girls.FirstOrDefaultAsync(x=> x.Id == sentGirl.ID);
 				if (callback.Data == "+")
@@ -365,7 +365,7 @@ namespace den0bot.Modules
 		{
 			if (message.ReplyToMessage != null && sentGirlsCache.Contains(message.ReplyToMessage.MessageId.ToString()))
 			{
-				using (var db = new Database())
+				await using (var db = new Database())
 				{
 					var girl = sentGirlsCache.Remove(message.ReplyToMessage.MessageId.ToString()) as SentGirl;
 
@@ -382,7 +382,7 @@ namespace den0bot.Modules
 
 		private async Task<Girl> GetGirl(long chatID)
 		{
-			using (var db = new Database())
+			await using (var db = new Database())
 			{
 				if (!db.Girls.Any(x => x.ChatID == chatID && !x.Used))
 				{
@@ -412,7 +412,7 @@ namespace den0bot.Modules
 		private async Task<Girl> GetGirlSeasonal(long chatID)
 		{
 			var season = DatabaseCache.GetGirlSeason();
-			using (var db = new Database())
+			await using (var db = new Database())
 			{
 				var girls = await db.Girls.Where(x => x.ChatID == chatID && x.Season == season).ToArrayAsync();
 				if (girls.Length == 0)

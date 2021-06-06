@@ -49,7 +49,7 @@ namespace den0bot.Modules
 			var err = string.Empty;
 
 			List<string> receivers = new List<string>(senders);
-			using (var db = new Database())
+			await using (var db = new Database())
 			{
 				var old = await db.Santas.Select(x => x).ToArrayAsync();
 				if (old.Length > 0)
@@ -100,7 +100,7 @@ namespace den0bot.Modules
 		{
 			if (msg.Chat.Type == ChatType.Private)
 			{
-				using (var db = new Database())
+				await using (var db = new Database())
 				{
 					var receiverID = DatabaseCache.GetUserID(db.Santas.AsNoTracking().FirstOrDefault(x => x.Sender == msg.From.Username)?.Receiver);
 					if (receiverID != 0)
@@ -119,7 +119,7 @@ namespace den0bot.Modules
 		{
 			if (msg.Chat.Type == ChatType.Private)
 			{
-				using (var db = new Database())
+				await using (var db = new Database())
 				{
 					var senderID = DatabaseCache.GetUserID(db.Santas.AsNoTracking().FirstOrDefault(x => x.Receiver == msg.From.Username)?.Sender);
 					if (senderID != 0)
