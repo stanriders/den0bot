@@ -1,4 +1,6 @@
-﻿// den0bot (c) StanR 2021 - MIT License
+﻿#define GPT
+#define GPT_SBERBANK
+// den0bot (c) StanR 2021 - MIT License
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,6 +12,7 @@ using den0bot.Types;
 using den0bot.Types.Answers;
 using den0bot.Util;
 using Newtonsoft.Json;
+using Serilog;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 
@@ -236,6 +239,23 @@ namespace den0bot.Modules
 
 		private ICommandAnswer SendRandomMessage(Message msg)
 		{
+#if GPT
+			if (msg.Text.Length > 5)
+			{
+				var input = msg.Text[6..];
+				if (!string.IsNullOrEmpty(input))
+				{
+					var response = GetGptResponse(input).Result;
+					if (!string.IsNullOrEmpty(response))
+					{
+						return new TextCommandAnswer($"{input} {response}");
+					}
+				}
+			}
+
+			return null;
+#else
+
 			if (!markovChain.Ready || markovChain.Nodes.Count <= min_nodes)
 				return Localization.GetAnswer("shmalala_notready", msg.Chat.Id);
 
@@ -246,6 +266,7 @@ namespace den0bot.Modules
 				textBuilder.Append(GenerateRandomSentence(default));
 
 			return new TextCommandAnswer(textBuilder.ToString());
+#endif
 		}
 
 		private string GenerateRandomSentence(string startNode)
@@ -278,8 +299,16 @@ namespace den0bot.Modules
 
 			var text = message.Text.ToLower();
 			text = cleanWordRegex.Replace(text, string.Empty);
-			if (text.StartsWith(Localization.Get("shmalala_trigger", message.Chat.Id)))
+			var trigger = Localization.Get("shmalala_trigger", message.Chat.Id);
+			if (text.StartsWith(trigger))
 			{
+#if GPT
+				var response = await GetGptResponse(text[trigger.Length..]);
+				if (!string.IsNullOrEmpty(response))
+				{
+					await API.SendMessage(response, message.Chat.Id, replyToId: message.MessageId);
+				}
+#else
 				if (markovChain.Nodes.Count <= min_nodes)
 					return;
 
@@ -296,10 +325,10 @@ namespace den0bot.Modules
 					var completeMessage = textBuilder.ToString();
 					if (!string.IsNullOrEmpty(completeMessage))
 					{
-						await API.SendMessage(completeMessage, message.Chat.Id, replyID: message.MessageId);
+						await API.SendMessage(completeMessage, message.Chat.Id, replyToId: message.MessageId);
 					}
-				}
-
+			}
+#endif
 				return;
 			}
 
@@ -332,5 +361,47 @@ namespace den0bot.Modules
 		{
 			markovChain.SaveToFile();
 		}
+#if GPT_YANDEX
+		private async Task<string> GetGptResponse(string input)
+		{
+			var response = await Web.PostJson("https://yandex.ru/lab/api/gpt3/text2", JsonConvert.SerializeObject(new
+			{
+				intro = 0,
+				query = input
+			}));
+
+			dynamic json = JsonConvert.DeserializeObject(response);
+			if (json != null)
+			{
+				if (json.error == 0)
+					return json.text.ToString();
+				
+				Log.Warning($"GPT error: {json.error?.ToString()}");
+			}
+			else
+			{
+				Log.Warning($"GPT error: {response}");
+			}
+
+			return string.Empty;
+		}
+#elif GPT_SBERBANK
+		private async Task<string> GetGptResponse(string input)
+		{
+			var response = await Web.PostJson("https://api.aicloud.sbercloud.ru/public/v1/public_inference/gpt3/predict", JsonConvert.SerializeObject(new
+			{
+				text = input
+			}));
+
+			dynamic json = JsonConvert.DeserializeObject(response);
+			if (json != null)
+			{
+				return json.predictions.ToString();
+			}
+
+			Log.Warning($"GPT error: {response}");
+			return string.Empty;
+		}
+#endif
 	}
 }
