@@ -28,7 +28,7 @@ namespace den0bot.Modules.Osu.Parsers
 			Match regexMatch = linkRegex.Match(text);
 			if (regexMatch.Groups.Count > 1)
 			{
-				var regexGroups = regexMatch.Groups.Values.Where(x => x.Success).ToArray();
+				var regexGroups = regexMatch.Groups.Values.ToArray();
 				// Groups:
 				// 0 - full match
 				// 1 - link type (b/s/beatmapsets/beatmaps)
@@ -38,7 +38,7 @@ namespace den0bot.Modules.Osu.Parsers
 				// 5 - mods
 
 				bool isNew = regexGroups[1].Value != "b" && regexGroups[1].Value != "s"; // are we using new website or not
-				bool isSet = (regexGroups[1].Value == "beatmapsets" && regexGroups.Length < 4) || regexGroups[1].Value == "s";
+				bool isSet = (regexGroups[1].Value == "beatmapsets" && regexGroups.Count(x => x.Success) < 4) || regexGroups[1].Value == "s";
 
 				var mods = ConvertToMods(regexGroups[5].Value);
 				var mode = Mode.Osu;
@@ -52,7 +52,7 @@ namespace den0bot.Modules.Osu.Parsers
 						return new BeatmapLinkData
 						{
 							ID = uint.Parse(regexGroups[2].Value),
-							IsBeatmapset = isSet,
+							IsBeatmapset = true,
 							Mods = mods
 						};
 					}
