@@ -163,6 +163,10 @@ namespace den0bot.Modules.Osu
 
 		private async Task<ICommandAnswer> GetMapScores(Telegram.Bot.Types.Message message)
 		{
+			var messageToEdit = await API.SendMessage(Localization.Get("generic_wait", message.Chat.Id), message.Chat.Id);
+			if (messageToEdit == null)
+				return null;
+
 			// beatmap id regex can parse link as part of a complex message so we dont need to clean it up beforehand
 			var msgText = message.Text;
 			if (message.ReplyToMessage != null && message.ReplyToMessage.Text.Contains(".ppy.sh"))
@@ -193,13 +197,19 @@ namespace den0bot.Modules.Osu
 			}
 
 			if (mapId == 0)
-				return Localization.GetAnswer("generic_fail", message.Chat.Id);
+			{
+				await API.EditMediaCaption(message.Chat.Id, messageToEdit.MessageId, Localization.Get("generic_fail", message.Chat.Id));
+				return null;
+			}
 
 			await using var db = new DatabaseOsu();
 
 			var playerId = db.Players.FirstOrDefault(x => x.TelegramID == message.From.Id)?.OsuID;
 			if (playerId == null || playerId == 0)
-				return Localization.GetAnswer("recentscores_unknown_player", message.Chat.Id);
+			{
+				await API.EditMediaCaption(message.Chat.Id, messageToEdit.MessageId, Localization.Get("recentscores_unknown_player", message.Chat.Id));
+				return null;
+			}
 
 			var result = string.Empty;
 
@@ -208,7 +218,10 @@ namespace den0bot.Modules.Osu
 				// no mods specified - use apiv1 to get all scores on a map and then get score data from apiv2
 				var scores = await WebApiHandler.MakeApiRequest(new WebAPI.Requests.V1.GetScores(playerId.Value.ToString(), mapId, mods, score_amount));
 				if (scores == null || scores.Count <= 0)
-					return Localization.GetAnswer("recentscores_no_scores", message.Chat.Id);
+				{
+					await API.EditMediaCaption(message.Chat.Id, messageToEdit.MessageId, Localization.Get("recentscores_no_scores", message.Chat.Id));
+					return null;
+				}
 
 				var map = await WebApiHandler.MakeApiRequest(new GetBeatmap(mapId));
 
@@ -227,7 +240,10 @@ namespace den0bot.Modules.Osu
 				// mods specified - get data straight from apiv2
 				var score = await WebApiHandler.MakeApiRequest(new GetUserBeatmapScore(mapId, playerId.Value, mods));
 				if (score == null)
-					return Localization.GetAnswer("recentscores_no_scores", message.Chat.Id);
+				{
+					await API.EditMediaCaption(message.Chat.Id, messageToEdit.MessageId, Localization.Get("recentscores_no_scores", message.Chat.Id));
+					return null;
+				}
 
 				score.Beatmap = await WebApiHandler.MakeApiRequest(new GetBeatmap(mapId));
 				result += FormatScore(score, false);
@@ -236,10 +252,12 @@ namespace den0bot.Modules.Osu
 			if (!string.IsNullOrEmpty(result))
 			{
 				ChatBeatmapCache.StoreMap(message.Chat.Id, mapId);
-				return new TextCommandAnswer(result);
+				await API.EditMediaCaption(message.Chat.Id, messageToEdit.MessageId, result);
+				return null;
 			}
 
-			return Localization.GetAnswer("generic_fail", message.Chat.Id);
+			await API.EditMediaCaption(message.Chat.Id, messageToEdit.MessageId, Localization.Get("generic_fail", message.Chat.Id));
+			return null;
 		}
 
 		private async Task<ICommandAnswer> AddMe(Telegram.Bot.Types.Message message)
