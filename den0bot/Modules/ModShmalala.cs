@@ -1,5 +1,6 @@
-﻿#define GPT
+﻿//#define GPT
 #define GPT_SBERBANK
+#define GPT_TALKONLY
 // den0bot (c) StanR 2021 - MIT License
 using System;
 using System.Collections.Generic;
@@ -239,7 +240,7 @@ namespace den0bot.Modules
 
 		private ICommandAnswer SendRandomMessage(Message msg)
 		{
-#if GPT
+#if GPT || GPT_TALKONLY
 			if (msg.Text.Length > 5)
 			{
 				var input = msg.Text[6..];
