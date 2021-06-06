@@ -163,7 +163,7 @@ namespace den0bot.Modules.Osu
 
 		private async Task<ICommandAnswer> GetMapScores(Telegram.Bot.Types.Message message)
 		{
-			var messageToEdit = await API.SendMessage(Localization.Get("generic_wait", message.Chat.Id), message.Chat.Id);
+			var messageToEdit = await API.SendMessage(Localization.Get("generic_wait", message.Chat.Id), message.Chat.Id, ParseMode.Html, message.MessageId);
 			if (messageToEdit == null)
 				return null;
 
@@ -198,7 +198,7 @@ namespace den0bot.Modules.Osu
 
 			if (mapId == 0)
 			{
-				await API.EditMediaCaption(message.Chat.Id, messageToEdit.MessageId, Localization.Get("generic_fail", message.Chat.Id));
+				await API.EditMessage(message.Chat.Id, messageToEdit.MessageId, Localization.Get("generic_fail", message.Chat.Id), parseMode: ParseMode.Html);
 				return null;
 			}
 
@@ -207,7 +207,7 @@ namespace den0bot.Modules.Osu
 			var playerId = db.Players.FirstOrDefault(x => x.TelegramID == message.From.Id)?.OsuID;
 			if (playerId == null || playerId == 0)
 			{
-				await API.EditMediaCaption(message.Chat.Id, messageToEdit.MessageId, Localization.Get("recentscores_unknown_player", message.Chat.Id));
+				await API.EditMessage(message.Chat.Id, messageToEdit.MessageId, Localization.Get("recentscores_unknown_player", message.Chat.Id), parseMode: ParseMode.Html);
 				return null;
 			}
 
@@ -219,7 +219,7 @@ namespace den0bot.Modules.Osu
 				var scores = await WebApiHandler.MakeApiRequest(new WebAPI.Requests.V1.GetScores(playerId.Value.ToString(), mapId, mods, score_amount));
 				if (scores == null || scores.Count <= 0)
 				{
-					await API.EditMediaCaption(message.Chat.Id, messageToEdit.MessageId, Localization.Get("recentscores_no_scores", message.Chat.Id));
+					await API.EditMessage(message.Chat.Id, messageToEdit.MessageId, Localization.Get("recentscores_no_scores", message.Chat.Id), parseMode: ParseMode.Html);
 					return null;
 				}
 
@@ -241,7 +241,7 @@ namespace den0bot.Modules.Osu
 				var score = await WebApiHandler.MakeApiRequest(new GetUserBeatmapScore(mapId, playerId.Value, mods));
 				if (score == null)
 				{
-					await API.EditMediaCaption(message.Chat.Id, messageToEdit.MessageId, Localization.Get("recentscores_no_scores", message.Chat.Id));
+					await API.EditMessage(message.Chat.Id, messageToEdit.MessageId, Localization.Get("recentscores_no_scores", message.Chat.Id), parseMode: ParseMode.Html);
 					return null;
 				}
 
@@ -252,11 +252,11 @@ namespace den0bot.Modules.Osu
 			if (!string.IsNullOrEmpty(result))
 			{
 				ChatBeatmapCache.StoreMap(message.Chat.Id, mapId);
-				await API.EditMediaCaption(message.Chat.Id, messageToEdit.MessageId, result);
+				await API.EditMessage(message.Chat.Id, messageToEdit.MessageId, result, parseMode: ParseMode.Html);
 				return null;
 			}
 
-			await API.EditMediaCaption(message.Chat.Id, messageToEdit.MessageId, Localization.Get("generic_fail", message.Chat.Id));
+			await API.EditMessage(message.Chat.Id, messageToEdit.MessageId, Localization.Get("generic_fail", message.Chat.Id), parseMode: ParseMode.Html);
 			return null;
 		}
 
@@ -397,7 +397,7 @@ namespace den0bot.Modules.Osu
 
 			var position = string.Empty;
 			if (score.LeaderboardPosition != null)
-				position = $"#{score.LeaderboardPosition} | ";
+				position = $"#{score.LeaderboardPosition}{(!string.IsNullOrEmpty(mods) ? $" ({score.LegacyMods?.ReadableMods()})" : "") } | ";
 
 			var completion = string.Empty;
 			if (useAgo)

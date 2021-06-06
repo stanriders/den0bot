@@ -79,14 +79,18 @@ namespace den0bot
 		public static async Task<Message> SendMessage(string message, long chatId, ParseMode parseMode = ParseMode.Default, int replyToId = 0, IReplyMarkup replyMarkup = null, bool disablePreview = true)
 		{
 			SentrySdk.ConfigureScope(scope =>
-			{
-				scope.Contexts["ChatID"] = chatId;
-				scope.Contexts["Message"] = message;
-				scope.Contexts["ParseMode"] = parseMode;
-				scope.Contexts["ReplyID"] = replyToId;
-				scope.Contexts["ReplyMarkup"] = replyMarkup;
-				scope.Contexts["DisablePreview"] = disablePreview;
-			});
+				{
+					scope.Contexts["Data"] = new
+					{
+						ChatID = chatId,
+						Message = message,
+						ParseMode = parseMode,
+						ReplyID = replyToId,
+						ReplyMarkup = replyMarkup,
+						DisablePreview = disablePreview
+					};
+				}
+			);
 
 			try
 			{
@@ -114,13 +118,16 @@ namespace den0bot
 		{
 			SentrySdk.ConfigureScope(scope =>
 			{
-				scope.Contexts["Photo"] = photo;
-				scope.Contexts["ChatID"] = chatId;
-				scope.Contexts["Message"] = caption;
-				scope.Contexts["ParseMode"] = parseMode;
-				scope.Contexts["ReplyID"] = replyToId;
-				scope.Contexts["ReplyMarkup"] = replyMarkup;
-				scope.Contexts["SendTextIfFailed"] = sendTextIfFailed;
+				scope.Contexts["Data"] = new
+				{
+					Photo = photo,
+					ChatID = chatId,
+					Message = caption,
+					ParseMode = parseMode,
+					ReplyID = replyToId,
+					ReplyMarkup = replyMarkup,
+					SendTextIfFailed = sendTextIfFailed
+				};
 			});
 
 			try
@@ -153,8 +160,11 @@ namespace den0bot
 		{
 			SentrySdk.ConfigureScope(scope =>
 			{
-				scope.Contexts["Photos"] = photos;
-				scope.Contexts["ChatID"] = chatId;
+				scope.Contexts["Data"] = new
+				{
+					Photos = photos,
+					ChatID = chatId
+				};
 			});
 
 			try
@@ -180,8 +190,11 @@ namespace den0bot
 		{
 			SentrySdk.ConfigureScope(scope =>
 			{
-				scope.Contexts["Sticker"] = sticker;
-				scope.Contexts["ChatID"] = chatId;
+				scope.Contexts["Data"] = new
+				{
+					Sticker = sticker,
+					ChatID = chatId
+				};
 			});
 
 			try
@@ -225,8 +238,11 @@ namespace den0bot
 		{
 			SentrySdk.ConfigureScope(scope =>
 			{
-				scope.Contexts["ChatID"] = chatId;
-				scope.Contexts["MessageID"] = msgId;
+				scope.Contexts["Data"] = new
+				{
+					ChatID = chatId,
+					MessageID = msgId
+				};
 			});
 
 			try
@@ -240,7 +256,41 @@ namespace den0bot
 		}
 
 		/// <summary>
-		/// Remove media caption
+		/// Edit message
+		/// </summary>
+		/// <param name="chatId">Chat ID to edit message in</param>
+		/// <param name="messageId">Message to edit</param>
+		/// <param name="message">New message</param>
+		/// <param name="replyMarkup"></param>
+		/// <param name="parseMode"></param>
+		/// <param name="disablePreview"></param>
+		public static async Task<Message> EditMessage(long chatId, int messageId, string message, InlineKeyboardMarkup replyMarkup = null, ParseMode parseMode = ParseMode.Default, bool disablePreview = true)
+		{
+			SentrySdk.ConfigureScope(scope =>
+			{
+				scope.Contexts["Data"] = new
+				{
+					MessageID = messageId,
+					ChatID = chatId,
+					Message = message,
+					ParseMode = parseMode,
+					ReplyMarkup = replyMarkup
+				};
+			});
+
+			try
+			{
+				return await api.EditMessageTextAsync(chatId, messageId, message, parseMode, disablePreview, replyMarkup);
+			}
+			catch (Exception ex)
+			{
+				Log.Error(ex.InnerMessageIfAny());
+			}
+			return null;
+		}
+
+		/// <summary>
+		/// Edit media caption
 		/// </summary>
 		/// <param name="chatId">Chat ID to edit message in</param>
 		/// <param name="messageId">Message to edit</param>
@@ -251,11 +301,14 @@ namespace den0bot
 		{
 			SentrySdk.ConfigureScope(scope =>
 			{
-				scope.Contexts["MessageID"] = messageId;
-				scope.Contexts["ChatID"] = chatId;
-				scope.Contexts["Message"] = caption;
-				scope.Contexts["ParseMode"] = parseMode;
-				scope.Contexts["ReplyMarkup"] = replyMarkup;
+				scope.Contexts["Data"] = new
+				{
+					MessageID = messageId,
+					ChatID = chatId,
+					Message = caption,
+					ParseMode = parseMode,
+					ReplyMarkup = replyMarkup
+				};
 			});
 
 			try
@@ -279,9 +332,12 @@ namespace den0bot
 		{
 			SentrySdk.ConfigureScope(scope =>
 			{
-				scope.Contexts["CallbackID"] = callbackId;
-				scope.Contexts["Message"] = text;
-				scope.Contexts["ShowAlert"] = showAlert;
+				scope.Contexts["Data"] = new
+				{
+					CallbackID = callbackId,
+					Message = text,
+					ShowAlert = showAlert
+				};
 			});
 
 			try
@@ -307,12 +363,15 @@ namespace den0bot
 		{
 			SentrySdk.ConfigureScope(scope =>
 			{
-				scope.Contexts["Audio"] = audio;
-				scope.Contexts["Duration"] = duration;
-				scope.Contexts["ChatID"] = chatId;
-				scope.Contexts["Message"] = caption;
-				scope.Contexts["ParseMode"] = parseMode;
-				scope.Contexts["ReplyID"] = replyToId;
+				scope.Contexts["Data"] = new
+				{
+					Audio = audio,
+					Duration = duration,
+					ChatID = chatId,
+					Message = caption,
+					ParseMode = parseMode,
+					ReplyID = replyToId
+				};
 			});
 
 			try
@@ -338,8 +397,11 @@ namespace den0bot
 
 			SentrySdk.ConfigureScope(scope =>
 			{
-				scope.Contexts["FileId"] = fileId;
-				scope.Contexts["Path"] = path;
+				scope.Contexts["Data"] = new
+				{
+					FileId = fileId,
+					Path = path
+				};
 			});
 
 			await using var stream = new MemoryStream();
