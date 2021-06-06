@@ -110,12 +110,11 @@ namespace den0bot.Modules.Osu
 			{
 				lastChecked = lastChecked.AddMinutes(-check_interval);
 
-				string request = string.Format("https://www.googleapis.com/youtube/v3/activities?part=snippet,contentDetails" +
-												"&key={0}" + "&fields={1}" + "&publishedAfter={2}" + "&channelId={3}",
-												Config.Params.GoogleAPIToken,
-												Uri.EscapeDataString("items(contentDetails/upload,snippet/title)"),
-												Uri.EscapeDataString(lastChecked.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss.sZ")),
-												Config.Params.YoutubeChannelId);
+				string request = "https://www.googleapis.com/youtube/v3/activities?part=snippet,contentDetails" +
+				                 $"&key={Config.Params.GoogleAPIToken}" +
+				                 $"&fields={Uri.EscapeDataString("items(contentDetails/upload,snippet/title)")}" +
+				                 $"&publishedAfter={Uri.EscapeDataString(lastChecked.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss.sZ"))}" +
+				                 $"&channelId={Config.Params.YoutubeChannelId}";
 
 				var data = await Web.DownloadString(request);
 				if (!string.IsNullOrEmpty(data))
@@ -124,8 +123,9 @@ namespace den0bot.Modules.Osu
 
 					foreach (var vid in items.items)
 					{
-						await API.SendMessageToAllChats(
-							$"❗️ {vid.snippet.title}{Environment.NewLine}http://youtu.be/{vid.contentDetails.upload.videoId}");
+						// this needs remaking with proper per-chat subscriptions 
+						//await API.SendMessageToAllChats(
+						//	$"❗️ {vid.snippet.title}{Environment.NewLine}http://youtu.be/{vid.contentDetails.upload.videoId}");
 					}
 				}
 			}
@@ -137,12 +137,11 @@ namespace den0bot.Modules.Osu
 			string result = string.Empty;
 			try
 			{
-				string request = string.Format("https://www.googleapis.com/youtube/v3/activities?part=snippet,contentDetails" +
-												"&maxResults={0}" + "&key={1}" + "&fields={2}" + "&channelId={3}",
-												amount,
-												Config.Params.GoogleAPIToken,
-												Uri.EscapeDataString("items(contentDetails/upload,snippet/title)"),
-												Config.Params.YoutubeChannelId);
+				string request = "https://www.googleapis.com/youtube/v3/activities?part=snippet,contentDetails" +
+				                 $"&maxResults={amount}" + 
+				                 $"&key={Config.Params.GoogleAPIToken}" +
+				                 $"&fields={Uri.EscapeDataString("items(contentDetails/upload,snippet/title)")}" +
+				                 $"&channelId={Config.Params.YoutubeChannelId}";
 
 				var data = await Web.DownloadString(request);
 				if (!string.IsNullOrEmpty(data))

@@ -13,7 +13,7 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="5.0.6" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
     <PackageReference Include="OppaiSharp" Version="3.4.0" />
-    <PackageReference Include="Sentry.Serilog" Version="3.3.4" />
+    <PackageReference Include="Sentry.Serilog" Version="3.4.0" />
     <PackageReference Include="Serilog.Sinks.Console" Version="3.1.1" />
     <PackageReference Include="Serilog.Sinks.File" Version="4.1.0" />
     <PackageReference Include="System.Runtime.Caching" Version="5.0.0" />

@@ -3,8 +3,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
-using den0bot.DB;
 using den0bot.Util;
+using Sentry;
 using Serilog;
 using Telegram.Bot;
 using Telegram.Bot.Args;
@@ -13,6 +13,7 @@ using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.InputFiles;
 using Telegram.Bot.Types.ReplyMarkups;
+using User = Telegram.Bot.Types.User;
 
 namespace den0bot
 {
@@ -70,15 +71,27 @@ namespace den0bot
 		/// Send message
 		/// </summary>
 		/// <param name="message">Text to send</param>
-		/// <param name="receiverID">Chat ID to send message to</param>
-		/// <param name="mode">ParseMode to use (None/Markdown/HTML)</param>
-		/// <param name="replyID">Message ID to reply to</param>
-		public static async Task<Message> SendMessage(string message, long receiverID, ParseMode mode = ParseMode.Default, int replyID = 0, IReplyMarkup replyMarkup = null, bool disablePreview = true)
+		/// <param name="chatId">Chat ID to send message to</param>
+		/// <param name="parseMode">ParseMode to use (None/Markdown/HTML)</param>
+		/// <param name="replyToId">Message ID to reply to</param>
+		/// <param name="replyMarkup"></param>
+		/// <param name="disablePreview"></param>
+		public static async Task<Message> SendMessage(string message, long chatId, ParseMode parseMode = ParseMode.Default, int replyToId = 0, IReplyMarkup replyMarkup = null, bool disablePreview = true)
 		{
+			SentrySdk.ConfigureScope(scope =>
+			{
+				scope.Contexts["ChatID"] = chatId;
+				scope.Contexts["Message"] = message;
+				scope.Contexts["ParseMode"] = parseMode;
+				scope.Contexts["ReplyID"] = replyToId;
+				scope.Contexts["ReplyMarkup"] = replyMarkup;
+				scope.Contexts["DisablePreview"] = disablePreview;
+			});
+
 			try
 			{
 				if (!string.IsNullOrEmpty(message))
-					return await api.SendTextMessageAsync(receiverID, message, mode, disablePreview, false, replyID, replyMarkup);
+					return await api.SendTextMessageAsync(chatId, message, parseMode, disablePreview, false, replyToId, replyMarkup);
 			}
 			catch (Exception ex)
 			{
@@ -88,56 +101,41 @@ namespace den0bot
 		}
 
 		/// <summary>
-		/// Send message to all chats in the database
-		/// </summary>
-		/// <param name="msg">Text to send</param>
-		/// <param name="image">Image to send if any</param>
-		/// <param name="mode">ParseMode to use (None/Markdown/HTML)</param>
-		public static async Task SendMessageToAllChats(string msg, string image = null, ParseMode mode = ParseMode.Default)
-		{
-			foreach (var receiver in DatabaseCache.Chats)
-            {
-                var chat = await api.GetChatAsync(receiver.Id);
-                if (chat == null)
-				{
-					await DatabaseCache.RemoveChat(receiver.Id);
-					Log.Information($"Chat {receiver.Id} removed");
-					return;
-				}
-				else if (!receiver.DisableAnnouncements ?? false)
-				{
-					if (!string.IsNullOrEmpty(image))
-						await SendPhoto(image, receiver.Id, msg, mode);
-					else
-						await SendMessage(msg, receiver.Id, mode);
-				}
-			}
-		}
-
-		/// <summary>
 		/// Send photo
 		/// </summary>
 		/// <param name="photo">Photo to send. Can be both internal telegram photo ID or a link</param>
-		/// <param name="receiverId">Chat ID to send photo to</param>
-		/// <param name="message">Photo caption if any</param>
-		/// <param name="mode">ParseMode</param>
-		/// <param name="replyID">Message to reply to</param>
+		/// <param name="chatId">Chat ID to send photo to</param>
+		/// <param name="caption">Photo caption if any</param>
+		/// <param name="parseMode">ParseMode</param>
+		/// <param name="replyToId">Message to reply to</param>
 		/// <param name="replyMarkup"></param>
-		public static async Task<Message> SendPhoto(string photo, long receiverId, string message = "", ParseMode mode = ParseMode.Default, int replyID = 0, IReplyMarkup replyMarkup = null, bool sendTextIfFailed = true)
+		/// <param name="sendTextIfFailed"></param>
+		public static async Task<Message> SendPhoto(string photo, long chatId, string caption = "", ParseMode parseMode = ParseMode.Default, int replyToId = 0, IReplyMarkup replyMarkup = null, bool sendTextIfFailed = true)
 		{
+			SentrySdk.ConfigureScope(scope =>
+			{
+				scope.Contexts["Photo"] = photo;
+				scope.Contexts["ChatID"] = chatId;
+				scope.Contexts["Message"] = caption;
+				scope.Contexts["ParseMode"] = parseMode;
+				scope.Contexts["ReplyID"] = replyToId;
+				scope.Contexts["ReplyMarkup"] = replyMarkup;
+				scope.Contexts["SendTextIfFailed"] = sendTextIfFailed;
+			});
+
 			try
 			{
 				if (!string.IsNullOrEmpty(photo))
 				{
-					return await api.SendPhotoAsync(receiverId, new InputOnlineFile(photo), message, mode, false,
-						replyID, replyMarkup);
+					return await api.SendPhotoAsync(chatId, new InputOnlineFile(photo), caption, parseMode, false,
+						replyToId, replyMarkup);
 				}
 			}
 			catch (ApiRequestException ex)
 			{
 				Log.Error(ex.InnerMessageIfAny());
 				if (sendTextIfFailed)
-					return await api.SendTextMessageAsync(receiverId, message, mode, false, false, replyID, replyMarkup);
+					return await api.SendTextMessageAsync(chatId, caption, parseMode, false, false, replyToId, replyMarkup);
 			}
 			catch (Exception ex)
 			{
@@ -150,14 +148,20 @@ namespace den0bot
 		/// Send multiple photos in an album
 		/// </summary>
 		/// <param name="photos">Array of InputMediaPhoto photos</param>
-		/// <param name="receiverId">Chat to send photos to</param>
-		public static async Task<Message[]> SendMultiplePhotos(List<InputMediaPhoto> photos, long receiverId)
+		/// <param name="chatId">Chat to send photos to</param>
+		public static async Task<Message[]> SendMultiplePhotos(List<InputMediaPhoto> photos, long chatId)
 		{
+			SentrySdk.ConfigureScope(scope =>
+			{
+				scope.Contexts["Photos"] = photos;
+				scope.Contexts["ChatID"] = chatId;
+			});
+
 			try
 			{
 				if (photos != null && photos.Count > 1)
 				{
-					return await api.SendMediaGroupAsync(photos, receiverId);
+					return await api.SendMediaGroupAsync(photos, chatId);
 				}
 			}
 			catch (Exception ex)
@@ -171,12 +175,18 @@ namespace den0bot
 		/// Send sticker
 		/// </summary>
 		/// <param name="sticker">Telegram sticker ID</param>
-		/// <param name="receiverID">Chat to send sticker to</param>
-		public static async Task<Message> SendSticker(InputOnlineFile sticker, long receiverID)
+		/// <param name="chatId">Chat to send sticker to</param>
+		public static async Task<Message> SendSticker(InputOnlineFile sticker, long chatId)
 		{
+			SentrySdk.ConfigureScope(scope =>
+			{
+				scope.Contexts["Sticker"] = sticker;
+				scope.Contexts["ChatID"] = chatId;
+			});
+
 			try
 			{
-				return await api.SendStickerAsync(receiverID, sticker);
+				return await api.SendStickerAsync(chatId, sticker);
 			}
 			catch (Exception ex)
 			{
@@ -186,13 +196,18 @@ namespace den0bot
 		}
 
 		/// <summary>
-		/// Returns array of chat memebers that are admins
+		/// Returns array of chat members that are admins
 		/// </summary>
-		public static async Task<ChatMember[]> GetAdmins(long chatID)
+		public static async Task<ChatMember[]> GetAdmins(long chatId)
 		{
+			SentrySdk.ConfigureScope(scope =>
+			{
+				scope.Contexts["ChatID"] = chatId;
+			});
+
 			try
 			{
-				return await api.GetChatAdministratorsAsync(chatID);
+				return await api.GetChatAdministratorsAsync(chatId);
 			}
 			catch (Exception ex)
 			{
@@ -204,13 +219,19 @@ namespace den0bot
 		/// <summary>
 		/// Remove message from a chat if bot have enough rights
 		/// </summary>
-		/// <param name="chatID">Chat ID to remove message from</param>
-		/// <param name="msgID">Message to remove</param>
-		public static async Task RemoveMessage(long chatID, int msgID)
+		/// <param name="chatId">Chat ID to remove message from</param>
+		/// <param name="msgId">Message to remove</param>
+		public static async Task RemoveMessage(long chatId, int msgId)
 		{
+			SentrySdk.ConfigureScope(scope =>
+			{
+				scope.Contexts["ChatID"] = chatId;
+				scope.Contexts["MessageID"] = msgId;
+			});
+
 			try
 			{
-				await api.DeleteMessageAsync(chatID, msgID);
+				await api.DeleteMessageAsync(chatId, msgId);
 			}
 			catch (Exception ex)
 			{
@@ -221,14 +242,25 @@ namespace den0bot
 		/// <summary>
 		/// Remove media caption
 		/// </summary>
-		/// <param name="chatID">Chat ID to edit message in</param>
-		/// <param name="msgID">Message to edit</param>
+		/// <param name="chatId">Chat ID to edit message in</param>
+		/// <param name="messageId">Message to edit</param>
 		/// <param name="caption">New caption</param>
-		public static async Task<Message> EditMediaCaption(long chatID, int msgID, string caption, InlineKeyboardMarkup replyMarkup = null, ParseMode parseMode = ParseMode.Default)
+		/// <param name="replyMarkup"></param>
+		/// <param name="parseMode"></param>
+		public static async Task<Message> EditMediaCaption(long chatId, int messageId, string caption, InlineKeyboardMarkup replyMarkup = null, ParseMode parseMode = ParseMode.Default)
 		{
+			SentrySdk.ConfigureScope(scope =>
+			{
+				scope.Contexts["MessageID"] = messageId;
+				scope.Contexts["ChatID"] = chatId;
+				scope.Contexts["Message"] = caption;
+				scope.Contexts["ParseMode"] = parseMode;
+				scope.Contexts["ReplyMarkup"] = replyMarkup;
+			});
+
 			try
 			{
-				return await api.EditMessageCaptionAsync(chatID, msgID, caption, replyMarkup, parseMode: parseMode);
+				return await api.EditMessageCaptionAsync(chatId, messageId, caption, replyMarkup, parseMode: parseMode);
 			}
 			catch (Exception ex)
 			{
@@ -240,14 +272,21 @@ namespace den0bot
 		/// <summary>
 		/// Answer callback query after receiving it
 		/// </summary>
-		/// <param name="callbackID">Callback ID that we need to answer</param>
+		/// <param name="callbackId">Callback ID that we need to answer</param>
 		/// <param name="text">Text to send</param>
 		/// <param name="showAlert">Alert user</param>
-		public static async Task AnswerCallbackQuery(string callbackID, string text = null, bool showAlert = false)
+		public static async Task AnswerCallbackQuery(string callbackId, string text = null, bool showAlert = false)
 		{
+			SentrySdk.ConfigureScope(scope =>
+			{
+				scope.Contexts["CallbackID"] = callbackId;
+				scope.Contexts["Message"] = text;
+				scope.Contexts["ShowAlert"] = showAlert;
+			});
+
 			try
 			{
-				await api.AnswerCallbackQueryAsync(callbackID, text, showAlert);
+				await api.AnswerCallbackQueryAsync(callbackId, text, showAlert);
 			}
 			catch (Exception ex)
 			{
@@ -259,12 +298,26 @@ namespace den0bot
 		/// Send voice message (or just audio file if it's not vorbis ogg)
 		/// </summary>
 		/// <param name="audio">Audio to send</param>
-		/// <param name="chatID">Chat ID to send photo to</param>
-		public static async Task<Message> SendVoice(InputOnlineFile audio, long chatID, string caption = null, ParseMode parseMode = ParseMode.Default, int replyTo = 0, int duration = 0)
+		/// <param name="chatId">Chat ID to send photo to</param>
+		/// <param name="caption"></param>
+		/// <param name="parseMode"></param>
+		/// <param name="replyToId"></param>
+		/// <param name="duration"></param>
+		public static async Task<Message> SendVoice(InputOnlineFile audio, long chatId, string caption = null, ParseMode parseMode = ParseMode.Default, int replyToId = 0, int duration = 0)
 		{
+			SentrySdk.ConfigureScope(scope =>
+			{
+				scope.Contexts["Audio"] = audio;
+				scope.Contexts["Duration"] = duration;
+				scope.Contexts["ChatID"] = chatId;
+				scope.Contexts["Message"] = caption;
+				scope.Contexts["ParseMode"] = parseMode;
+				scope.Contexts["ReplyID"] = replyToId;
+			});
+
 			try
 			{
-				return await api.SendVoiceAsync(chatID, audio, caption, parseMode, duration, replyToMessageId: replyTo);
+				return await api.SendVoiceAsync(chatId, audio, caption, parseMode, duration, replyToMessageId: replyToId);
 			}
 			catch (Exception ex)
 			{
@@ -282,6 +335,12 @@ namespace den0bot
 		{
 			if (string.IsNullOrEmpty(fileId) || string.IsNullOrEmpty(path))
 				return false;
+
+			SentrySdk.ConfigureScope(scope =>
+			{
+				scope.Contexts["FileId"] = fileId;
+				scope.Contexts["Path"] = path;
+			});
 
 			await using var stream = new MemoryStream();
 
