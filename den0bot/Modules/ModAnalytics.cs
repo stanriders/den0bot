@@ -1,6 +1,6 @@
 ﻿// den0bot (c) StanR 2021 - MIT License
 using System;
-using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.Threading.Tasks;
 using den0bot.Analytics.Data;
 using den0bot.Analytics.Data.Types;
@@ -12,10 +12,10 @@ namespace den0bot.Modules
 {
 	internal class ModAnalytics : IModule, IReceiveAllMessages, IReceiveShutdown
 	{
-		private static readonly List<Message> messageBuffer = new();
+		private static readonly ConcurrentBag<Message> messageBuffer = new();
 
 		private DateTime nextFlush = DateTime.Now;
-		private const int buffer_flush_interval = 3; // minutes
+		private const int buffer_flush_interval = 1; // minutes
 
 		public ModAnalytics()
 		{
@@ -24,13 +24,13 @@ namespace den0bot.Modules
 				new Command
 				{
 					Name = "compot",
-					Action = (msg) => new TextCommandAnswer($"https://stats.stanr.info/chat/{msg.Chat.Id}"),
+					Action = msg => new TextCommandAnswer($"https://stats.stanr.info/chat/{msg.Chat.Id}"),
 					Reply = true
 				},
 				new Command
 				{
 					Name = "analyticsflush",
-					ActionAsync = async (msg) => { await Flush(); return new TextCommandAnswer("Ok"); },
+					Action = _ => { Flush(); return new TextCommandAnswer("Ok"); },
 					IsOwnerOnly = true
 				}
 			});
@@ -59,6 +59,7 @@ namespace den0bot.Modules
 					Length = message.Text?.Length ?? 0
 				});
 			}
+
 			return Task.CompletedTask;
 		}
 
@@ -66,19 +67,19 @@ namespace den0bot.Modules
 		{
 			if (messageBuffer.Count > 0 && nextFlush < DateTime.Now)
 			{
-				_ = Flush();
+				Flush();
 				nextFlush = DateTime.Now.AddMinutes(buffer_flush_interval);
 			}
 		}
 
-		private async Task Flush()
+		private void Flush()
 		{
-			await using (var db = new AnalyticsDatabase())
-			{
-				await db.Messages.AddRangeAsync(messageBuffer);
-				await db.SaveChangesAsync();
+			using var db = new AnalyticsDatabase();
+
+				db.Messages.AddRange(messageBuffer);
+				db.SaveChanges();
 				messageBuffer.Clear();
-			}
+
 		}
 
 		public static void AddCommand(Telegram.Bot.Types.Message msg)
@@ -110,7 +111,7 @@ namespace den0bot.Modules
 
 		public void Shutdown()
 		{
-			Flush().Wait();
+			Flush();
 		}
 	}
 }
