@@ -118,7 +118,7 @@ namespace den0bot.Modules.Osu
 									matchInfo += FormatTeamGame(match, updatingMatch.Status);
 									break;
 								default:
-									throw new ArgumentException();
+									throw new ArgumentException("Incorrect TeamMode");
 							}
 						}
 
@@ -159,7 +159,7 @@ namespace den0bot.Modules.Osu
 							matchInfo += FormatTeamGame(match, PopulateMatchTeamStatus(match));
 							break;
 						default:
-							throw new ArgumentException();
+							throw new ArgumentException("Incorrect TeamMode");
 					}
 
 					await API.SendMessage(matchInfo, message.Chat.Id, Telegram.Bot.Types.Enums.ParseMode.Html);
