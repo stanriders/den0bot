@@ -191,14 +191,12 @@ namespace den0bot
 				if (Config.Params.UseEvents &&
 				    (!DatabaseCache.Chats.FirstOrDefault(x => x.Id == senderChatId)?.DisableEvents ?? false) &&
 				    msg.Text != null &&
-				    msg.Text[0] == command_trigger)
+				    msg.Text[0] == command_trigger &&
+				    TryEvent(senderChatId, out var e))
 				{
 					// random events
-					if (TryEvent(senderChatId, out var e))
-					{
-						await API.SendMessage(e, senderChatId);
-						return;
-					}
+					await API.SendMessage(e, senderChatId);
+					return;
 				}
 			}
 

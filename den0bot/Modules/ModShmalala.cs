@@ -249,7 +249,11 @@ namespace den0bot.Modules
 					var response = GetGptResponse(input).Result;
 					if (!string.IsNullOrEmpty(response))
 					{
+#if GPT_SBERBANK
+						return new TextCommandAnswer($"{response}");
+#else
 						return new TextCommandAnswer($"{input} {response}");
+#endif
 					}
 				}
 			}
@@ -328,7 +332,7 @@ namespace den0bot.Modules
 					{
 						await API.SendMessage(completeMessage, message.Chat.Id, replyToId: message.MessageId);
 					}
-			}
+				}
 #endif
 				return;
 			}

@@ -103,10 +103,10 @@ namespace den0bot.Modules
 				await using (var db = new Database())
 				{
 					var receiverID = DatabaseCache.GetUserID(db.Santas.AsNoTracking().FirstOrDefault(x => x.Sender == msg.From.Username)?.Receiver);
-					if (receiverID != 0)
+					if (receiverID != 0 &&
+					    await API.SendMessage("Твой санта не может придумать что тебе подарить. Напиши /santagift <подарок> и я передам ему твоё пожелание!", receiverID) != null)
 					{
-						if(await API.SendMessage($"Твой санта не может придумать что тебе подарить. Напиши /santagift <подарок> и я передам ему твоё пожелание!", receiverID) != null)
-							return new TextCommandAnswer("Ждем ответа...");
+						return new TextCommandAnswer("Ждем ответа...");
 					}
 
 					return new TextCommandAnswer("Чет не получилось");

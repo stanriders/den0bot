@@ -95,16 +95,16 @@ namespace den0bot.Modules.Osu
 			return base.Init();
 		}
 
-		public override void Think()
+		public override async void Think()
 		{
 			if (nextCheck < DateTime.Now)
 			{
-				Update(nextCheck);
+				await Update(nextCheck);
 				nextCheck = DateTime.Now.AddMinutes(check_interval);
 			}
 		}
 
-		private async void Update(DateTime lastChecked)
+		private static async Task Update(DateTime lastChecked)
 		{
 			try
 			{
@@ -132,7 +132,7 @@ namespace den0bot.Modules.Osu
 			catch (Exception ex) { Log.Error(ex.InnerMessageIfAny()); }
 		}
 
-		private async Task<string> GetLastScores(int amount)
+		private static async Task<string> GetLastScores(int amount)
 		{
 			string result = string.Empty;
 			try

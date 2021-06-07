@@ -89,9 +89,9 @@ namespace den0bot.Modules
 		}
 #endif
 
-		private string FilterPost(string value)
+		private static string FilterPost(string value)
 		{
-			var step1 = value.Replace("/a/res/", "http://2ch.hk/a/res/")
+			var step1 = value.Replace("/a/res/", "https://2ch.hk/a/res/")
 				.Replace("<br>", "\n")
 				.Replace(@"</span>", "</code>");
 
