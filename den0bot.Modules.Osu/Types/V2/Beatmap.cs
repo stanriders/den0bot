@@ -142,7 +142,7 @@ namespace den0bot.Modules.Osu.Types.V2
 		[JsonProperty("max_combo")]
 		public override uint? MaxCombo { get; set; }
 
-		public override string Thumbnail => BeatmapSet.Covers.Cover2X;
+		public override string Thumbnail => BeatmapSet?.Covers?.Cover2X;
 
 		public override string GetFormattedMapInfo(LegacyMods mods)
 		{
@@ -175,20 +175,20 @@ namespace den0bot.Modules.Osu.Types.V2
 			{
 				case Mode.Osu:
 					return
-						$"[{Version.FilterToHTML()}] - {StarRating:N2}* - {ModdedDrainLength(mods):mm\':\'ss} - {BeatmapSet.CreatorName} - <b>{Status}</b>\n" +
+						$"[{Version.FilterToHTML()}] - {StarRating:N2}* - {ModdedDrainLength(mods):mm\':\'ss} - {BeatmapSet?.CreatorName} - <b>{Status}</b>\n" +
 						$"⭕️ | <b>CS:</b> {ModdedCS(mods):N2} | <b>AR:</b> {ModdedAR(mods):N2} | <b>OD:</b> {ModdedOD(mods):N2} | <b>BPM:</b> {ModdedBPM(mods):N2}\n" +
 						$"{pp}";
 				case Mode.Taiko:
 					return
-						$"[{Version.FilterToHTML()}] - {StarRating:N2}* - {ModdedDrainLength(mods):mm\':\'ss} - {BeatmapSet.CreatorName} - <b>{Status}</b>\n" +
+						$"[{Version.FilterToHTML()}] - {StarRating:N2}* - {ModdedDrainLength(mods):mm\':\'ss} - {BeatmapSet?.CreatorName} - <b>{Status}</b>\n" +
 						$"🥁 | <b>OD:</b> {ModdedOD(mods):N2} | <b>BPM:</b> {ModdedBPM(mods):N2}";
 				case Mode.Fruits:
 					return
-						$"[{Version.FilterToHTML()}] - {StarRating:N2}* - {ModdedDrainLength(mods):mm\':\'ss} - {BeatmapSet.CreatorName} - <b>{Status}</b>\n" +
+						$"[{Version.FilterToHTML()}] - {StarRating:N2}* - {ModdedDrainLength(mods):mm\':\'ss} - {BeatmapSet?.CreatorName} - <b>{Status}</b>\n" +
 						$"🍎 | <b>CS:</b> {ModdedCS(mods):N2} | <b>AR:</b> {ModdedAR(mods):N2} | <b>OD:</b> {ModdedOD(mods):N2} | <b>BPM:</b> {ModdedBPM(mods):N2}";
 				case Mode.Mania:
 					return
-						$"[{Version.FilterToHTML()}] - {StarRating:N2}* - {ModdedDrainLength(mods):mm\':\'ss} - {BeatmapSet.CreatorName} - <b>{Status}</b>\n" +
+						$"[{Version.FilterToHTML()}] - {StarRating:N2}* - {ModdedDrainLength(mods):mm\':\'ss} - {BeatmapSet?.CreatorName} - <b>{Status}</b>\n" +
 						$"🎹 | <b>Keys:</b> {CS:N0} | <b>OD:</b> {ModdedOD(mods):N2} | <b>BPM:</b> {ModdedBPM(mods):N2}";
 				default:
 					return string.Empty;

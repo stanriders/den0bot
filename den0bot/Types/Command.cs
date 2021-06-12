@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using den0bot.Types.Answers;
+using Serilog;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 
@@ -42,6 +43,11 @@ namespace den0bot.Types
 		/// </summary>
 		public bool Reply { get; init; }
 
+		/// <summary>
+		/// Determines if we should sends "please wait" message that will be updated later
+		/// </summary>
+		public bool Slow { get; init; }
+
 		public Func<Message, Task<ICommandAnswer>> ActionAsync { get; init; }
 		public Func<Message, ICommandAnswer> Action { get; init; }
 
@@ -67,7 +73,7 @@ namespace den0bot.Types
 			return true;
 		}
 
-		// FIXME: this really shouldnt be in the command class
+		// FIXME: this really shouldn't be in the command class
 		public async Task<bool> Run(Message message)
 		{
 			var senderChatId = message.Chat.Id;
@@ -78,6 +84,12 @@ namespace den0bot.Types
 				await API.SendMessage(Localization.Get($"annoy_{RNG.NextNoMemory(1, 10)}", senderChatId), senderChatId);
 				return true;
 			}
+
+			var replyId = Reply ? message.MessageId : 0;
+
+			Message messageToUpdate = null;
+			if (Slow)
+				messageToUpdate = await API.SendMessage(Localization.Get("generic_wait", senderChatId), senderChatId, ParseMode, replyId);
 
 			ICommandAnswer result = null;
 
@@ -90,20 +102,46 @@ namespace den0bot.Types
 			// send result if we got any
 			if (result != null)
 			{
-				var replyId = Reply ? message.MessageId : 0;
-				Message sentMessage;
-				switch (result)
+				Message sentMessage = null;
+				if (Slow)
 				{
-					case TextCommandAnswer answer:
-						sentMessage = await API.SendMessage(answer.Text, senderChatId, ParseMode, replyId, answer.ReplyMarkup); break;
-					case ImageCommandAnswer answer:
-						sentMessage = await API.SendPhoto(answer.Image, senderChatId, answer.Caption, ParseMode, replyId, answer.ReplyMarkup, answer.SendTextIfFailed); break;
-					case ImageAlbumCommandAnswer answer:
-						sentMessage = (await API.SendMultiplePhotos(answer.Images, senderChatId))?.FirstOrDefault(); break;
-					case StickerCommandAnswer answer:
-						sentMessage = await API.SendSticker(answer.Sticker, senderChatId); break;
-					default:
-						throw new ArgumentException("Invalid command answer type");
+					if (messageToUpdate != null)
+					{
+						if (result is TextCommandAnswer textAnswer)
+						{
+							sentMessage = await API.EditMessage(senderChatId, messageToUpdate.MessageId,
+								textAnswer.Text, null, ParseMode);
+						}
+						else
+						{
+							await API.EditMessage(senderChatId, messageToUpdate.MessageId,
+								Localization.Get("generic_fail", senderChatId), null, ParseMode);
+
+							Log.Error($"`Slow` commands can only accept TextCommandAnswer, received: {result.GetType()}");
+						}
+					}
+				}
+				else
+				{
+					switch (result)
+					{
+						case TextCommandAnswer answer:
+							sentMessage = await API.SendMessage(answer.Text, senderChatId, ParseMode, replyId,
+								answer.ReplyMarkup);
+							break;
+						case ImageCommandAnswer answer:
+							sentMessage = await API.SendPhoto(answer.Image, senderChatId, answer.Caption, ParseMode,
+								replyId, answer.ReplyMarkup, answer.SendTextIfFailed);
+							break;
+						case ImageAlbumCommandAnswer answer:
+							sentMessage = (await API.SendMultiplePhotos(answer.Images, senderChatId))?.FirstOrDefault();
+							break;
+						case StickerCommandAnswer answer:
+							sentMessage = await API.SendSticker(answer.Sticker, senderChatId);
+							break;
+						default:
+							throw new ArgumentException("Invalid command answer type");
+					}
 				}
 
 				if (sentMessage != null)

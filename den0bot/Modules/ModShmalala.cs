@@ -199,6 +199,7 @@ namespace den0bot.Modules
 				{
 					Name = "talk",
 					Reply = true,
+					Slow = true,
 					Action = SendRandomMessage
 				},
 				new Command

@@ -48,6 +48,7 @@ namespace den0bot.Modules.Osu
 				{
 					Names = {"last", "l"},
 					Reply = true,
+					Slow = true,
 					ActionAsync = GetScores,
 					ParseMode = ParseMode.Html
 				},
@@ -62,6 +63,7 @@ namespace den0bot.Modules.Osu
 				{
 					Names = {"score", "s"},
 					Reply = true,
+					Slow = true,
 					ActionAsync = GetMapScores,
 					ParseMode = ParseMode.Html
 				}
@@ -90,14 +92,12 @@ namespace den0bot.Modules.Osu
 			}
 			else
 			{
-				await using (var db = new DatabaseOsu())
-				{
-					var id = db.Players.FirstOrDefault(x=> x.TelegramID == message.From.Id)?.OsuID;
-					if (id == null || id == 0)
-						return Localization.GetAnswer("recentscores_unknown_player", message.Chat.Id);
+				await using var db = new DatabaseOsu();
+				var id = db.Players.FirstOrDefault(x=> x.TelegramID == message.From.Id)?.OsuID;
+				if (id == null || id == 0)
+					return Localization.GetAnswer("recentscores_unknown_player", message.Chat.Id);
 
-					playerID = id.ToString();
-				}
+				playerID = id.ToString();
 			}
 
 			List<Score> lastScores = await WebApiHandler.MakeApiRequest(new GetUserScores(playerID, ScoreType.Recent, true));
@@ -135,14 +135,12 @@ namespace den0bot.Modules.Osu
 			}
 			else
 			{
-				await using (var db = new DatabaseOsu())
-				{
-					var id = db.Players.FirstOrDefault(x => x.TelegramID == message.From.Id)?.OsuID;
-					if (id == null || id == 0)
-						return Localization.GetAnswer("recentscores_unknown_player", message.Chat.Id);
+				await using var db = new DatabaseOsu();
+				var id = db.Players.FirstOrDefault(x => x.TelegramID == message.From.Id)?.OsuID;
+				if (id == null || id == 0)
+					return Localization.GetAnswer("recentscores_unknown_player", message.Chat.Id);
 
-					playerID = id.ToString();
-				}
+				playerID = id.ToString();
 			}
 
 			var lastScores = await WebApiHandler.MakeApiRequest(new GetUserScores(playerID, ScoreType.Recent, false));
@@ -160,10 +158,6 @@ namespace den0bot.Modules.Osu
 
 		private async Task<ICommandAnswer> GetMapScores(Telegram.Bot.Types.Message message)
 		{
-			var messageToEdit = await API.SendMessage(Localization.Get("generic_wait", message.Chat.Id), message.Chat.Id, ParseMode.Html, message.MessageId);
-			if (messageToEdit == null)
-				return null;
-
 			// beatmap id regex can parse link as part of a complex message so we dont need to clean it up beforehand
 			var msgText = message.Text;
 			if (message.ReplyToMessage != null && message.ReplyToMessage.Text.Contains(".ppy.sh"))
@@ -194,19 +188,13 @@ namespace den0bot.Modules.Osu
 			}
 
 			if (mapId == 0)
-			{
-				await API.EditMessage(message.Chat.Id, messageToEdit.MessageId, Localization.Get("generic_fail", message.Chat.Id), parseMode: ParseMode.Html);
-				return null;
-			}
+				return Localization.GetAnswer("generic_fail", message.Chat.Id);
 
 			await using var db = new DatabaseOsu();
 
 			var playerId = db.Players.FirstOrDefault(x => x.TelegramID == message.From.Id)?.OsuID;
 			if (playerId == null || playerId == 0)
-			{
-				await API.EditMessage(message.Chat.Id, messageToEdit.MessageId, Localization.Get("recentscores_unknown_player", message.Chat.Id), parseMode: ParseMode.Html);
-				return null;
-			}
+				return Localization.GetAnswer("recentscores_unknown_player", message.Chat.Id);
 
 			var result = string.Empty;
 
@@ -215,10 +203,7 @@ namespace den0bot.Modules.Osu
 				// no mods specified - use apiv1 to get all scores on a map and then get score data from apiv2
 				var scores = await WebApiHandler.MakeApiRequest(new WebAPI.Requests.V1.GetScores(playerId.Value.ToString(), mapId, mods, score_amount));
 				if (scores == null || scores.Count <= 0)
-				{
-					await API.EditMessage(message.Chat.Id, messageToEdit.MessageId, Localization.Get("recentscores_no_scores", message.Chat.Id), parseMode: ParseMode.Html);
-					return null;
-				}
+					return Localization.GetAnswer("recentscores_no_scores", message.Chat.Id);
 
 				var map = await WebApiHandler.MakeApiRequest(new GetBeatmap(mapId));
 
@@ -237,10 +222,7 @@ namespace den0bot.Modules.Osu
 				// mods specified - get data straight from apiv2
 				var score = await WebApiHandler.MakeApiRequest(new GetUserBeatmapScore(mapId, playerId.Value, mods));
 				if (score == null)
-				{
-					await API.EditMessage(message.Chat.Id, messageToEdit.MessageId, Localization.Get("recentscores_no_scores", message.Chat.Id), parseMode: ParseMode.Html);
-					return null;
-				}
+					return Localization.GetAnswer("recentscores_no_scores", message.Chat.Id);
 
 				score.Beatmap = await WebApiHandler.MakeApiRequest(new GetBeatmap(mapId));
 				result += FormatScore(score, false);
@@ -249,51 +231,48 @@ namespace den0bot.Modules.Osu
 			if (!string.IsNullOrEmpty(result))
 			{
 				ChatBeatmapCache.StoreMap(message.Chat.Id, mapId);
-				await API.EditMessage(message.Chat.Id, messageToEdit.MessageId, result, parseMode: ParseMode.Html);
-				return null;
+				return new TextCommandAnswer(result);
 			}
-
-			await API.EditMessage(message.Chat.Id, messageToEdit.MessageId, Localization.Get("generic_fail", message.Chat.Id), parseMode: ParseMode.Html);
-			return null;
+			
+			return Localization.GetAnswer("generic_fail", message.Chat.Id);
 		}
 
 		private async Task<ICommandAnswer> AddMe(Telegram.Bot.Types.Message message)
 		{
 			if (message.Text.Length > 6)
 			{
-				await using (var db = new DatabaseOsu())
+				await using var db = new DatabaseOsu();
+
+				string player = ProfileLinkParser.Parse(message.Text)?.Id;
+				if (string.IsNullOrEmpty(player))
+					player = message.Text.Substring(7);
+
+				if (!string.IsNullOrEmpty(player))
 				{
-					string player = ProfileLinkParser.Parse(message.Text)?.Id;
-					if (string.IsNullOrEmpty(player))
-						player = message.Text.Substring(7);
+					if (db.Players.Any(x => x.TelegramID == message.From.Id))
+						return Localization.GetAnswer($"annoy_{RNG.NextNoMemory(1, 10)}", message.Chat.Id);
 
-					if (!string.IsNullOrEmpty(player))
+					if (!uint.TryParse(player, out var osuID))
 					{
-						if(db.Players.Any(x=> x.TelegramID == message.From.Id))
-							return Localization.GetAnswer($"annoy_{RNG.NextNoMemory(1, 10)}", message.Chat.Id);
+						// if they used /u/cookiezi instead of /u/124493 we ask osu API for an ID
+						var info = await WebApiHandler.MakeApiRequest(new GetUser(player));
 
-						if (!uint.TryParse(player, out var osuID))
+						if (info == null)
+							return Localization.GetAnswer("recentscores_player_add_failed", message.Chat.Id);
+						else
+							osuID = info.Id;
+					}
+
+					if (osuID != 0)
+					{
+						await db.Players.AddAsync(new DatabaseOsu.Player
 						{
-							// if they used /u/cookiezi instead of /u/124493 we ask osu API for an ID
-							var info = await WebApiHandler.MakeApiRequest(new GetUser(player));
+							OsuID = osuID,
+							TelegramID = message.From.Id
+						});
+						await db.SaveChangesAsync();
 
-							if (info == null)
-								return Localization.GetAnswer("recentscores_player_add_failed", message.Chat.Id);
-							else
-								osuID = info.Id;
-						}
-
-						if (osuID != 0)
-						{
-							await db.Players.AddAsync(new DatabaseOsu.Player
-							{
-								OsuID = osuID,
-								TelegramID = message.From.Id
-							});
-							await db.SaveChangesAsync();
-
-							return Localization.GetAnswer("recentscores_player_add_success", message.Chat.Id);
-						}
+						return Localization.GetAnswer("recentscores_player_add_success", message.Chat.Id);
 					}
 				}
 			}
