@@ -65,7 +65,7 @@ namespace den0bot.Modules
 
 		public override void Think()
 		{
-			if (messageBuffer.IsEmpty && nextFlush < DateTime.Now)
+			if (!messageBuffer.IsEmpty && nextFlush < DateTime.Now)
 			{
 				Flush();
 				nextFlush = DateTime.Now.AddMinutes(buffer_flush_interval);
