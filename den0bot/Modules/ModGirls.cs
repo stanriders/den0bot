@@ -22,7 +22,7 @@ namespace den0bot.Modules
 		{
 			public int ID { get; init; }
 			public int Rating { get; set; }
-			public List<int> Voters { get; init; }
+			public List<long> Voters { get; init; }
 			public DateTime PostTime { get; init; }
 			public int MessageID { get; init; }
 			public int CommandMessageID { get; init; }
@@ -152,7 +152,7 @@ namespace den0bot.Modules
 					{
 						ID = picture.Id,
 						Rating = picture.Rating == int.MinValue ? 0 : picture.Rating,
-						Voters = new List<int>(),
+						Voters = new List<long>(),
 						PostTime = DateTime.Now,
 						MessageID = sentMessage.MessageId,
 						CommandMessageID = msg.MessageId,

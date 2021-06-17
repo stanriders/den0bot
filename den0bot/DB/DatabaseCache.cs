@@ -49,7 +49,7 @@ namespace den0bot.DB
 		private static int? girlSeason;
 		private static DateTime? girlSeasonStart;
 
-		public static async Task AddUser(int id, string username)
+		public static async Task AddUser(long id, string username)
 		{
 			if (Users.All(x => x.Username != username))
 			{
@@ -66,7 +66,7 @@ namespace den0bot.DB
 				}
 			}
 		}
-		public static int GetUserID(string username)
+		public static long GetUserID(string username)
 		{
 			if (!string.IsNullOrEmpty(username))
 			{
@@ -79,7 +79,7 @@ namespace den0bot.DB
 			return 0;
 		}
 
-		public static string GetUsername(int id)
+		public static string GetUsername(long id)
 		{
 			return Users.Find(x => x.TelegramID == id)?.Username;
 		}

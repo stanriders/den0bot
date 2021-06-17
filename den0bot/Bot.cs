@@ -6,14 +6,15 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
-using Telegram.Bot.Args;
-using Telegram.Bot.Types;
-using Telegram.Bot.Types.Enums;
 using den0bot.DB;
+using den0bot.Events;
 using den0bot.Modules;
 using den0bot.Util;
 using den0bot.Types;
 using Serilog;
+using Telegram.Bot.Types;
+using Telegram.Bot.Types.Enums;
+using MessageEventArgs = den0bot.Events.MessageEventArgs;
 
 namespace den0bot
 {
@@ -70,7 +71,7 @@ namespace den0bot
 
 		private void Think()
 		{
-			while (API.IsConnected && !shouldShutdown)
+			while (!shouldShutdown)
 			{
 				foreach (IModule m in modules)
 				{
@@ -85,7 +86,6 @@ namespace den0bot
 				if (m is IReceiveShutdown mShutdown)
 					mShutdown.Shutdown();
 			}
-			API.Disconnect();
 
 			if (shouldCrash)
 			{
@@ -238,13 +238,13 @@ namespace den0bot
 			}
 		}
 
-		private async void ProcessMessageEdit(object sender, MessageEventArgs messageEventArgs)
+		private async void ProcessMessageEdit(object sender, MessageEditEventArgs messageEventArgs)
 		{
 			foreach (IModule m in modules)
 			{
 				if (m is IReceiveMessageEdits module)
 				{
-					await module.ReceiveMessageEdit(messageEventArgs.Message);
+					await module.ReceiveMessageEdit(messageEventArgs.EditedMessage);
 				}
 			}
 		}

@@ -1,4 +1,4 @@
-﻿// den0bot (c) StanR 2020 - MIT License
+﻿// den0bot (c) StanR 2021 - MIT License
 
 using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
@@ -12,7 +12,7 @@ namespace den0bot.Modules.Osu
 		public class Player
 		{
 			[Key]
-			public int TelegramID { get; set; }
+			public long TelegramID { get; set; }
 			public uint OsuID { get; set; }
 		}
 

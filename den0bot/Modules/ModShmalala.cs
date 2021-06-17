@@ -1,6 +1,6 @@
-﻿//#define GPT
-#define GPT_SBERBANK
-#define GPT_TALKONLY
+﻿#define GPT
+#define GPT_YANDEX
+//#define GPT_TALKONLY
 // den0bot (c) StanR 2021 - MIT License
 using System;
 using System.Collections.Generic;
@@ -256,6 +256,8 @@ namespace den0bot.Modules
 						return new TextCommandAnswer($"{input} {response}");
 #endif
 					}
+
+					return Localization.GetAnswer("generic_fail", msg.Chat.Id);
 				}
 			}
 
@@ -370,8 +372,9 @@ namespace den0bot.Modules
 #if GPT_YANDEX
 		private static async Task<string> GetGptResponse(string input)
 		{
-			var response = await Web.PostJson("https://yandex.ru/lab/api/gpt3/text2", JsonConvert.SerializeObject(new
+			var response = await Web.PostJson("https://zeapi.yandex.net/lab/api/yalm/text3", JsonConvert.SerializeObject(new
 			{
+				filter = 0,
 				intro = 0,
 				query = input
 			}));
@@ -380,8 +383,13 @@ namespace den0bot.Modules
 			if (json != null)
 			{
 				if (json.error == 0)
+				{
+					if (json.bad_query == 1)
+						return string.Empty;
+
 					return json.text.ToString();
-				
+				}
+
 				Log.Warning($"GPT error: {json.error?.ToString()}");
 			}
 			else
