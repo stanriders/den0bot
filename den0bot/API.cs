@@ -2,17 +2,21 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
+using den0bot.Events;
 using den0bot.Util;
 using Sentry;
 using Serilog;
 using Telegram.Bot;
-using Telegram.Bot.Args;
 using Telegram.Bot.Exceptions;
+using Telegram.Bot.Extensions.Polling;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.InputFiles;
 using Telegram.Bot.Types.ReplyMarkups;
+using CallbackQueryEventArgs = den0bot.Events.CallbackQueryEventArgs;
+using MessageEventArgs = den0bot.Events.MessageEventArgs;
 using User = Telegram.Bot.Types.User;
 
 namespace den0bot
@@ -21,8 +25,6 @@ namespace den0bot
 	{
 		public static User BotUser { get; private set; }
 		private static TelegramBotClient api;
-
-		public static bool IsConnected => api.IsReceiving;
 
 		/// <summary>
 		/// Connect and start receiving messages. Returns false if failed to connect.
@@ -37,12 +39,6 @@ namespace den0bot
 
 			Log.Information("Connecting...");
 			api = new TelegramBotClient(Config.Params.TelegamToken);
-			api.OnMessage += OnMessage;
-			api.OnMessageEdited += OnMessageEdit;
-			api.OnCallbackQuery += OnCallback;
-			api.OnReceiveGeneralError += delegate (object _, ReceiveGeneralErrorEventArgs args) { Log.Error(args.Exception.InnerMessageIfAny()); };
-			api.OnReceiveError += delegate (object _, ReceiveErrorEventArgs args) { Log.Error(args.ApiRequestException.InnerMessageIfAny()); };
-
 			if (!api.TestApiAsync().Result)
 			{
 				Log.Error("API Test failed, shutting down!");
@@ -51,21 +47,40 @@ namespace den0bot
 			BotUser = api.GetMeAsync().Result;
 
 			Log.Information("API Test successful, starting receiving...");
-			api.StartReceiving();
+			api.StartReceiving(new DefaultUpdateHandler(HandleUpdates, HandleError));
 
 			Log.Information("Connected!");
 			return true;
 		}
 
-		public static void Disconnect()
+		public static event EventHandler<MessageEventArgs> OnMessage;
+		public static event EventHandler<MessageEditEventArgs> OnMessageEdit;
+		public static event EventHandler<CallbackQueryEventArgs> OnCallback;
+
+		private static Task HandleUpdates(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
 		{
-			Log.Information("Disconnecting...");
-			api.StopReceiving();
+			switch (update.Type)
+			{
+				case UpdateType.Message:
+					OnMessage?.Invoke(api, new MessageEventArgs(update.Message));
+					break;
+				case UpdateType.EditedMessage:
+					OnMessageEdit?.Invoke(api, new MessageEditEventArgs(update.EditedMessage));
+					break;
+				case UpdateType.CallbackQuery:
+					OnCallback?.Invoke(api, new CallbackQueryEventArgs(update.CallbackQuery));
+					break;
+			}
+
+			return Task.CompletedTask;
 		}
 
-		public static event EventHandler<MessageEventArgs> OnMessage;
-		public static event EventHandler<MessageEventArgs> OnMessageEdit;
-		public static event EventHandler<CallbackQueryEventArgs> OnCallback;
+		private static Task HandleError(ITelegramBotClient botClient, Exception exception, CancellationToken cancellationToken)
+		{
+			Log.Error(exception.InnerMessageIfAny());
+
+			return Task.CompletedTask;
+		}
 
 		/// <summary>
 		/// Send message
@@ -95,7 +110,12 @@ namespace den0bot
 			try
 			{
 				if (!string.IsNullOrEmpty(message))
-					return await api.SendTextMessageAsync(chatId, message, parseMode, disablePreview, false, replyToId, replyMarkup);
+				{
+					return await api.SendTextMessageAsync(chatId, message, parseMode,
+						disableWebPagePreview: disablePreview,
+						replyToMessageId: replyToId,
+						replyMarkup: replyMarkup);
+				}
 			}
 			catch (Exception ex)
 			{
@@ -134,15 +154,20 @@ namespace den0bot
 			{
 				if (!string.IsNullOrEmpty(photo))
 				{
-					return await api.SendPhotoAsync(chatId, new InputOnlineFile(photo), caption, parseMode, false,
-						replyToId, replyMarkup);
+					return await api.SendPhotoAsync(chatId, new InputOnlineFile(photo), caption, parseMode, 
+						replyToMessageId: replyToId, 
+						replyMarkup: replyMarkup);
 				}
 			}
 			catch (ApiRequestException ex)
 			{
 				Log.Error(ex.InnerMessageIfAny());
 				if (sendTextIfFailed)
-					return await api.SendTextMessageAsync(chatId, caption, parseMode, false, false, replyToId, replyMarkup);
+				{
+					return await api.SendTextMessageAsync(chatId, caption, parseMode,
+						replyToMessageId: replyToId,
+						replyMarkup: replyMarkup);
+				}
 			}
 			catch (Exception ex)
 			{
@@ -171,7 +196,7 @@ namespace den0bot
 			{
 				if (photos != null && photos.Count > 1)
 				{
-					return await api.SendMediaGroupAsync(photos, chatId);
+					return await api.SendMediaGroupAsync(chatId, photos);
 				}
 			}
 			catch (Exception ex)
@@ -280,7 +305,9 @@ namespace den0bot
 
 			try
 			{
-				return await api.EditMessageTextAsync(chatId, messageId, message, parseMode, disablePreview, replyMarkup);
+				return await api.EditMessageTextAsync(chatId, messageId, message, parseMode, 
+					disableWebPagePreview: disablePreview, 
+					replyMarkup: replyMarkup);
 			}
 			catch (Exception ex)
 			{
@@ -313,7 +340,9 @@ namespace den0bot
 
 			try
 			{
-				return await api.EditMessageCaptionAsync(chatId, messageId, caption, replyMarkup, parseMode: parseMode);
+				return await api.EditMessageCaptionAsync(chatId, messageId, caption, 
+					replyMarkup: replyMarkup, 
+					parseMode: parseMode);
 			}
 			catch (Exception ex)
 			{
@@ -376,13 +405,78 @@ namespace den0bot
 
 			try
 			{
-				return await api.SendVoiceAsync(chatId, audio, caption, parseMode, duration, replyToMessageId: replyToId);
+				return await api.SendVoiceAsync(chatId, audio, caption, parseMode, 
+					duration: duration, 
+					replyToMessageId: replyToId);
 			}
 			catch (Exception ex)
 			{
 				Log.Error(ex.InnerMessageIfAny());
 			}
 			return null;
+		}
+
+		/// <summary>
+		/// Updates admin rights on a user 
+		/// </summary>
+		public static async Task<bool> UpdateAdmin(long chatId, long userId,
+			bool? isAnonymous = null,
+			bool? canManageChat = null,
+			bool? canChangeInfo = null,
+			bool? canPostMessages = null,
+			bool? canEditMessages = null,
+			bool? canDeleteMessages = null,
+			bool? canManageVoiceChats = null,
+			bool? canInviteUsers = null,
+			bool? canRestrictMembers = null,
+			bool? canPinMessages = null,
+			bool? canPromoteMembers = null)
+		{
+			try
+			{
+				await api.PromoteChatMemberAsync(chatId, userId, isAnonymous, canManageChat, canChangeInfo, canPostMessages, canEditMessages, 
+					canDeleteMessages, canManageVoiceChats, canInviteUsers, canRestrictMembers, canPinMessages, canPromoteMembers);
+				return true;
+			}
+			catch (Exception e)
+			{
+				Log.Error(e.ToString());
+				return false;
+			}
+		}
+
+		/// <summary>
+		/// Updates user permissions
+		/// </summary>
+		public static async Task<bool> UpdatePermissions(long chatId, long userId, ChatPermissions permissions)
+		{
+			try
+			{
+				await api.RestrictChatMemberAsync(chatId, userId, permissions);
+				return true;
+			}
+			catch (Exception e)
+			{
+				Log.Error(e.ToString());
+				return false;
+			}
+		}
+
+		/// <summary>
+		/// Removes user from ban list if they're in and kicks if they're not
+		/// </summary>
+		public static async Task<bool> UnbanUser(long chatId, long userId)
+		{
+			try
+			{
+				await api.UnbanChatMemberAsync(chatId, userId);
+				return true;
+			}
+			catch (Exception e)
+			{
+				Log.Error(e.ToString());
+				return false;
+			}
 		}
 
 		/// <summary>
