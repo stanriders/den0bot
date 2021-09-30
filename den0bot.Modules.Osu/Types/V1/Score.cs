@@ -7,7 +7,7 @@ using Newtonsoft.Json.Converters;
 
 namespace den0bot.Modules.Osu.Types.V1
 {
-	public class Score : IScore
+	public class Score : ScoreBase
 	{
 		[JsonProperty("beatmap_id")]
 		public uint BeatmapID { get; set; }
@@ -58,7 +58,7 @@ namespace den0bot.Modules.Osu.Types.V1
 		[JsonProperty("pass")] 
 		private short isPass { get; set; }
 
-		public override IBeatmap Beatmap { get; set; }
+		public override BeatmapBase Beatmap { get; set; }
 
 		public bool IsPass => isPass != 0;
 

@@ -20,19 +20,19 @@ namespace den0bot.Modules.Osu
 				Directory.CreateDirectory(cache_path);
 		}
 
-		public static double GetBeatmapPP(IBeatmap map, LegacyMods mods, double acc)
+		public static double GetBeatmapPP(BeatmapBase map, LegacyMods mods, double acc)
 		{
 			var pp = CalcPP(map, mods, acc, cache: map.Ranked);
 			return pp?.Total ?? -1;
 		}
 
-		public static double GetBeatmapPP(IBeatmap map, IScore score)
+		public static double GetBeatmapPP(BeatmapBase map, ScoreBase score)
 		{
 			var pp = CalcPP(map, score.LegacyMods ?? LegacyMods.NM, score.Accuracy, (int)score.Combo, (int)score.Misses, map.Ranked);
 			return pp?.Total ?? -1;
 		}
 
-		private static PPv2 CalcPP(IBeatmap beatmap, LegacyMods mods = LegacyMods.NM, double acc = -1, int combo = -1, int misses = 0, bool cache = false)
+		private static PPv2 CalcPP(BeatmapBase beatmap, LegacyMods mods = LegacyMods.NM, double acc = -1, int combo = -1, int misses = 0, bool cache = false)
 		{
 			try
 			{

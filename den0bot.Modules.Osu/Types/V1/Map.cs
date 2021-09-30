@@ -7,7 +7,7 @@ using Serilog;
 
 namespace den0bot.Modules.Osu.Types.V1
 {
-	public class Map : IBeatmap
+	public class Map : BeatmapBase
 	{
 		[JsonProperty("beatmap_id")]
 		public override uint Id { get; set; }

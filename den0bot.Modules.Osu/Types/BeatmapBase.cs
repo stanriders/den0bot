@@ -6,7 +6,7 @@ using Serilog;
 
 namespace den0bot.Modules.Osu.Types
 {
-	public abstract class IBeatmap
+	public abstract class BeatmapBase
 	{
 		public abstract uint Id { get; set; }
 		public abstract uint BeatmapSetId { get; set; }

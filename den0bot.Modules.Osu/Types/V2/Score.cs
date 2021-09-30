@@ -6,7 +6,7 @@ using Newtonsoft.Json.Converters;
 
 namespace den0bot.Modules.Osu.Types.V2
 {
-	public class Score : IScore
+	public class Score : ScoreBase
 	{
 		[JsonProperty("id")]
 		public ulong? Id { get; set; }
@@ -151,8 +151,8 @@ namespace den0bot.Modules.Osu.Types.V2
 			set { legacyMods = value; }
 		}
 
-		private IBeatmap beatmap;
-		public override IBeatmap Beatmap 
+		private BeatmapBase beatmap;
+		public override BeatmapBase Beatmap 
 		{ 
 			get 
 			{

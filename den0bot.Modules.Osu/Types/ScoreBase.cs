@@ -5,7 +5,7 @@ using den0bot.Modules.Osu.Types.Enums;
 
 namespace den0bot.Modules.Osu.Types
 {
-	public abstract class IScore
+	public abstract class ScoreBase
 	{
 		public abstract DateTime? Date { get; set; }
 		public abstract ScoreGrade? Grade { get; set; }
@@ -20,7 +20,7 @@ namespace den0bot.Modules.Osu.Types
 		public abstract uint Points { get; set; }
 
 		public int? LeaderboardPosition { get; set; }
-		public abstract IBeatmap Beatmap { get; set; }
+		public abstract BeatmapBase Beatmap { get; set; }
 
 		public uint ComboBasedMissCount(uint maxCombo, uint countSliders)
 		{

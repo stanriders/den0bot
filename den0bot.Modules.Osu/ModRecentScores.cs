@@ -318,7 +318,7 @@ namespace den0bot.Modules.Osu
 			}
 		}
 
-		private static string FormatScore(IScore score, bool useAgo)
+		private static string FormatScore(ScoreBase score, bool useAgo)
 		{
 			string mods = string.Empty;
 			if (score.LegacyMods != LegacyMods.NM)

@@ -9,7 +9,7 @@ using Serilog;
 
 namespace den0bot.Modules.Osu.Types.V2
 {
-	public class BeatmapShort : IBeatmap
+	public class BeatmapShort : BeatmapBase
 	{
 		[JsonProperty("id")]
 		public override uint Id { get; set; }
