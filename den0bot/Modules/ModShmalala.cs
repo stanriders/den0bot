@@ -3,6 +3,7 @@
 //#define GPT_TALKONLY
 // den0bot (c) StanR 2021 - MIT License
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -60,7 +61,7 @@ namespace den0bot.Modules
 				}
 			}
 
-			public List<MarkovChainNode> Nodes { get; } = new();
+			public ConcurrentBag<MarkovChainNode> Nodes { get; } = new();
 
 			public bool Ready { get; private set; } = false;
 
@@ -87,9 +88,9 @@ namespace den0bot.Modules
 							var links = word.Value;
 							foreach (var link in links)
 							{
-								var node = Nodes.Find(x => x.Word == link);
+								var node = Nodes.FirstOrDefault(x => x.Word == link);
 								if (node != null)
-									Nodes.Find(x => x.Word == word.Key)?.AddLink(node);
+									Nodes.FirstOrDefault(x => x.Word == word.Key)?.AddLink(node);
 							}
 						});
 
@@ -155,15 +156,16 @@ namespace den0bot.Modules
 				}
 
 				if (node == null)
-					node = Nodes[RNG.NextNoMemory(0, Nodes.Count)];
+					node = Nodes.Skip(RNG.NextNoMemory(0, Nodes.Count)).FirstOrDefault();
 
 				return node;
 			}
 
 			public void SaveToFile()
 			{
+				var nodesToSave = Nodes.ToArray();
 				Dictionary<string, List<string>> packedChain = new Dictionary<string, List<string>>();
-				foreach (MarkovChainNode node in Nodes)
+				foreach (MarkovChainNode node in nodesToSave)
 				{
 					if (node.Word != null)
 					{
@@ -256,12 +258,10 @@ namespace den0bot.Modules
 						return new TextCommandAnswer($"{input} {response}");
 #endif
 					}
-
-					return Localization.GetAnswer("generic_fail", msg.Chat.Id);
 				}
 			}
 
-			return null;
+			return Localization.GetAnswer("generic_fail", msg.Chat.Id);
 #else
 
 			if (!markovChain.Ready || markovChain.Nodes.Count <= min_nodes)

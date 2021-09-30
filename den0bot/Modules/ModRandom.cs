@@ -63,7 +63,7 @@ namespace den0bot.Modules
 			if (msgArr.Length > 1 && BigInteger.TryParse(msgArr[1], out var max) && max > 1)
 				return new TextCommandAnswer(Localization.Get("random_roll", msg.Chat.Id) + RNG.NextBigInteger(max+1));
 			
-			return new TextCommandAnswer(Localization.Get("random_roll", msg.Chat.Id) + RNG.Next(max: 101));
+			return new TextCommandAnswer(Localization.Get("random_roll", msg.Chat.Id) + RNG.Next(1, 101));
 		}
 
 		private static async Task<ICommandAnswer> AddMeme(Message message)
@@ -86,59 +86,57 @@ namespace den0bot.Modules
 
 		private static async Task<ICommandAnswer> GetRandomMeme(Telegram.Bot.Types.Chat sender)
 		{
-			await using (var db = new Database())
+			await using var db = new Database();
+
+			int memeCount = db.Memes.Count(x => x.ChatID == sender.Id);
+			if (memeCount <= 0)
+				return Localization.GetAnswer("random_no_memes", sender.Id);
+
+			var memes = await db.Memes.Where(x => x.ChatID == sender.Id).ToArrayAsync();
+			if (memes.All(x => x.Used))
 			{
-				int memeCount = db.Memes.Count(x => x.ChatID == sender.Id);
-				if (memeCount <= 0)
-					return Localization.GetAnswer("random_no_memes", sender.Id);
-
-				var memes = await db.Memes.Where(x => x.ChatID == sender.Id).ToArrayAsync();
-				if (memes.All(x => x.Used))
+				foreach (var usedMeme in memes)
 				{
-					foreach (var usedMeme in memes)
-					{
-						usedMeme.Used = false;
-						db.Memes.Update(usedMeme);
-					}
+					usedMeme.Used = false;
+					db.Memes.Update(usedMeme);
 				}
-
-				var unusedMemes = memes.Count(x => !x.Used);
-				if (unusedMemes > 0)
-				{
-					int num = RNG.Next(max: unusedMemes);
-					var meme = memes[num];
-
-					meme.Used = true;
-					db.Memes.Update(meme);
-
-					await db.SaveChangesAsync();
-
-					string photo = meme.Link;
-					if (!string.IsNullOrEmpty(photo))
-					{
-						return new ImageCommandAnswer()
-						{
-							Image = photo
-						};
-					}
-				}
-
-				return Localization.GetAnswer("generic_fail", sender.Id);
 			}
+
+			var unusedMemes = memes.Count(x => !x.Used);
+			if (unusedMemes > 0)
+			{
+				int num = RNG.Next(max: unusedMemes);
+				var meme = memes[num];
+
+				meme.Used = true;
+				db.Memes.Update(meme);
+
+				await db.SaveChangesAsync();
+
+				string photo = meme.Link;
+				if (!string.IsNullOrEmpty(photo))
+				{
+					return new ImageCommandAnswer()
+					{
+						Image = photo
+					};
+				}
+			}
+
+			return Localization.GetAnswer("generic_fail", sender.Id);
 		}
 
 		private static async Task AddMemeToDatabase(string link, long chatID)
 		{
-			await using (var db = new Database())
+			await using var db = new Database();
+
+			if (!db.Memes.Any(x => x.Link == link))
 			{
-				if (!db.Memes.Any(x => x.Link == link))
+				await db.Memes.AddAsync(new Meme
 				{
-					await db.Memes.AddAsync(new Meme
-					{
-						Link = link,
-						ChatID = chatID
-					});
-				}
+					Link = link,
+					ChatID = chatID
+				});
 			}
 		}
 	}

@@ -149,6 +149,13 @@ namespace den0bot.Types
 
 				return true;
 			}
+
+			if (Slow && messageToUpdate != null)
+			{
+				await API.EditMessage(senderChatId, messageToUpdate.MessageId, Localization.Get("generic_fail", senderChatId), null, ParseMode);
+				return true;
+			}
+
 			return false;
 		}
 	}
