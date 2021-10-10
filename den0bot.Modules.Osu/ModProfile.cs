@@ -1,6 +1,8 @@
 ﻿// den0bot (c) StanR 2021 - MIT License
 using System;
+using System.Linq;
 using System.Threading.Tasks;
+using den0bot.DB;
 using den0bot.Modules.Osu.Parsers;
 using den0bot.Modules.Osu.Types;
 using Telegram.Bot.Types;
@@ -22,10 +24,18 @@ namespace den0bot.Modules.Osu
 		private readonly int topscores_to_show = 5;
 		public ModProfile()
 		{
-			AddCommand(new Command
+			AddCommands(new []
 			{
-				Name = "newppuser",
-				ActionAsync = GetRebalanceProfile
+				new Command
+				{
+					Name = "profile",
+					ActionAsync = GetProfile
+				},
+				new Command
+				{
+					Name = "newppuser",
+					ActionAsync = GetRebalanceProfile
+				}
 			});
 		}
 
@@ -49,7 +59,7 @@ namespace den0bot.Modules.Osu
 			if (info == null)
 				return string.Empty;
 
-			var topscores = await WebApiHandler.MakeApiRequest(new GetUserScores(info.Id.ToString(), ScoreType.Best, limit: topscores_to_show));
+			var topscores = await WebApiHandler.MakeApiRequest(new GetUserScores(info.Id, ScoreType.Best, limit: topscores_to_show));
 			if (topscores == null || topscores.Count <= 0)
 				return string.Empty;
 
@@ -115,28 +125,57 @@ namespace den0bot.Modules.Osu
 		{
 			if (!string.IsNullOrEmpty(msg.Text))
 			{
+				await using var db = new DatabaseOsu();
+
+				string player;
 				if (msg.Text.Length > 11)
-				{
-					string player = ProfileLinkParser.Parse(msg.Text)?.Id;
-					if (!string.IsNullOrEmpty(player))
-					{
-						var result = await FormatRebalanceProfile(player);
-						if (!string.IsNullOrEmpty(result))
-							return new TextCommandAnswer(result);
-					}
-				}
+					player = ProfileLinkParser.Parse(msg.Text)?.Id;
 				else
+					player = (await db.Players.FirstOrDefaultAsync(x => x.TelegramID == msg.From.Id))?.ToString();
+
+				if (!string.IsNullOrEmpty(player))
 				{
-					await using (var db = new DatabaseOsu())
-					{
-						var osuId = await db.Players.FirstOrDefaultAsync(x=> x.TelegramID == msg.From.Id);
-						if (osuId != null)
-						{
-							var result = await FormatRebalanceProfile(osuId.ToString());
-							if (!string.IsNullOrEmpty(result))
-								return new TextCommandAnswer(result);
-						}
-					}
+					var result = await FormatRebalanceProfile(player);
+					if (!string.IsNullOrEmpty(result))
+						return new TextCommandAnswer(result);
+				}
+			}
+
+			return Localization.GetAnswer("generic_badrequest", msg.Chat.Id);
+		}
+
+		private async Task<ICommandAnswer> GetProfile(Message msg)
+		{
+			if (!string.IsNullOrEmpty(msg.Text))
+			{
+				await using var db = new Database();
+				await using var dbOsu = new DatabaseOsu();
+
+				var userId = msg.From.Id;
+
+				if (msg.ReplyToMessage != null)
+				{
+					userId = msg.ReplyToMessage.From.Id;
+				}
+
+				// username in profile has priority over replies
+				if (msg.Text.Length > 9)
+				{
+					var username = msg.Text.Substring(9).Trim();
+					if (username.StartsWith('@'))
+						username = username[1..];
+
+					var user = await db.Users.FirstOrDefaultAsync(x => x.Username == username);
+					if (user != null)
+						userId = user.TelegramID;
+				}
+
+				var osuId = await dbOsu.Players.FirstOrDefaultAsync(x => x.TelegramID == userId);
+				if (osuId != null)
+				{
+					var result = await FormatPlayerInfo(osuId.ToString());
+					if (!string.IsNullOrEmpty(result))
+						return new TextCommandAnswer(result);
 				}
 			}
 
