@@ -49,7 +49,7 @@ namespace den0bot.Modules.Osu
 					Names = {"last", "l"},
 					Reply = true,
 					Slow = true,
-					ActionAsync = GetScores,
+					ActionAsync = GetLastScores,
 					ParseMode = ParseMode.Html
 				},
 				new Command
@@ -70,9 +70,9 @@ namespace den0bot.Modules.Osu
 			});
 		}
 
-		private async Task<ICommandAnswer> GetScores(Telegram.Bot.Types.Message message)
+		private async Task<ICommandAnswer> GetLastScores(Telegram.Bot.Types.Message message)
 		{
-			string playerID;
+			uint playerId = 0;
 			int amount = 1;
 
 			List<string> msgSplit = message.Text.Split(' ').ToList();
@@ -88,7 +88,10 @@ namespace den0bot.Modules.Osu
 
 			if (msgSplit.Count > 0)
 			{
-				playerID = string.Join(" ", msgSplit);
+				var playerName = string.Join(" ", msgSplit);
+				var player = await WebApiHandler.MakeApiRequest(new GetUser(playerName));
+				if (player != null)
+					playerId = player.Id;
 			}
 			else
 			{
@@ -97,10 +100,13 @@ namespace den0bot.Modules.Osu
 				if (id == null || id == 0)
 					return Localization.GetAnswer("recentscores_unknown_player", message.Chat.Id);
 
-				playerID = id.ToString();
+				playerId = id.Value;
 			}
 
-			List<Score> lastScores = await WebApiHandler.MakeApiRequest(new GetUserScores(playerID, ScoreType.Recent, true));
+			if (playerId == 0)
+				return Localization.GetAnswer("generic_fail", message.Chat.Id);
+
+			List<Score> lastScores = await WebApiHandler.MakeApiRequest(new GetUserScores(playerId, ScoreType.Recent, true));
 			if (lastScores != null)
 			{
 				if (lastScores.Count == 0)
@@ -124,14 +130,17 @@ namespace den0bot.Modules.Osu
 
 		private async Task<ICommandAnswer> GetPass(Telegram.Bot.Types.Message message)
 		{
-			string playerID;
+			uint playerId = 0;
 
 			List<string> msgSplit = message.Text.Split(' ').ToList();
 			msgSplit.RemoveAt(0);
 
 			if (msgSplit.Count > 0)
 			{
-				playerID = string.Join(" ", msgSplit);
+				var playerName = string.Join(" ", msgSplit);
+				var player = await WebApiHandler.MakeApiRequest(new GetUser(playerName));
+				if (player != null)
+					playerId = player.Id;
 			}
 			else
 			{
@@ -140,10 +149,13 @@ namespace den0bot.Modules.Osu
 				if (id == null || id == 0)
 					return Localization.GetAnswer("recentscores_unknown_player", message.Chat.Id);
 
-				playerID = id.ToString();
+				playerId = id.Value;
 			}
 
-			var lastScores = await WebApiHandler.MakeApiRequest(new GetUserScores(playerID, ScoreType.Recent, false));
+			if (playerId == 0)
+				return Localization.GetAnswer("generic_fail", message.Chat.Id);
+
+			var lastScores = await WebApiHandler.MakeApiRequest(new GetUserScores(playerId, ScoreType.Recent, false));
 			if (lastScores.Count > 0)
 			{
 				var score = lastScores[0];
