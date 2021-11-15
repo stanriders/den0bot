@@ -69,6 +69,7 @@ namespace den0bot.Modules
 
 			public MarkovChain()
 			{
+#if !GPT
 				// unpack chain if it exists
 				if (System.IO.File.Exists(file_path))
 				{
@@ -98,6 +99,7 @@ namespace den0bot.Modules
 					});
 				}
 				else
+#endif
 				{
 					Ready = true;
 				}
