@@ -30,7 +30,7 @@ namespace den0bot
 		private static bool shouldCrash;
 		public static void Shutdown(bool crash = false) { shouldShutdown = true; shouldCrash = crash; }
 
-		public static void Main()
+		public static int Main()
 		{
 			Thread.CurrentThread.CurrentCulture = new CultureInfo("ru-RU", false);
 
@@ -42,14 +42,14 @@ namespace den0bot
 
 			AppDomain.CurrentDomain.UnhandledException += (s, e) => { Log.Error((e.ExceptionObject as Exception)?.ToString()); };
 			var bot = new Bot();
-			bot.Run();
+			return bot.Run();
 		}
 
-		public void Run()
+		public int Run()
 		{
 			Log.Information("________________");
 			if (!LoadModules())
-				return;
+				return 1;
 
 			Log.Information("Done!");
 
@@ -65,8 +65,11 @@ namespace den0bot
 			else
 			{
 				Log.Error("Can't connect to Telegram API!");
+				return 1;
 			}
+
 			Log.Information("Exiting...");
+			return 0;
 		}
 
 		private void Think()
