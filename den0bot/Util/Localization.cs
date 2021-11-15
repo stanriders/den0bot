@@ -70,5 +70,10 @@ namespace den0bot.Util
 			else
 				return string.Format(locales["ru"]["generic_greeting"], name, userID);
 		}
+
+		public static string GetChatLocale(long chatId)
+		{
+			return DatabaseCache.Chats.FirstOrDefault(x => x.Id == chatId)?.Locale;
+		}
 	}
 }
