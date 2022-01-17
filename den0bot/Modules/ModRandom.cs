@@ -1,4 +1,4 @@
-﻿// den0bot (c) StanR 2021 - MIT License
+﻿// den0bot (c) StanR 2022 - MIT License
 
 using System.Linq;
 using System.Numerics;
@@ -47,18 +47,18 @@ namespace den0bot.Modules
 
 		private static ICommandAnswer GetRandomDinosaur()
 		{
-			switch (RNG.Next(1, 4))
+			return RNG.Next(1, 4) switch
 			{
-				case 1: return new TextCommandAnswer("динозавр?");
-				case 2: return new StickerCommandAnswer("BQADAgADNAADnML7Dbv6HgazQYiIAg");
-				case 3: return new StickerCommandAnswer("BQADAgADMAADnML7DXy6fUB4x-sqAg");
-				default: return null;
-			}
+				1 => new TextCommandAnswer("динозавр?"),
+				2 => new StickerCommandAnswer("BQADAgADNAADnML7Dbv6HgazQYiIAg"),
+				3 => new StickerCommandAnswer("BQADAgADMAADnML7DXy6fUB4x-sqAg"),
+				_ => null,
+			};
 		}
 
 		private static ICommandAnswer Roll(Message msg)
 		{
-			string[] msgArr = msg.Text.Split(' ');
+			var msgArr = msg.Text.Split(' ');
 
 			if (msgArr.Length > 1 && BigInteger.TryParse(msgArr[1], out var max) && max > 1)
 				return new TextCommandAnswer(Localization.Get("random_roll", msg.Chat.Id) + RNG.NextBigInteger(max+1));
@@ -84,7 +84,7 @@ namespace den0bot.Modules
 		private static async Task<ICommandAnswer> AddMeme(Message message)
 		{
 			long chatId = message.Chat.Id;
-			string link = message.Text.Substring(7);
+			string link = message.Text[7..];
 
 			if (link.StartsWith("http") && (link.EndsWith(".jpg") || link.EndsWith(".png")))
 			{
@@ -166,7 +166,8 @@ namespace den0bot.Modules
 				8 => ("https://i.imgur.com/ZBZG5ND.jpg", null),
 				11 => ("https://i.imgur.com/KlQzTLI.jpg", "БАРАБАННЫЕ ПАЛОЧКИ"),
 				19 => ("https://i.imgur.com/aMwY20h.png", null),
-				22 => ("https://i.imgur.com/0vRNdIh.png", "ГУСИ ЛЕБЕДИ"),
+				//22 => ("https://i.imgur.com/0vRNdIh.png", "ГУСИ ЛЕБЕДИ"),
+				22 => ("https://i.imgur.com/GZAArwK.jpg", "ЛЕБЕДЬ-ГУСЕНИЦА"),
 				23 => ("https://i.imgur.com/UjIybpW.jpg", null),
 				25 => ("https://i.imgur.com/7T332rW.jpg", null),
 				26 => ("https://i.imgur.com/eXIIEU8.jpg", null),
