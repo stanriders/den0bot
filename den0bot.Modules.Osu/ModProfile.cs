@@ -29,7 +29,8 @@ namespace den0bot.Modules.Osu
 				new Command
 				{
 					Name = "profile",
-					ActionAsync = GetProfile
+					ActionAsync = GetProfile,
+					ParseMode = ParseMode.Html
 				},
 				new Command
 				{
@@ -170,10 +171,10 @@ namespace den0bot.Modules.Osu
 						userId = user.TelegramID;
 				}
 
-				var osuId = await dbOsu.Players.FirstOrDefaultAsync(x => x.TelegramID == userId);
-				if (osuId != null)
+				var player = await dbOsu.Players.FirstOrDefaultAsync(x => x.TelegramID == userId);
+				if (player != null)
 				{
-					var result = await FormatPlayerInfo(osuId.ToString());
+					var result = await FormatPlayerInfo(player.OsuID.ToString());
 					if (!string.IsNullOrEmpty(result))
 						return new TextCommandAnswer(result);
 				}
