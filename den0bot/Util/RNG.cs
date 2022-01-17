@@ -1,4 +1,4 @@
-﻿// den0bot (c) StanR 2020 - MIT License
+﻿// den0bot (c) StanR 2022 - MIT License
 using System;
 using System.Numerics;
 
@@ -6,17 +6,29 @@ namespace den0bot.Util
 {
 	public static class RNG
 	{
-		private static Random rng = new();
+		private static readonly Random rng = new();
 		private static int previousNum = 0;
 		private static BigInteger previousBigNum = 0;
 
+		private const int max_reroll_iterations = 10;
+
 		public static int Next(int min = 0, int max = int.MaxValue)
 		{
-			int result = rng.Next(min, max);
-			if (result == previousNum && max > 2)
-				return Next(min, max);
+			var result = min;
+			var iteration = 0;
+			while (iteration < max_reroll_iterations)
+			{
+				result = rng.Next(min, max);
+				if (result == previousNum && max > 2)
+				{
+					iteration++;
+					continue;
+				}
 
-			previousNum = result;
+				previousNum = result;
+				return result;
+			}
+
 			return result;
 		}
 
@@ -27,11 +39,21 @@ namespace den0bot.Util
 
 		public static BigInteger NextBigInteger(BigInteger max)
 		{
-			var result = NextBigIntegerNoMemory(max);
-			if (result == previousBigNum && max > 2)
-				return NextBigInteger(max);
+			BigInteger result = 1;
+			var iteration = 0;
+			while (iteration < max_reroll_iterations)
+			{
+				result = NextBigIntegerNoMemory(max);
+				if (result == previousBigNum && max > 2)
+				{
+					iteration++;
+					continue;
+				}
 
-			previousBigNum = result;
+				previousBigNum = result;
+				return result;
+			}
+
 			return result;
 		}
 
