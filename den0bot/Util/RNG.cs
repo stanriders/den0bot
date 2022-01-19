@@ -14,12 +14,15 @@ namespace den0bot.Util
 
 		public static int Next(int min = 0, int max = int.MaxValue)
 		{
+			if (max <= 3)
+				return NextNoMemory(min, max);
+
 			var result = min;
 			var iteration = 0;
 			while (iteration < max_reroll_iterations)
 			{
 				result = rng.Next(min, max);
-				if (result == previousNum && max > 2)
+				if (result == previousNum)
 				{
 					iteration++;
 					continue;
@@ -37,14 +40,20 @@ namespace den0bot.Util
 			return rng.Next(min, max);
 		}
 
-		public static BigInteger NextBigInteger(BigInteger max)
+		public static BigInteger NextBigInteger(BigInteger max, int min = 0)
 		{
+			if (max <= 3)
+				return NextNoMemory(min, (int) max);
+
+			if (max < int.MaxValue)
+				return Next(min, (int) max);
+
 			BigInteger result = 1;
 			var iteration = 0;
 			while (iteration < max_reroll_iterations)
 			{
 				result = NextBigIntegerNoMemory(max);
-				if (result == previousBigNum && max > 2)
+				if (result == previousBigNum)
 				{
 					iteration++;
 					continue;
@@ -57,7 +66,7 @@ namespace den0bot.Util
 			return result;
 		}
 
-		public static BigInteger NextBigIntegerNoMemory(BigInteger max)
+		public static BigInteger NextBigIntegerNoMemory(BigInteger max, int min = 0)
 		{
 			byte[] buffer = max.ToByteArray();
 			BigInteger result;
@@ -67,7 +76,7 @@ namespace den0bot.Util
 				rng.NextBytes(buffer);
 				buffer[^1] &= 0x7F; // force sign bit to positive
 				result = new BigInteger(buffer);
-			} while (result >= max || result == 0);
+			} while (result >= max || result < min);
 
 			return result;
 		}

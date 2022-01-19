@@ -60,13 +60,15 @@ namespace den0bot.Modules
 		{
 			var msgArr = msg.Text.Split(' ');
 
-			if (msgArr.Length > 1 && BigInteger.TryParse(msgArr[1], out var max) && max > 1)
-				return new TextCommandAnswer(Localization.Get("random_roll", msg.Chat.Id) + RNG.NextBigInteger(max+1));
+			BigInteger roll = RNG.Next(1, 101);
 
-			var normalRoll = RNG.Next(1, 101);
-			if (Localization.GetChatLocale(msg.Chat.Id) == "ru")
+			BigInteger max = 101;
+			if (msgArr.Length > 1 && BigInteger.TryParse(msgArr[1], out max) && max > 1)
+				roll = RNG.NextBigInteger(max + 1, 1);
+
+			if (max > 10 && roll < 100 && Localization.GetChatLocale(msg.Chat.Id) == "ru")
 			{
-				var (image, caption) = ImageRollAnswer(normalRoll);
+				var (image, caption) = ImageRollAnswer((int)roll);
 				if (image is not null)
 				{
 					return new ImageCommandAnswer
@@ -78,7 +80,7 @@ namespace den0bot.Modules
 				}
 			}
 
-			return new TextCommandAnswer(Localization.Get("random_roll", msg.Chat.Id) + normalRoll);
+			return new TextCommandAnswer(Localization.Get("random_roll", msg.Chat.Id) + roll);
 		}
 
 		private static async Task<ICommandAnswer> AddMeme(Message message)
@@ -167,7 +169,7 @@ namespace den0bot.Modules
 				11 => ("https://i.imgur.com/KlQzTLI.jpg", "БАРАБАННЫЕ ПАЛОЧКИ"),
 				19 => ("https://i.imgur.com/aMwY20h.png", null),
 				//22 => ("https://i.imgur.com/0vRNdIh.png", "ГУСИ ЛЕБЕДИ"),
-				22 => ("https://i.imgur.com/GZAArwK.jpg", "ЛЕБЕДЬ-ГУСЕНИЦА"),
+				22 => ("https://i.imgur.com/o2Bo8s1.jpg", "ЛЕБЕДЬ-ГУСЕНИЦА"),
 				23 => ("https://i.imgur.com/UjIybpW.jpg", null),
 				25 => ("https://i.imgur.com/7T332rW.jpg", null),
 				26 => ("https://i.imgur.com/eXIIEU8.jpg", null),
