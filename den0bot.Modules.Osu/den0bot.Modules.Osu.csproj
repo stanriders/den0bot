@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net5.0</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
     <OutputType>Library</OutputType>
     <LangVersion>latest</LangVersion>
     <RootNamespace>den0bot.Modules.Osu</RootNamespace>
@@ -14,9 +14,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="IronOcr" Version="2021.9.0" />
+    <PackageReference Include="IronOcr" Version="2022.1.0" />
     <PackageReference Include="OppaiSharp" Version="3.4.0" />
-    <PackageReference Include="xFFmpeg.NET" Version="5.0.1" />
+    <PackageReference Include="xFFmpeg.NET" Version="7.0.1" />
   </ItemGroup>
 
   <ItemGroup>

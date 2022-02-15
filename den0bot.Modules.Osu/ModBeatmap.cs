@@ -9,6 +9,7 @@ using FFmpeg.NET;
 using System;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using den0bot.Modules.Osu.Parsers;
 using den0bot.Modules.Osu.Types;
@@ -25,7 +26,7 @@ namespace den0bot.Modules.Osu
 	public class ModBeatmap : OsuModule, IReceiveAllMessages, IReceiveCallbacks
 	{
 		private readonly InlineKeyboardMarkup buttons = new(
-			new[] {new InlineKeyboardButton {Text = "Preview", CallbackData = "preview"},}
+			new[] {new InlineKeyboardButton("Preview") {CallbackData = "preview"},}
 		);
 
 		public async Task ReceiveMessage(Message message)
@@ -98,7 +99,7 @@ namespace den0bot.Modules.Osu
 					await File.WriteAllBytesAsync($"./{sentMap.BeatmapSetId}.mp3", data);
 
 					await new Engine("ffmpeg")
-						.ConvertAsync(new MediaFile($"./{sentMap.BeatmapSetId}.mp3"), new MediaFile($"./{sentMap.BeatmapSetId}.ogg"));
+						.ConvertAsync(new InputFile($"./{sentMap.BeatmapSetId}.mp3"), new OutputFile($"./{sentMap.BeatmapSetId}.ogg"), CancellationToken.None);
 
 					await using (FileStream fs = File.Open($"./{sentMap.BeatmapSetId}.ogg", FileMode.Open, FileAccess.Read))
 						await API.SendVoice(new InputOnlineFile(fs), callback.Message.Chat.Id, replyToId: callback.Message.MessageId, duration: 10);

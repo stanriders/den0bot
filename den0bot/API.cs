@@ -91,7 +91,7 @@ namespace den0bot
 		/// <param name="replyToId">Message ID to reply to</param>
 		/// <param name="replyMarkup"></param>
 		/// <param name="disablePreview"></param>
-		public static async Task<Message> SendMessage(string message, long chatId, ParseMode parseMode = ParseMode.Default, int replyToId = 0, IReplyMarkup replyMarkup = null, bool disablePreview = true)
+		public static async Task<Message> SendMessage(string message, long chatId, ParseMode? parseMode = null, int replyToId = 0, IReplyMarkup replyMarkup = null, bool disablePreview = true)
 		{
 			SentrySdk.ConfigureScope(scope =>
 				{
@@ -134,7 +134,7 @@ namespace den0bot
 		/// <param name="replyToId">Message to reply to</param>
 		/// <param name="replyMarkup"></param>
 		/// <param name="sendTextIfFailed"></param>
-		public static async Task<Message> SendPhoto(string photo, long chatId, string caption = "", ParseMode parseMode = ParseMode.Default, int replyToId = 0, IReplyMarkup replyMarkup = null, bool sendTextIfFailed = true)
+		public static async Task<Message> SendPhoto(string photo, long chatId, string caption = "", ParseMode? parseMode = null, int replyToId = 0, IReplyMarkup replyMarkup = null, bool sendTextIfFailed = true)
 		{
 			SentrySdk.ConfigureScope(scope =>
 			{
@@ -289,7 +289,7 @@ namespace den0bot
 		/// <param name="replyMarkup"></param>
 		/// <param name="parseMode"></param>
 		/// <param name="disablePreview"></param>
-		public static async Task<Message> EditMessage(long chatId, int messageId, string message, InlineKeyboardMarkup replyMarkup = null, ParseMode parseMode = ParseMode.Default, bool disablePreview = true)
+		public static async Task<Message> EditMessage(long chatId, int messageId, string message, InlineKeyboardMarkup replyMarkup = null, ParseMode? parseMode = null, bool disablePreview = true)
 		{
 			SentrySdk.ConfigureScope(scope =>
 			{
@@ -324,7 +324,7 @@ namespace den0bot
 		/// <param name="caption">New caption</param>
 		/// <param name="replyMarkup"></param>
 		/// <param name="parseMode"></param>
-		public static async Task<Message> EditMediaCaption(long chatId, int messageId, string caption, InlineKeyboardMarkup replyMarkup = null, ParseMode parseMode = ParseMode.Default)
+		public static async Task<Message> EditMediaCaption(long chatId, int messageId, string caption, InlineKeyboardMarkup replyMarkup = null, ParseMode? parseMode = null)
 		{
 			SentrySdk.ConfigureScope(scope =>
 			{
@@ -388,7 +388,7 @@ namespace den0bot
 		/// <param name="parseMode"></param>
 		/// <param name="replyToId"></param>
 		/// <param name="duration"></param>
-		public static async Task<Message> SendVoice(InputOnlineFile audio, long chatId, string caption = null, ParseMode parseMode = ParseMode.Default, int replyToId = 0, int duration = 0)
+		public static async Task<Message> SendVoice(InputOnlineFile audio, long chatId, string caption = null, ParseMode? parseMode = null, int replyToId = 0, int duration = 0)
 		{
 			SentrySdk.ConfigureScope(scope =>
 			{

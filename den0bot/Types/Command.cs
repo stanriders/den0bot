@@ -68,7 +68,7 @@ namespace den0bot.Types
 				return from == Config.Params.OwnerUsername;
 
 			if (IsAdminOnly)
-				return (await API.GetAdmins(message.Chat.Id)).Any(x => x.User.Username == from && (x.CanPromoteMembers ?? true));
+				return (await API.GetAdmins(message.Chat.Id)).Any(x => x.User.Username == from);
 
 			return true;
 		}

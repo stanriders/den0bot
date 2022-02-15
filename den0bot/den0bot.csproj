@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net5.0</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
     <OutputType>Exe</OutputType>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <GenerateBindingRedirectsOutputType>true</GenerateBindingRedirectsOutputType>
@@ -10,17 +10,17 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="IronOcr" Version="2021.9.0" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="5.0.7" />
+    <PackageReference Include="IronOcr" Version="2022.1.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="6.0.2" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
     <PackageReference Include="OppaiSharp" Version="3.4.0" />
-    <PackageReference Include="Sentry.Serilog" Version="3.5.0" />
-    <PackageReference Include="Serilog.Sinks.Console" Version="3.1.1" />
-    <PackageReference Include="Serilog.Sinks.File" Version="4.1.0" />
-    <PackageReference Include="System.Runtime.Caching" Version="5.0.0" />
-    <PackageReference Include="Telegram.Bot" Version="16.0.0" />
-    <PackageReference Include="Telegram.Bot.Extensions.Polling" Version="0.2.0" />
-    <PackageReference Include="xFFmpeg.NET" Version="5.0.1" />
+    <PackageReference Include="Sentry.Serilog" Version="3.14.0" />
+    <PackageReference Include="Serilog.Sinks.Console" Version="4.0.1" />
+    <PackageReference Include="Serilog.Sinks.File" Version="5.0.0" />
+    <PackageReference Include="System.Runtime.Caching" Version="6.0.0" />
+    <PackageReference Include="Telegram.Bot" Version="17.0.0" />
+    <PackageReference Include="Telegram.Bot.Extensions.Polling" Version="1.0.2" />
+    <PackageReference Include="xFFmpeg.NET" Version="7.0.1" />
   </ItemGroup>
 
   <ItemGroup>

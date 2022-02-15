@@ -35,8 +35,8 @@ namespace den0bot.Modules
 		private const int days_to_keep_messages = 1; // how long do we keep girls in cache
 
 		private readonly InlineKeyboardMarkup buttons = new(
-			new [] { new InlineKeyboardButton {Text = "+", CallbackData = "+" },
-					 new InlineKeyboardButton {Text = "-", CallbackData = "-" },
+			new [] { new InlineKeyboardButton("+") { CallbackData = "+" },
+					 new InlineKeyboardButton("-") { CallbackData = "-" },
 			}
 		);
 
@@ -141,7 +141,7 @@ namespace den0bot.Modules
 				var sentMessage = await API.SendPhoto(picture.Link, 
 					chatID, 
 					seasonal ? $"{picture.SeasonRating} (s{picture.Season})" : picture.Rating.ToString(), 
-					ParseMode.Default, 
+					null, 
 					0, 
 					buttons,
 					false);
