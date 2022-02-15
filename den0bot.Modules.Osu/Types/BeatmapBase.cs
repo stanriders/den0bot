@@ -28,7 +28,7 @@ namespace den0bot.Modules.Osu.Types
 		public abstract RankedStatus Status { get; set; }
 		public abstract string Thumbnail { get; }
 
-		public abstract string GetFormattedMapInfo(LegacyMods mods);
+		public abstract string GetFormattedMapInfo(LegacyMods mods, bool includeName = false);
 
 		public string Link => "https://osu.ppy.sh/b/" + Id;
 		public uint? ObjectsTotal => Circles + Sliders + Spinners;

@@ -1,20 +1,19 @@
-﻿// den0bot (c) StanR 2021 - MIT License
+﻿// den0bot (c) StanR 2022 - MIT License
+//#define PARSE_PHOTOS
 using den0bot.Modules.Osu.Types.V2;
 using den0bot.Modules.Osu.WebAPI;
 using den0bot.Modules.Osu.WebAPI.Requests.V2;
 using den0bot.Types;
 using den0bot.Util;
 using FFmpeg.NET;
-using Newtonsoft.Json;
 using System;
 using System.IO;
 using System.Linq;
-using System.Runtime.Caching;
 using System.Threading.Tasks;
 using den0bot.Modules.Osu.Parsers;
 using den0bot.Modules.Osu.Types;
-using den0bot.Modules.Osu.Util;
-using den0bot.Types.Answers;
+using den0bot.Modules.Osu.Types.Enums;
+using IronOcr;
 using Serilog;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.InputFiles;
@@ -25,33 +24,45 @@ namespace den0bot.Modules.Osu
 {
 	public class ModBeatmap : OsuModule, IReceiveAllMessages, IReceiveCallbacks
 	{
-		private readonly MemoryCache sentMapsCache = MemoryCache.Default;
-		private const int days_to_keep_messages = 1; // how long do we keep maps in cache
-
 		private readonly InlineKeyboardMarkup buttons = new(
 			new[] {new InlineKeyboardButton {Text = "Preview", CallbackData = "preview"},}
 		);
 
-		private class RebalanceMap
-		{
-			public int? BeatmapSetId { get; set; }
-			public string Title { get; set; }
-			public double Stars { get; set; }
-			public double[] PP { get; set; }
-		}
-
-		public ModBeatmap()
-		{
-			AddCommand(new Command
-			{
-				Name = "newppmap",
-				ActionAsync = GetRebalancePp,
-				Reply = true
-			});
-		}
-
 		public async Task ReceiveMessage(Message message)
 		{
+#if PARSE_PHOTOS
+			if (message.Photo is not null)
+			{
+				try
+				{
+					var photo = message.Photo.Last();
+					var (name, mappedBy) = await ParseScoreScreenshot(photo);
+					if (name is not null)
+					{
+						var query = name;
+						if (mappedBy is not null)
+							query += $" creator={mappedBy}";
+
+						var sets = await WebApiHandler.MakeApiRequest(new BeatmapSetSearch(query));
+						if (sets.Length > 0)
+						{
+							var map = sets[0].Beatmaps.FirstOrDefault(x => name.Contains(x.Version));
+							if (map is null)
+								map = sets[0].Beatmaps.OrderByDescending(x => x.StarRating).First();
+
+							map.BeatmapSet = sets[0];
+
+							await SendMapInfo(message.Chat.Id, map, LegacyMods.NM, true);
+						}
+					}
+				}
+				catch (Exception e)
+				{
+					Log.Error(e.InnerMessageIfAny());
+				}
+				return;
+			}
+#endif
 			if (!string.IsNullOrEmpty(message.Text))
 			{
 				var beatmapLinkData = BeatmapLinkParser.Parse(message.Text);
@@ -69,38 +80,31 @@ namespace den0bot.Modules.Osu
 						map = await WebApiHandler.MakeApiRequest(new GetBeatmap(beatmapLinkData.ID));
 					}
 
-					if (map != null)
-					{
-						var sentMessage = await API.SendPhoto(map.BeatmapSet.Covers.Cover2X, 
-							message.Chat.Id, 
-							map.GetFormattedMapInfo(beatmapLinkData.Mods),
-							Telegram.Bot.Types.Enums.ParseMode.Html, 
-							replyMarkup: buttons);
-
-						if (sentMessage != null)
-						{
-							// we only store mapset id to spare the memory a bit
-							sentMapsCache.Add(sentMessage.MessageId.ToString(), map.BeatmapSet.Id,
-								DateTimeOffset.Now.AddDays(days_to_keep_messages));
-
-							ChatBeatmapCache.StoreMap(message.Chat.Id, map.Id);
-						}
-					}
+					await SendMapInfo(message.Chat.Id, map, beatmapLinkData.Mods);
 				}
 			}
 		}
 
 		public async Task<string> ReceiveCallback(CallbackQuery callback)
 		{
-			if (sentMapsCache.Contains(callback.Message.MessageId.ToString()) && callback.Data == "preview")
+			var sentMap = ChatBeatmapCache.GetSentMap(callback.Message.MessageId);
+			if (callback.Data == "preview" && sentMap?.BeatmapSetId is not null)
 			{
 				await API.AnswerCallbackQuery(callback.Id, "Ща всё будет");
-				var mapsetId = sentMapsCache.Remove(callback.Message.MessageId.ToString()) as uint?;
 
 				try
 				{
-					var data = await Web.DownloadBytes($"https://b.ppy.sh/preview/{mapsetId}.mp3");
-					await File.WriteAllBytesAsync($"./{mapsetId}.mp3", data);
+					var data = await Web.DownloadBytes($"https://b.ppy.sh/preview/{sentMap.BeatmapSetId}.mp3");
+					await File.WriteAllBytesAsync($"./{sentMap.BeatmapSetId}.mp3", data);
+
+					await new Engine("ffmpeg")
+						.ConvertAsync(new MediaFile($"./{sentMap.BeatmapSetId}.mp3"), new MediaFile($"./{sentMap.BeatmapSetId}.ogg"));
+
+					await using (FileStream fs = File.Open($"./{sentMap.BeatmapSetId}.ogg", FileMode.Open, FileAccess.Read))
+						await API.SendVoice(new InputOnlineFile(fs), callback.Message.Chat.Id, replyToId: callback.Message.MessageId, duration: 10);
+
+					File.Delete($"./{sentMap.BeatmapSetId}.mp3");
+					File.Delete($"./{sentMap.BeatmapSetId}.ogg");
 				}
 				catch (Exception e)
 				{
@@ -108,55 +112,62 @@ namespace den0bot.Modules.Osu
 					return string.Empty;
 				}
 
-				await new Engine("ffmpeg")
-					.ConvertAsync(new MediaFile($"./{mapsetId}.mp3"), new MediaFile($"./{mapsetId}.ogg"));
-
-				await using (FileStream fs = File.Open($"./{mapsetId}.ogg", FileMode.Open, FileAccess.Read))
-					await API.SendVoice(new InputOnlineFile(fs), callback.Message.Chat.Id, replyToId: callback.Message.MessageId, duration: 10);
-
-				File.Delete($"./{mapsetId}.mp3");
-				File.Delete($"./{mapsetId}.ogg");
-
 				await API.EditMediaCaption(callback.Message.Chat.Id, callback.Message.MessageId,
 					callback.Message.Caption, parseMode: Telegram.Bot.Types.Enums.ParseMode.Html);
 			}
 
 			return string.Empty;
 		}
-
-		private async Task<ICommandAnswer> GetRebalancePp(Message msg)
+		
+		private async Task<(string? name, string? mappedBy)> ParseScoreScreenshot(PhotoSize photo)
 		{
-			if (!string.IsNullOrEmpty(msg.Text))
+			var fileName = $"cache/{RNG.Next()}_{photo.FileId}";
+			await API.DownloadFile(photo.FileId, fileName);
+
+			var ocr = new IronTesseract {Configuration = {ReadBarCodes = false}, Language = OcrLanguage.EnglishFast};
+			var result = await ocr.ReadAsync(fileName);
+
+			File.Delete(fileName);
+
+			var lines = result.Blocks.SelectMany(x => x.Lines)
+				.SelectMany(x=> x.Text.Split("\n"))
+				.Select(x=> x.Trim())
+				.ToArray();
+
+			if (lines.Length < 2 || !lines.Any(x => x.Contains("Beatmap by")))
+				return (null, null);
+
+			string mappedBy;
+			if (lines[1].Any(x => !char.IsLetterOrDigit(x) && !char.IsWhiteSpace(x)))
+				mappedBy = null;
+			else
+				mappedBy = lines[1].Replace("Beatmap by ", "").Trim();
+
+			return (lines[0], mappedBy);
+		}
+
+		private async Task SendMapInfo(long chatId, Beatmap map, LegacyMods mods, bool includeName = false)
+		{
+			if (map != null)
 			{
-				var beatmapLinkData = BeatmapLinkParser.Parse(msg.Text);
-				if (beatmapLinkData != null && !beatmapLinkData.IsBeatmapset)
+				var sentMessage = await API.SendPhoto(map.BeatmapSet.Covers.Cover2X,
+					chatId,
+					map.GetFormattedMapInfo(mods, includeName),
+					Telegram.Bot.Types.Enums.ParseMode.Html,
+					replyMarkup: buttons);
+
+				if (sentMessage != null)
 				{
-					var json = new { Map = beatmapLinkData.ID.ToString(), Mods = beatmapLinkData.Mods.ToArray() };
-					try
+					var cachedBeatmap = new ChatBeatmapCache.CachedBeatmap
 					{
-						var mapJson = await Web.PostJson("https://newpp.stanr.info/api/maps/calculate", JsonConvert.SerializeObject(json));
-						if (!string.IsNullOrEmpty(mapJson))
-						{
-							var map = JsonConvert.DeserializeObject<RebalanceMap>(mapJson);
-							if (map != null)
-							{
-								ChatBeatmapCache.StoreMap(msg.Chat.Id, beatmapLinkData.ID);
-								return new ImageCommandAnswer
-								{
-									Image = $"https://assets.ppy.sh/beatmaps/{map.BeatmapSetId}/covers/card@2x.jpg",
-									Caption = $"{map.Title}\n{map.Stars:F2}*\n100% - {map.PP[10]}pp | 98% - {map.PP[8]}pp | 95% - {map.PP[5]}pp"
-								};
-							}
-						}
-					}
-					catch (Exception)
-					{
-						return Localization.GetAnswer("generic_fail", msg.Chat.Id);
-					}
+						BeatmapId = map.Id,
+						BeatmapSetId = map.BeatmapSetId
+					};
+
+					ChatBeatmapCache.StoreSentMap(sentMessage.MessageId, cachedBeatmap);
+					ChatBeatmapCache.StoreLastMap(chatId, cachedBeatmap);
 				}
 			}
-
-			return Localization.GetAnswer("generic_badrequest", msg.Chat.Id);
 		}
 	}
 }

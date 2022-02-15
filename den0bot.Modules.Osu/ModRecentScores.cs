@@ -56,6 +56,7 @@ namespace den0bot.Modules.Osu
 				{
 					Names = {"lastpass", "lp"},
 					Reply = true,
+					Slow = true,
 					ActionAsync = GetPass,
 					ParseMode = ParseMode.Html
 				},
@@ -80,11 +81,13 @@ namespace den0bot.Modules.Osu
 
 			if (msgSplit.Count > 0 && int.TryParse(msgSplit.Last(), out amount))
 			{
-				if (amount > recent_amount)
-					amount = recent_amount;
-
 				msgSplit.Remove(msgSplit.Last());
 			}
+
+			if (amount > recent_amount)
+				amount = recent_amount;
+			else if (amount <= 0)
+				amount = 1;
 
 			if (msgSplit.Count > 0)
 			{
@@ -116,7 +119,7 @@ namespace den0bot.Modules.Osu
 				foreach (var score in lastScores.Take(amount))
 				{
 					if (amount == 1)
-						ChatBeatmapCache.StoreMap(message.Chat.Id, score.BeatmapShort.Id);
+						ChatBeatmapCache.StoreLastMap(message.Chat.Id, new ChatBeatmapCache.CachedBeatmap { BeatmapId = score.BeatmapShort.Id, BeatmapSetId = score.BeatmapShort.BeatmapSetId });
 
 					score.Beatmap = await WebApiHandler.MakeApiRequest(new GetBeatmap(score.BeatmapShort.Id));
 					result += FormatScore(score, true);
@@ -159,7 +162,7 @@ namespace den0bot.Modules.Osu
 			if (lastScores.Count > 0)
 			{
 				var score = lastScores[0];
-				ChatBeatmapCache.StoreMap(message.Chat.Id, score.BeatmapShort.Id);
+				ChatBeatmapCache.StoreLastMap(message.Chat.Id, new ChatBeatmapCache.CachedBeatmap { BeatmapId = score.BeatmapShort.Id, BeatmapSetId = score.BeatmapShort.BeatmapSetId});
 
 				score.Beatmap = await WebApiHandler.MakeApiRequest(new GetBeatmap(score.BeatmapShort.Id));
 				return new TextCommandAnswer(FormatScore(score, true));
@@ -170,14 +173,20 @@ namespace den0bot.Modules.Osu
 
 		private async Task<ICommandAnswer> GetMapScores(Telegram.Bot.Types.Message message)
 		{
+			uint mapId = 0;
+
 			// beatmap id regex can parse link as part of a complex message so we dont need to clean it up beforehand
 			var msgText = message.Text;
-			if (message.ReplyToMessage != null && message.ReplyToMessage.Text.Contains(".ppy.sh"))
-				msgText = message.ReplyToMessage.Text; // replies to beatmaps should return scores for these beatmaps
+			if (message.ReplyToMessage != null)
+			{
+				var sentMap = ChatBeatmapCache.GetSentMap(message.ReplyToMessage.MessageId);
+				if (sentMap?.BeatmapId is not null)
+					mapId = sentMap.BeatmapId;
+				else if (message.ReplyToMessage.Text.Contains(".ppy.sh"))
+					msgText = message.ReplyToMessage.Text;
+			}
 
 			var msgSplit = msgText.Split(' ').ToList();
-
-			uint mapId = 0;
 			var mods = LegacyMods.NM;
 			if (msgSplit.Count > 1)
 			{
@@ -194,9 +203,9 @@ namespace den0bot.Modules.Osu
 					}
 				}
 			}
-			else
+			else if (mapId == 0)
 			{
-				mapId = ChatBeatmapCache.GetMap(message.Chat.Id);
+				mapId = ChatBeatmapCache.GetLastMap(message.Chat.Id)?.BeatmapId ?? 0;
 			}
 
 			if (mapId == 0)
@@ -242,7 +251,7 @@ namespace den0bot.Modules.Osu
 				
 			if (!string.IsNullOrEmpty(result))
 			{
-				ChatBeatmapCache.StoreMap(message.Chat.Id, mapId);
+				ChatBeatmapCache.StoreLastMap(message.Chat.Id, new ChatBeatmapCache.CachedBeatmap {BeatmapId = mapId});
 				return new TextCommandAnswer(result);
 			}
 			

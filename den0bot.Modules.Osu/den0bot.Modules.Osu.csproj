@@ -14,6 +14,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="IronOcr" Version="2021.9.0" />
     <PackageReference Include="OppaiSharp" Version="3.4.0" />
     <PackageReference Include="xFFmpeg.NET" Version="5.0.1" />
   </ItemGroup>

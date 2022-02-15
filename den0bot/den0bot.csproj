@@ -9,7 +9,8 @@
     <RootNamespace>den0bot</RootNamespace>
   </PropertyGroup>
 
-	<ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="IronOcr" Version="2021.9.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="5.0.7" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
     <PackageReference Include="OppaiSharp" Version="3.4.0" />

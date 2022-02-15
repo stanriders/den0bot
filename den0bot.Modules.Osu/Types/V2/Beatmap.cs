@@ -85,7 +85,7 @@ namespace den0bot.Modules.Osu.Types.V2
 
 		public override uint? MaxCombo { get; set; }
 
-		public override string GetFormattedMapInfo(LegacyMods mods)
+		public override string GetFormattedMapInfo(LegacyMods mods, bool includeName = false)
 		{
 			string pp = string.Empty;
 			if (Mode == Mode.Osu)
@@ -111,24 +111,34 @@ namespace den0bot.Modules.Osu.Types.V2
 					Log.Error($"Oppai failed: {e.InnerMessageIfAny()}");
 				}
 			}
+			
+			var fullName = string.Empty;
+			if (includeName)
+			{
+				fullName = $"<a href=\"{Link}\">{BeatmapSet?.Artist} - {BeatmapSet?.Title}</a>\n";
+			}
 
 			switch (Mode)
 			{
 				case Mode.Osu:
 					return
+						$"{fullName}" +
 						$"[{Version.FilterToHTML()}] - {StarRating:N2}* - {ModdedDrainLength(mods):mm\':\'ss} - <b>{Status}</b>\n" +
 						$"⭕️ | <b>CS:</b> {ModdedCS(mods):N2} | <b>AR:</b> {ModdedAR(mods):N2} | <b>OD:</b> {ModdedOD(mods):N2} | <b>BPM:</b> {ModdedBPM(mods):N2}\n" +
 						$"{pp}";
 				case Mode.Taiko:
 					return
+						$"{fullName}" +
 						$"[{Version.FilterToHTML()}] - {StarRating:N2}* - {ModdedDrainLength(mods):mm\':\'ss} - <b>{Status}</b>\n" +
 						$"🥁 | <b>OD:</b> {ModdedOD(mods):N2} | <b>BPM:</b> {ModdedBPM(mods):N2}";
 				case Mode.Fruits:
 					return
+						$"{fullName}" +
 						$"[{Version.FilterToHTML()}] - {StarRating:N2}* - {ModdedDrainLength(mods):mm\':\'ss} - <b>{Status}</b>\n" +
 						$"🍎 | <b>CS:</b> {ModdedCS(mods):N2} | <b>AR:</b> {ModdedAR(mods):N2} | <b>OD:</b> {ModdedOD(mods):N2} | <b>BPM:</b> {ModdedBPM(mods):N2}";
 				case Mode.Mania:
 					return
+						$"{fullName}" +
 						$"[{Version.FilterToHTML()}] - {StarRating:N2}* - {ModdedDrainLength(mods):mm\':\'ss} - <b>{Status}</b>\n" +
 						$"🎹 | <b>Keys:</b> {CS:N0} | <b>OD:</b> {ModdedOD(mods):N2} | <b>BPM:</b> {ModdedBPM(mods):N2}";
 				default:
@@ -144,7 +154,7 @@ namespace den0bot.Modules.Osu.Types.V2
 
 		public override string Thumbnail => BeatmapSet?.Covers?.Cover2X;
 
-		public override string GetFormattedMapInfo(LegacyMods mods)
+		public override string GetFormattedMapInfo(LegacyMods mods, bool includeName = false)
 		{
 			string pp = string.Empty;
 			if (Mode == Mode.Osu)
@@ -171,23 +181,33 @@ namespace den0bot.Modules.Osu.Types.V2
 				}
 			}
 
+			var fullName = string.Empty;
+			if (includeName)
+			{
+				fullName = $"<a href=\"{Link}\">{BeatmapSet?.Artist} - {BeatmapSet?.Title}</a>\n";
+			}
+
 			switch (Mode)
 			{
 				case Mode.Osu:
 					return
+						$"{fullName}" +
 						$"[{Version.FilterToHTML()}] - {StarRating:N2}* - {ModdedDrainLength(mods):mm\':\'ss} - {BeatmapSet?.CreatorName} - <b>{Status}</b>\n" +
 						$"⭕️ | <b>CS:</b> {ModdedCS(mods):N2} | <b>AR:</b> {ModdedAR(mods):N2} | <b>OD:</b> {ModdedOD(mods):N2} | <b>BPM:</b> {ModdedBPM(mods):N2}\n" +
 						$"{pp}";
 				case Mode.Taiko:
 					return
+						$"{fullName}" +
 						$"[{Version.FilterToHTML()}] - {StarRating:N2}* - {ModdedDrainLength(mods):mm\':\'ss} - {BeatmapSet?.CreatorName} - <b>{Status}</b>\n" +
 						$"🥁 | <b>OD:</b> {ModdedOD(mods):N2} | <b>BPM:</b> {ModdedBPM(mods):N2}";
 				case Mode.Fruits:
 					return
+						$"{fullName}" +
 						$"[{Version.FilterToHTML()}] - {StarRating:N2}* - {ModdedDrainLength(mods):mm\':\'ss} - {BeatmapSet?.CreatorName} - <b>{Status}</b>\n" +
 						$"🍎 | <b>CS:</b> {ModdedCS(mods):N2} | <b>AR:</b> {ModdedAR(mods):N2} | <b>OD:</b> {ModdedOD(mods):N2} | <b>BPM:</b> {ModdedBPM(mods):N2}";
 				case Mode.Mania:
 					return
+						$"{fullName}" +
 						$"[{Version.FilterToHTML()}] - {StarRating:N2}* - {ModdedDrainLength(mods):mm\':\'ss} - {BeatmapSet?.CreatorName} - <b>{Status}</b>\n" +
 						$"🎹 | <b>Keys:</b> {CS:N0} | <b>OD:</b> {ModdedOD(mods):N2} | <b>BPM:</b> {ModdedBPM(mods):N2}";
 				default:

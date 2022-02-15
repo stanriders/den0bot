@@ -137,7 +137,7 @@ namespace den0bot.Analytics.Web.Controllers
 			return View(model);
 		}
 
-		[Route("user/{id}")]
+		[Route("user/{id:long}")]
 		public async Task<IActionResult> GetUser(long id)
 		{
 			var model = new UserModel { UserId = id };

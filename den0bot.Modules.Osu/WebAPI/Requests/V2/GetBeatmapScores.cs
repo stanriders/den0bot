@@ -9,15 +9,17 @@ namespace den0bot.Modules.Osu.WebAPI.Requests.V2
 	{
 		public APIVersion API => APIVersion.V2;
 
-		public string Address => $"beatmaps/{beatmapId}/scores{mods}";
+		public string Address => $"beatmaps/{beatmapId}/scores";
 
 		private readonly uint beatmapId;
-		private readonly string mods;
+		//private readonly string mods;
 
-		public GetBeatmapScores(uint beatmapId, LegacyMods? mods)
+		public GetBeatmapScores(uint beatmapId/*, LegacyMods? mods*/)
 		{
 			this.beatmapId = beatmapId;
 
+			// Mod querying is locked for API for now.
+			/*
 			if (mods != null)
 			{
 				this.mods = "?mods[]=";
@@ -29,6 +31,7 @@ namespace den0bot.Modules.Osu.WebAPI.Requests.V2
 					this.mods += mod + "&mods[]=";
 				}
 			}
+			*/
 		}
 
 		public Score[] Process(BeatmapScores data) => data.Scores;

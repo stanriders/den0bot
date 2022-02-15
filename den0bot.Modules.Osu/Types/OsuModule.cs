@@ -7,6 +7,8 @@ namespace den0bot.Modules.Osu.Types
 {
 	public class OsuModule : IModule
 	{
+		protected OsuModule() { }
+
 		public override bool Init()
 		{
 			if (string.IsNullOrEmpty(Config.Params.osuToken) || string.IsNullOrEmpty(Config.Params.osuClientId) || string.IsNullOrEmpty(Config.Params.osuClientSecret))

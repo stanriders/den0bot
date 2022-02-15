@@ -63,8 +63,11 @@ namespace den0bot.Modules
 			BigInteger roll = RNG.Next(1, 101);
 
 			BigInteger max = 101;
-			if (msgArr.Length > 1 && BigInteger.TryParse(msgArr[1], out max) && max > 1)
+			if (msgArr.Length > 1 && BigInteger.TryParse(msgArr[1], out var newMax) && newMax > 1)
+			{
+				max = newMax;
 				roll = RNG.NextBigInteger(max + 1, 1);
+			}
 
 			if (max > 10 && roll < 100 && Localization.GetChatLocale(msg.Chat.Id) == "ru")
 			{
