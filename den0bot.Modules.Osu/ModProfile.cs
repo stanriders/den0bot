@@ -149,7 +149,6 @@ namespace den0bot.Modules.Osu
 		{
 			if (!string.IsNullOrEmpty(msg.Text))
 			{
-				await using var db = new Database();
 				await using var dbOsu = new DatabaseOsu();
 
 				var userId = msg.From.Id;
@@ -166,7 +165,7 @@ namespace den0bot.Modules.Osu
 					if (username.StartsWith('@'))
 						username = username[1..];
 
-					var user = await db.Users.FirstOrDefaultAsync(x => x.Username == username);
+					var user = DatabaseCache.Users.FirstOrDefault(x => x.Username == username);
 					if (user != null)
 						userId = user.TelegramID;
 				}

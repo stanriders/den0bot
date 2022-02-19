@@ -30,14 +30,12 @@ namespace den0bot.Modules.Osu
 					IsAdminOnly = true,
 					ActionAsync = async (msg) =>
 					{
-						await using(var db = new Database())
-						{
-							var chat = db.Chats.First(x=> x.Id == msg.Chat.Id);
-							chat.DisableAnnouncements = false;
-							await db.SaveChangesAsync();
+						var chat = DatabaseCache.Chats.First(x => x.Id == msg.Chat.Id);
+						chat.DisableAnnouncements = false;
 
-							return new TextCommandAnswer("Понял, вырубаю");
-						}
+						await DatabaseCache.UpdateChat(chat);
+
+						return new TextCommandAnswer("Понял, вырубаю");
 					}
 				},
 				new Command
@@ -46,14 +44,12 @@ namespace den0bot.Modules.Osu
 					IsAdminOnly = true,
 					ActionAsync = async (msg) =>
 					{
-						await using(var db = new Database())
-						{
-							var chat = db.Chats.First(x=> x.Id == msg.Chat.Id);
-							chat.DisableAnnouncements = true;
-							await db.SaveChangesAsync();
+						var chat = DatabaseCache.Chats.First(x => x.Id == msg.Chat.Id);
+						chat.DisableAnnouncements = true;
 
-							return new TextCommandAnswer("Понял, врубаю");
-						}
+						await DatabaseCache.UpdateChat(chat);
+
+						return new TextCommandAnswer("Понял, врубаю");
 					}
 				},
 				new Command

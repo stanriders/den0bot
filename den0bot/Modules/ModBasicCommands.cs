@@ -66,18 +66,15 @@ namespace den0bot.Modules
 						var locale = message.Text.Substring(11);
 						if (Localization.GetAvailableLocales().Contains(locale))
 						{
-							await using (var db = new Database())
-							{
-								var chat = db.Chats.First(x=> x.Id == message.Chat.Id);
-								chat.Locale = locale;
-								await db.SaveChangesAsync();
-							}
+							var chat = DatabaseCache.Chats.First(x=> x.Id == message.Chat.Id);
+							chat.Locale = locale;
+
+							await DatabaseCache.UpdateChat(chat);
+
 							return new TextCommandAnswer("👌");
 						}
-						else
-						{
-							return new TextCommandAnswer("😡");
-						}
+
+						return new TextCommandAnswer("😡");
 					}
 				},
 				new Command
@@ -86,13 +83,12 @@ namespace den0bot.Modules
 					IsAdminOnly = true,
 					ActionAsync = async (message) =>
 					{
-						await using (var db = new Database())
-						{
-							var text = message.Text.Substring(17);
-							var chat = db.Chats.First(x=> x.Id == message.Chat.Id);
-							chat.Introduction = text;
-							await db.SaveChangesAsync();
-						}
+						var text = message.Text.Substring(17);
+						var chat = DatabaseCache.Chats.First(x=> x.Id == message.Chat.Id);
+						chat.Introduction = text;
+
+						await DatabaseCache.UpdateChat(chat);
+
 						return new TextCommandAnswer("👌");
 					}
 				},
@@ -102,14 +98,12 @@ namespace den0bot.Modules
 					IsOwnerOnly = true,
 					ActionAsync = async (message) =>
 					{
-						await using (var db = new Database())
-						{
-							var chat = db.Chats.First(x=> x.Id == message.Chat.Id);
-							chat.DisableEvents = !chat.DisableEvents;
-							await db.SaveChangesAsync();
-						
-							return new TextCommandAnswer(chat.DisableEvents.ToString());
-						}
+						var chat = DatabaseCache.Chats.First(x=> x.Id == message.Chat.Id);
+						chat.DisableEvents = !chat.DisableEvents;
+
+						await DatabaseCache.UpdateChat(chat);
+
+						return new TextCommandAnswer(chat.DisableEvents.ToString());
 					}
 				},
 			});

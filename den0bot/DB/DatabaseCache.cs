@@ -155,17 +155,40 @@ namespace den0bot.DB
 				}
 			}
 		}
+
+		public static async Task UpdateChat(Chat chat)
+		{
+			var cachedChat = Chats.FirstOrDefault(x => x.Id == chat.Id);
+			if (cachedChat is not null)
+			{
+				cachedChat.Locale = chat.Locale;
+				cachedChat.Introduction = chat.Introduction;
+				cachedChat.DisableAnnouncements = chat.DisableAnnouncements;
+				cachedChat.DisableEvents = chat.DisableEvents;
+
+				await using var db = new Database();
+				var dbChat = await db.Chats.FirstOrDefaultAsync(x => x.Id == chat.Id);
+				if (dbChat is not null)
+				{
+					dbChat.Locale = chat.Locale;
+					dbChat.Introduction = chat.Introduction;
+					dbChat.DisableAnnouncements = chat.DisableAnnouncements;
+					dbChat.DisableEvents = chat.DisableEvents;
+
+					await db.SaveChangesAsync();
+				}
+			}
+		}
+
 		public static async Task RemoveChat(long chatID)
 		{
 			var chat = Chats.FirstOrDefault(x => x.Id == chatID);
 			if (chat != null)
 			{
-				await using (var db = new Database())
-				{
-					Chats.Remove(chat);
-					db.Chats.Remove(chat);
-					await db.SaveChangesAsync();
-				}
+				await using var db = new Database();
+				Chats.Remove(chat);
+				db.Chats.Remove(chat);
+				await db.SaveChangesAsync();
 			}
 		}
 	}

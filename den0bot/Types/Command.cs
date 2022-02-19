@@ -26,7 +26,7 @@ namespace den0bot.Types
 		/// <summary>
 		/// <see cref="Telegram.Bot.Types.Enums.ParseMode" />
 		/// </summary>
-		public ParseMode ParseMode { get; init; }
+		public ParseMode? ParseMode { get; init; }
 
 		/// <summary>
 		/// Determines if command can only be used by chat admins
