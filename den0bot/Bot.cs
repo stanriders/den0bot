@@ -21,7 +21,7 @@ namespace den0bot
 	public class Bot
 	{
 		private readonly List<IModule> modules = new();
-		private readonly string module_path = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + Path.DirectorySeparatorChar + "Modules";
+		private readonly string module_path = Path.GetDirectoryName(AppContext.BaseDirectory) + Path.DirectorySeparatorChar + "Modules";
 		public const char command_trigger = '/';
 
 		public static string[] Modules { get; private set; }
