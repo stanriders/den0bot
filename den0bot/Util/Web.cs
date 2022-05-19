@@ -1,8 +1,10 @@
 ﻿// den0bot (c) StanR 2021 - MIT License
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -61,6 +63,24 @@ namespace den0bot.Util
 				return await response.Content.ReadAsStringAsync();
 
 			return string.Empty;
+		}
+
+		public static async Task<string> PostJson(string address, string json, Dictionary<string, string> headers)
+		{
+			var req = new HttpRequestMessage
+			{
+				Content = new StringContent(json, Encoding.UTF8, "application/json"),
+				Method = HttpMethod.Post,
+				RequestUri = new Uri(address)
+			};
+
+			foreach (var header in headers)
+				req.Headers.Add(header.Key, header.Value);
+
+			var response = await client.SendAsync(req);
+			response.EnsureSuccessStatusCode();
+
+			return await response.Content.ReadAsStringAsync();
 		}
 	}
 }

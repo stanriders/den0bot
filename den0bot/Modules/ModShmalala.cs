@@ -1,11 +1,13 @@
 ﻿#define GPT
-#define GPT_YANDEX
+#define GPT_SBERBANK
+//#define GPT_YANDEX
 //#define GPT_TALKONLY
 // den0bot (c) StanR 2021 - MIT License
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http.Headers;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -404,18 +406,31 @@ namespace den0bot.Modules
 #elif GPT_SBERBANK
 		private static async Task<string> GetGptResponse(string input)
 		{
-			var response = await Web.PostJson("https://api.aicloud.sbercloud.ru/public/v1/public_inference/gpt3/predict", JsonConvert.SerializeObject(new
+			try
 			{
-				text = input
-			}));
+				var response = await Web.PostJson(
+					"https://api.aicloud.sbercloud.ru/public/v1/public_inference/gpt3/predict",
+					JsonConvert.SerializeObject(new
+					{
+						text = input
+					}), new Dictionary<string, string>
+					{
+						{ "Origin", "https://russiannlp.github.io" },
+						{ "User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.0.0 Safari/537.36" }
+					}
+				);
 
-			dynamic json = JsonConvert.DeserializeObject(response);
-			if (json != null)
+				dynamic json = JsonConvert.DeserializeObject(response);
+				if (json != null)
+				{
+					return json.predictions.ToString();
+				}
+			}
+			catch (Exception e)
 			{
-				return json.predictions.ToString();
+				Log.Warning($"GPT error: {e}");
 			}
 
-			Log.Warning($"GPT error: {response}");
 			return string.Empty;
 		}
 #endif
