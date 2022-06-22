@@ -11,6 +11,7 @@ using den0bot.Events;
 using den0bot.Modules;
 using den0bot.Util;
 using den0bot.Types;
+using Sentry;
 using Serilog;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
@@ -169,6 +170,8 @@ namespace den0bot
 				msg.LeftChatMember != null ||
 				msg.Date < DateTime.Now.ToUniversalTime().AddSeconds(-15))
 				return;
+
+			SentrySdk.ConfigureScope(scope => { scope.Contexts["Data"] = new { ProcessingMessage = msg }; });
 
 			var senderChatId = msg.Chat.Id;
 			var isForwarded = msg.ForwardFrom != null || msg.ForwardFromChat != null;
