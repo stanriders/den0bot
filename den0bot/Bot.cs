@@ -15,6 +15,7 @@ using Sentry;
 using Serilog;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
+using Telegram.Bot.Types.InputFiles;
 using MessageEventArgs = den0bot.Events.MessageEventArgs;
 
 namespace den0bot
@@ -183,7 +184,7 @@ namespace den0bot
 
 			if (!isForwarded)
 			{
-				if (msg.NewChatMembers != null && msg.NewChatMembers.Length > 0)
+				if (msg.NewChatMembers is { Length: > 0 })
 				{
 					string greeting = Localization.NewMemberGreeting(senderChatId, msg.NewChatMembers[0].FirstName,
 						msg.NewChatMembers[0].Id);
@@ -206,6 +207,8 @@ namespace den0bot
 				}
 			}
 
+			var knownCommand = false;
+
 			foreach (IModule module in modules)
 			{
 				if (isForwarded && module is not IReceiveForwards)
@@ -226,8 +229,14 @@ namespace den0bot
 					if (msg.Chat.Type != ChatType.Private)
 						ModAnalytics.AddCommand(msg);
 
+					knownCommand = true;
 					break;
 				}
+			}
+
+			if (!knownCommand && Localization.GetChatLocale(senderChatId) == "ru")
+			{
+				await API.SendSticker(new InputOnlineFile("CAACAgIAAxkBAAEFJqJiuvrBS1Ba0IU-LSAj6pLT0_qV7AACBRsAAmeSkUlGfvWEHQABiccpBA"), senderChatId);
 			}
 		}
 
