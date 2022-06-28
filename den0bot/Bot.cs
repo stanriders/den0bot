@@ -234,7 +234,10 @@ namespace den0bot
 				}
 			}
 
-			if (!knownCommand && Localization.GetChatLocale(senderChatId) == "ru")
+			if (msg.Text != null && 
+			    msg.Text[0] == command_trigger && 
+			    !knownCommand && 
+			    Localization.GetChatLocale(senderChatId) == "ru")
 			{
 				await API.SendSticker(new InputOnlineFile("CAACAgIAAxkBAAEFJqJiuvrBS1Ba0IU-LSAj6pLT0_qV7AACBRsAAmeSkUlGfvWEHQABiccpBA"), senderChatId);
 			}
