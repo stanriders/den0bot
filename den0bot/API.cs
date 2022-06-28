@@ -95,7 +95,7 @@ namespace den0bot
 		{
 			SentrySdk.ConfigureScope(scope =>
 				{
-					scope.Contexts["Data"] = new
+					scope.Contexts["OutData"] = new
 					{
 						ChatID = chatId,
 						Message = message,
@@ -138,7 +138,7 @@ namespace den0bot
 		{
 			SentrySdk.ConfigureScope(scope =>
 			{
-				scope.Contexts["Data"] = new
+				scope.Contexts["OutData"] = new
 				{
 					Photo = photo,
 					ChatID = chatId,
@@ -185,7 +185,7 @@ namespace den0bot
 		{
 			SentrySdk.ConfigureScope(scope =>
 			{
-				scope.Contexts["Data"] = new
+				scope.Contexts["OutData"] = new
 				{
 					Photos = photos,
 					ChatID = chatId
@@ -215,7 +215,7 @@ namespace den0bot
 		{
 			SentrySdk.ConfigureScope(scope =>
 			{
-				scope.Contexts["Data"] = new
+				scope.Contexts["OutData"] = new
 				{
 					Sticker = sticker,
 					ChatID = chatId
@@ -263,7 +263,7 @@ namespace den0bot
 		{
 			SentrySdk.ConfigureScope(scope =>
 			{
-				scope.Contexts["Data"] = new
+				scope.Contexts["OutData"] = new
 				{
 					ChatID = chatId,
 					MessageID = msgId
@@ -293,7 +293,7 @@ namespace den0bot
 		{
 			SentrySdk.ConfigureScope(scope =>
 			{
-				scope.Contexts["Data"] = new
+				scope.Contexts["OutData"] = new
 				{
 					MessageID = messageId,
 					ChatID = chatId,
@@ -328,7 +328,7 @@ namespace den0bot
 		{
 			SentrySdk.ConfigureScope(scope =>
 			{
-				scope.Contexts["Data"] = new
+				scope.Contexts["OutData"] = new
 				{
 					MessageID = messageId,
 					ChatID = chatId,
@@ -361,7 +361,7 @@ namespace den0bot
 		{
 			SentrySdk.ConfigureScope(scope =>
 			{
-				scope.Contexts["Data"] = new
+				scope.Contexts["OutData"] = new
 				{
 					CallbackID = callbackId,
 					Message = text,
@@ -392,7 +392,7 @@ namespace den0bot
 		{
 			SentrySdk.ConfigureScope(scope =>
 			{
-				scope.Contexts["Data"] = new
+				scope.Contexts["OutData"] = new
 				{
 					Audio = audio,
 					Duration = duration,
@@ -491,7 +491,7 @@ namespace den0bot
 
 			SentrySdk.ConfigureScope(scope =>
 			{
-				scope.Contexts["Data"] = new
+				scope.Contexts["OutData"] = new
 				{
 					FileId = fileId,
 					Path = path

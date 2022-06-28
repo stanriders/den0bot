@@ -174,6 +174,8 @@ namespace den0bot
 
 			SentrySdk.ConfigureScope(scope => { scope.Contexts["Data"] = new { ProcessingMessage = msg }; });
 
+			var text = msg.Text ?? msg.Caption;
+
 			var senderChatId = msg.Chat.Id;
 			var isForwarded = msg.ForwardFrom != null || msg.ForwardFromChat != null;
 
@@ -186,8 +188,7 @@ namespace den0bot
 			{
 				if (msg.NewChatMembers is { Length: > 0 })
 				{
-					string greeting = Localization.NewMemberGreeting(senderChatId, msg.NewChatMembers[0].FirstName,
-						msg.NewChatMembers[0].Id);
+					string greeting = Localization.NewMemberGreeting(senderChatId, msg.NewChatMembers[0].FirstName, msg.NewChatMembers[0].Id);
 					if (msg.NewChatMembers[0].Id == API.BotUser.Id)
 						greeting = Localization.Get("generic_added_to_chat", senderChatId);
 
@@ -197,8 +198,8 @@ namespace den0bot
 
 				if (Config.Params.UseEvents &&
 				    (!DatabaseCache.Chats.FirstOrDefault(x => x.Id == senderChatId)?.DisableEvents ?? false) &&
-				    msg.Text != null &&
-				    msg.Text[0] == command_trigger &&
+				    text != null &&
+				    text[0] == command_trigger &&
 				    TryEvent(senderChatId, out var e))
 				{
 					// random events
@@ -207,18 +208,13 @@ namespace den0bot
 				}
 			}
 
-			var knownCommand = false;
-
 			foreach (IModule module in modules)
 			{
 				if (isForwarded && module is not IReceiveForwards)
 					continue;
 
-				if (msg.Type == MessageType.Photo)
-					msg.Text = msg.Caption; // for consistency
-
 				if (module is IReceiveAllMessages messages &&
-				    !(msg.Text != null && msg.Text[0] == command_trigger))
+				    !(text != null && text[0] == command_trigger))
 				{
 					await messages.ReceiveMessage(msg);
 				}
@@ -229,17 +225,8 @@ namespace den0bot
 					if (msg.Chat.Type != ChatType.Private)
 						ModAnalytics.AddCommand(msg);
 
-					knownCommand = true;
 					break;
 				}
-			}
-
-			if (msg.Text != null && 
-			    msg.Text[0] == command_trigger && 
-			    !knownCommand && 
-			    Localization.GetChatLocale(senderChatId) == "ru")
-			{
-				await API.SendSticker(new InputOnlineFile("CAACAgIAAxkBAAEFJqJiuvrBS1Ba0IU-LSAj6pLT0_qV7AACBRsAAmeSkUlGfvWEHQABiccpBA"), senderChatId);
 			}
 		}
 
