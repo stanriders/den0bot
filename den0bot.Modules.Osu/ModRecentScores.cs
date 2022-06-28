@@ -1,4 +1,4 @@
-﻿// den0bot (c) StanR 2021 - MIT License
+﻿// den0bot (c) StanR 2022 - MIT License
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -221,26 +221,20 @@ namespace den0bot.Modules.Osu
 
 			if (mods == 0)
 			{
-				// no mods specified - use apiv1 to get all scores on a map and then get score data from apiv2
-				var scores = await WebApiHandler.MakeApiRequest(new WebAPI.Requests.V1.GetScores(playerId.Value.ToString(), mapId, mods, score_amount));
+				var scores = await WebApiHandler.MakeApiRequest(new GetUserBeatmapScores(mapId, playerId.Value));
 				if (scores == null || scores.Count <= 0)
 					return Localization.GetAnswer("recentscores_no_scores", message.Chat.Id);
 
 				var map = await WebApiHandler.MakeApiRequest(new GetBeatmap(mapId));
 
-				foreach (var v1Score in scores)
+				foreach (var score in scores.Take(score_amount))
 				{
-					var score = await WebApiHandler.MakeApiRequest(new GetUserBeatmapScore(mapId, playerId.Value, v1Score.LegacyMods));
-					if (score != null)
-					{
-						score.Beatmap = map;
-						result += FormatScore(score, false);
-					}
+					score.Beatmap = map;
+					result += FormatScore(score, false);
 				}
 			}
 			else
 			{
-				// mods specified - get data straight from apiv2
 				var score = await WebApiHandler.MakeApiRequest(new GetUserBeatmapScore(mapId, playerId.Value, mods));
 				if (score == null)
 					return Localization.GetAnswer("recentscores_no_scores", message.Chat.Id);
