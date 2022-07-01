@@ -94,7 +94,7 @@ namespace den0bot.Modules
 
 		public async Task ReceiveMessage(Message message)
 		{
-			if (!string.IsNullOrEmpty(message.Text))
+			if (!string.IsNullOrEmpty(message.Caption))
 			{
 				if (message.Type == MessageType.Photo &&
 				    message.Caption == Localization.Get("girls_tag", message.Chat.Id))

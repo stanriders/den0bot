@@ -72,7 +72,7 @@ namespace den0bot.Types
 		/// <returns>Returns true if any of the commands were executed</returns>
 		public async Task<bool> RunCommands(Message message)
 		{
-			var command = GetCommand(message.Text);
+			var command = GetCommand(message.Text ?? message.Caption);
 			if (command != null)
 				return await command.Run(message);
 
