@@ -1,12 +1,8 @@
 // den0bot (c) StanR 2022 - MIT License
-using System;
 using System.Linq;
 using Telegram.Bot.Types;
-using Newtonsoft.Json.Linq;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Text.RegularExpressions;
-using den0bot.Util;
 using den0bot.Types;
 
 namespace den0bot.Modules
@@ -22,7 +18,7 @@ namespace den0bot.Modules
             Match regexMatch = regex.Match(message.Text);
 			if (regexMatch.Groups.Count > 1)
 			{
-                var tail = regexMatch.Groups.Values[1];
+                var tail = regexMatch.Groups.Values.ToArray()[1];
 
                 await API.SendMessage($"https://vxtwitter.com/{tail}", message.Chat.Id, replyToId: message.MessageId);
             }
