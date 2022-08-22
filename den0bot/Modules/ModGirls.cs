@@ -382,79 +382,87 @@ namespace den0bot.Modules
 
 		private async Task<Girl> GetGirl(long chatID)
 		{
-			await using (var db = new Database())
+			await using var db = new Database();
+
+			if (!db.Girls.Any(x => x.ChatID == chatID && !x.Used))
 			{
-				if (!db.Girls.Any(x => x.ChatID == chatID && !x.Used))
+				var usedGirls = await db.Girls.Where(x => x.ChatID == chatID).ToArrayAsync();
+				foreach (Girl usedGirl in usedGirls)
 				{
-					var usedGirls = await db.Girls.Where(x => x.ChatID == chatID).ToArrayAsync();
-					foreach (Girl usedGirl in usedGirls)
-					{
-						usedGirl.Used = false;
-						db.Girls.Update(usedGirl);
-					}
-					await db.SaveChangesAsync();
+					usedGirl.Used = false;
+					db.Girls.Update(usedGirl);
 				}
-
-				var girls = await db.Girls.Where(x => x.ChatID == chatID && !x.Used).ToArrayAsync();
-				if (girls.Any())
-				{
-					int num = RNG.Next(max: girls.Length);
-
-					girls[num].Used = true;
-					db.Update(girls[num]);
-
-					return girls[num];
-				}
+				await db.SaveChangesAsync();
 			}
+
+			var girls = await db.Girls.Where(x => x.ChatID == chatID && !x.Used).ToArrayAsync();
+			if (girls.Any())
+			{
+				int num = RNG.Next(max: girls.Length);
+
+				var girl = girls[num];
+
+				girl.SeasonUsed = true;
+				db.Girls.Update(girl);
+
+				await db.SaveChangesAsync();
+
+				return girl;
+			}
+
 			return null;
 		}
 
 		private async Task<Girl> GetGirlSeasonal(long chatID)
 		{
 			var season = DatabaseCache.GetGirlSeason();
-			await using (var db = new Database())
-			{
-				var girls = await db.Girls.Where(x => x.ChatID == chatID && x.Season == season).ToArrayAsync();
-				if (girls.Length == 0)
-				{
-					if (season == 1)
-					{
-						// populate first season with latest girls
-						var allGirls = await db.Girls.Where(x => x.ChatID == chatID).Reverse().Take(100).ToArrayAsync();
-						foreach (var girl in allGirls)
-						{
-							girl.Season = 1;
-							db.Girls.Update(girl);
-						}
-						await db.SaveChangesAsync();
-					}
-					else
-					{
-						return null;
-					}
-				}
+			await using var db = new Database();
 
-				if (girls.All(x => x.Used))
+			var girls = await db.Girls.Where(x => x.ChatID == chatID && x.Season == season).ToArrayAsync();
+			if (girls.Length == 0)
+			{
+				if (season == 1)
 				{
-					foreach (Girl usedGirl in girls)
+					// populate first season with latest girls
+					var allGirls = await db.Girls.Where(x => x.ChatID == chatID).Reverse().Take(100).ToArrayAsync();
+					foreach (var girl in allGirls)
 					{
-						usedGirl.SeasonUsed = false;
-						db.Girls.Update(usedGirl);
+						girl.Season = 1;
+						db.Girls.Update(girl);
 					}
 					await db.SaveChangesAsync();
 				}
-
-				var ususedGirls = girls.Where(x => !x.Used).ToArray();
-				if (ususedGirls.Any())
+				else
 				{
-					int num = RNG.Next(max: ususedGirls.Length);
-
-					girls[num].SeasonUsed = true;
-					db.Update(girls[num]);
-
-					return girls[num];
+					return null;
 				}
 			}
+
+			if (girls.All(x => x.Used))
+			{
+				foreach (Girl usedGirl in girls)
+				{
+					usedGirl.SeasonUsed = false;
+					db.Girls.Update(usedGirl);
+				}
+				await db.SaveChangesAsync();
+			}
+
+			var ususedGirls = girls.Where(x => !x.Used).ToArray();
+			if (ususedGirls.Any())
+			{
+				int num = RNG.Next(max: ususedGirls.Length);
+
+				var girl = girls[num];
+
+				girl.SeasonUsed = true;
+				db.Girls.Update(girl);
+
+				await db.SaveChangesAsync();
+
+				return girl;
+			}
+
 			return null;
 		}
 	}
