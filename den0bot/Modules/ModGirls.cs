@@ -207,30 +207,21 @@ namespace den0bot.Modules
 		{
 			await using var db = new Database();
 
-			var topGirls = await db.Girls.Where(x => x.ChatID == chatId).OrderByDescending(x => x.Rating).ToListAsync();
+			var query = db.Girls.Where(x => x.ChatID == chatId);
+
+			query = reverse ? query.OrderBy(x => x.Rating) : query.OrderByDescending(x => x.Rating);
+
+			var topGirls = await query.Take(top_girls_amount).ToListAsync();
 			if (topGirls.Count > 0)
 			{
-				List<InputMediaPhoto> photos = new List<InputMediaPhoto>();
-
-				// if we want the worst rated ones
-				if (reverse)
-					topGirls.Reverse();
-
-				if (topGirls.Count > top_girls_amount)
-					topGirls = topGirls.Take(top_girls_amount).ToList();
-
-				foreach (var girl in topGirls)
+				var girlsToRemove = topGirls.Where(x => x.Rating < delete_rating_threshold).ToArray();
+				if (girlsToRemove.Length > 0)
 				{
-					if (girl.Rating < delete_rating_threshold)
-					{
-						// just in case
-						db.Girls.Remove(girl);
-						await db.SaveChangesAsync();
-					}
-
-					photos.Add(new InputMediaPhoto(girl.Link) { Caption = girl.Rating.ToString() });
+					db.Girls.RemoveRange(girlsToRemove);
+					await db.SaveChangesAsync();
 				}
-				return new ImageAlbumCommandAnswer(photos);
+
+				return new ImageAlbumCommandAnswer(topGirls.Select(girl => new InputMediaPhoto(girl.Link) { Caption = girl.Rating.ToString() }).ToList());
 			}
 
 			return Localization.GetAnswer("girls_not_found", chatId);
@@ -258,20 +249,14 @@ namespace den0bot.Modules
 
 			if (topGirls.Length > 0)
 			{
-				List<InputMediaPhoto> photos = new List<InputMediaPhoto>();
-
-				foreach (var girl in topGirls)
+				var girlsToRemove = topGirls.Where(x => x.Rating < delete_rating_threshold).ToArray();
+				if (girlsToRemove.Length > 0)
 				{
-					if (girl.SeasonRating < delete_rating_threshold)
-					{
-						// just in case
-						db.Girls.Remove(girl);
-						await db.SaveChangesAsync();
-					}
-
-					photos.Add(new InputMediaPhoto(girl.Link) { Caption = $"{girl.SeasonRating} (s{season})" });
+					db.Girls.RemoveRange(girlsToRemove);
+					await db.SaveChangesAsync();
 				}
-				return new ImageAlbumCommandAnswer(photos);
+
+				return new ImageAlbumCommandAnswer(topGirls.Select(girl => new InputMediaPhoto(girl.Link) { Caption = $"{girl.SeasonRating} (s{season})" }).ToList());
 			}
 
 			return Localization.GetAnswer("girls_not_found", msg.Chat.Id);
