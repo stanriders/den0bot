@@ -1,7 +1,6 @@
 ﻿// den0bot (c) StanR 2021 - MIT License
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using den0bot.Util;
 using Newtonsoft.Json;
 using Serilog;
 using Telegram.Bot.Types;
@@ -23,7 +22,7 @@ namespace den0bot.Types
 		public virtual bool Init()
 		{
 			LoadConfig();
-			Log.Debug("Enabled", GetType());
+			Log.Debug("Enabled {Module}", GetType());
 			return true;
 		}
 

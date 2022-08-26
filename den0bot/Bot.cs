@@ -46,6 +46,10 @@ namespace den0bot
 				.CreateLogger();
 
 			AppDomain.CurrentDomain.UnhandledException += (s, e) => { Log.Error((e.ExceptionObject as Exception)?.ToString()); };
+
+			using var db = new Database();
+			db.Database.EnsureCreated();
+
 			var bot = new Bot();
 			return bot.Run();
 		}

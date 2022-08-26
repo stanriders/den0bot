@@ -89,6 +89,12 @@ namespace den0bot.Modules
 				{
 					Names = { "seasonaltopdevok", "seasonaltopgirls" },
 					ActionAsync = TopGirlsSeasonal
+				},
+				new Command
+				{
+					Name = "migrategirls",
+					IsOwnerOnly = true,
+					ActionAsync = Migrate
 				}
 			});
 		}
@@ -221,6 +227,10 @@ namespace den0bot.Modules
 					await db.SaveChangesAsync();
 				}
 
+				// telegram ignores albums with one image for some reason
+				if (topGirls.Count == 1)
+					return new ImageCommandAnswer { Image = topGirls[0].Link, Caption = topGirls[0].Rating.ToString() };
+
 				return new ImageAlbumCommandAnswer(topGirls.Select(girl => new InputMediaPhoto(girl.Link) { Caption = girl.Rating.ToString() }).ToList());
 			}
 
@@ -233,7 +243,7 @@ namespace den0bot.Modules
 
 			var split = msg.Text!.Split(' ');
 			if (split.Length > 1
-			    && int.TryParse(msg.Text.Split(' ')[1], out var s)
+			    && int.TryParse(split[1], out var s)
 			    && s <= season) // we dont want to spoil next season
 			{
 				season = s;
@@ -243,8 +253,8 @@ namespace den0bot.Modules
 
 			var topGirls = await db.Girls
 				.Where(x => x.ChatID == msg.Chat.Id && x.Season == season)
-				.Take(top_girls_amount)
 				.OrderByDescending(x => x.SeasonRating)
+				.Take(top_girls_amount)
 				.ToArrayAsync();
 
 			if (topGirls.Length > 0)
@@ -255,6 +265,10 @@ namespace den0bot.Modules
 					db.Girls.RemoveRange(girlsToRemove);
 					await db.SaveChangesAsync();
 				}
+
+				// telegram ignores albums with one image for some reason
+				if (topGirls.Length == 1)
+					return new ImageCommandAnswer { Image = topGirls[0].Link, Caption = $"{topGirls[0].SeasonRating} (s{season})" };
 
 				return new ImageAlbumCommandAnswer(topGirls.Select(girl => new InputMediaPhoto(girl.Link) { Caption = $"{girl.SeasonRating} (s{season})" }).ToList());
 			}
@@ -449,6 +463,26 @@ namespace den0bot.Modules
 				}
 				await db.SaveChangesAsync();
 			}
+		}
+
+		private async Task<ICommandAnswer> Migrate(Message msg)
+		{
+			var split = msg.Text!.Split(' ');
+			if (split.Length > 1 && long.TryParse(split[1], out var id))
+			{
+				await using var db = new Database();
+
+				var girlsToMigrate = await db.Girls.Where(x => x.ChatID == id).ToArrayAsync();
+				foreach (var girl in girlsToMigrate)
+				{
+					girl.ChatID = msg.Chat.Id;
+					db.Girls.Update(girl);
+				}
+
+				await db.SaveChangesAsync();
+			}
+
+			return Localization.GetAnswer("generic_fail", msg.Chat.Id);
 		}
 	}
 }

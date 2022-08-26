@@ -10,12 +10,6 @@ namespace den0bot.DB
 	{
 		public const string database_path = "./data.db";
 
-		public Database()
-		{
-			Database.EnsureCreated();
-			
-		}
-
 		protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 		{
 			optionsBuilder.UseSqlite($"Filename={database_path}");
