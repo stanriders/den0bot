@@ -177,7 +177,7 @@ namespace den0bot.Modules
 					}
 				}
 
-				return null;
+				return new EmptyCommandAnswer();
 			}
 
 			return Localization.GetAnswer("generic_fail", chatID);

@@ -20,7 +20,7 @@ namespace den0bot.Modules
 			{
                 var tail = regexMatch.Groups.Values.ToArray()[1];
 
-                await API.SendMessage($"https://vxtwitter.com/{tail}", message.Chat.Id, replyToId: message.MessageId);
+                await API.SendMessage($"https://vxtwitter.com/{tail}", message.Chat.Id, replyToId: message.MessageId, disablePreview: false);
             }
 		}
 	}

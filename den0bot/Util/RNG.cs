@@ -6,7 +6,7 @@ namespace den0bot.Util
 {
 	public static class RNG
 	{
-		private static readonly Random rng = new();
+		private static readonly Random rng = Random.Shared;
 		private static int previousNum = 0;
 		private static BigInteger previousBigNum = 0;
 
