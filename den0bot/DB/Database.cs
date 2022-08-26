@@ -1,7 +1,8 @@
-﻿// den0bot (c) StanR 2021 - MIT License
+﻿// den0bot (c) StanR 2022 - MIT License
 
 using den0bot.DB.Types;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace den0bot.DB
 {
@@ -12,11 +13,13 @@ namespace den0bot.DB
 		public Database()
 		{
 			Database.EnsureCreated();
+			
 		}
 
 		protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 		{
 			optionsBuilder.UseSqlite($"Filename={database_path}");
+			optionsBuilder.LogTo(Serilog.Log.Debug, LogLevel.Information);
 		}
 
 		public DbSet<Chat> Chats { get; set; }

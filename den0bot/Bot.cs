@@ -37,6 +37,9 @@ namespace den0bot
 			Thread.CurrentThread.CurrentCulture = new CultureInfo("ru-RU", false);
 
 			Log.Logger = new LoggerConfiguration()
+#if DEBUG
+				.MinimumLevel.Debug()
+#endif
 				.WriteTo.Sentry(o => o.Dsn = Config.Params.SentryDsn)
 				.WriteTo.File(@"log.txt", rollingInterval: RollingInterval.Month)
 				.WriteTo.Console()

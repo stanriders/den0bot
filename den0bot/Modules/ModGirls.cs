@@ -1,4 +1,4 @@
-﻿// den0bot (c) StanR 2021 - MIT License
+﻿// den0bot (c) StanR 2022 - MIT License
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -24,8 +24,8 @@ namespace den0bot.Modules
 			public int Rating { get; set; }
 			public List<long> Voters { get; init; }
 			public DateTime PostTime { get; init; }
-			public int MessageID { get; init; }
-			public int CommandMessageID { get; init; }
+			public int MessageId { get; init; }
+			public int CommandMessageId { get; init; }
 			public bool Seasonal { get; init; }
 			public int Season { get; init; }
 			public int SeasonalRating { get; set; }
@@ -46,6 +46,7 @@ namespace den0bot.Modules
 
 		private const int top_girls_amount = 9;
 		private const int delete_rating_threshold = -10; // lowest rating a girl can have before completely removing her from db
+		private const int max_reroll_iterations = 10;
 
 		public ModGirls()
 		{
@@ -126,20 +127,20 @@ namespace den0bot.Modules
 
 		private async Task<ICommandAnswer> GetRandomGirl(Message msg, bool seasonal = false)
 		{
-			long chatID = msg.Chat.Id;
+			var chatId = msg.Chat.Id;
 			await using var db = new Database();
 
-			if (await db.Girls.CountAsync(x=> x.ChatID == chatID) <= 0)
-				return Localization.GetAnswer("girls_not_found", chatID);
+			if (await db.Girls.CountAsync(x=> x.ChatID == chatId) <= 0)
+				return Localization.GetAnswer("girls_not_found", chatId);
 
-			if (!antispamBuffer.ContainsKey(chatID))
-				antispamBuffer.Add(chatID, new Queue<SentGirl>(antispam_buffer_capacity));
+			if (!antispamBuffer.ContainsKey(chatId))
+				antispamBuffer.Add(chatId, new Queue<SentGirl>(antispam_buffer_capacity));
 
-			var picture = seasonal ? await GetGirlSeasonal(chatID) : await GetGirl(chatID);
+			var picture = seasonal ? await GetGirlSeasonal(chatId) : await GetGirl(chatId);
 			if (picture != null && picture.Link != string.Empty)
 			{
 				var sentMessage = await API.SendPhoto(picture.Link, 
-					chatID, 
+					chatId, 
 					seasonal ? $"{picture.SeasonRating} (s{picture.Season})" : picture.Rating.ToString(), 
 					null, 
 					0, 
@@ -154,25 +155,25 @@ namespace den0bot.Modules
 						Rating = picture.Rating == int.MinValue ? 0 : picture.Rating,
 						Voters = new List<long>(),
 						PostTime = DateTime.Now,
-						MessageID = sentMessage.MessageId,
-						CommandMessageID = msg.MessageId,
+						MessageId = sentMessage.MessageId,
+						CommandMessageId = msg.MessageId,
 						Seasonal = seasonal,
 						Season = DatabaseCache.GetGirlSeason(),
 						SeasonalRating = picture.SeasonRating == int.MinValue ? 0 : picture.SeasonRating
 					};
 					sentGirlsCache.Add(sentMessage.MessageId.ToString(), girl, DateTimeOffset.Now.AddDays(days_to_keep_messages));
-					antispamBuffer[chatID].Enqueue(girl);
+					antispamBuffer[chatId].Enqueue(girl);
 
-					if (antispamBuffer[chatID].Count == antispam_buffer_capacity)
+					if (antispamBuffer[chatId].Count == antispam_buffer_capacity)
 					{
 						// check if third girl in a queue was posted less than antispam_cooldown seconds ago and remove it
-						var oldestGirl = antispamBuffer[chatID].Dequeue();
+						var oldestGirl = antispamBuffer[chatId].Dequeue();
 						var cd = oldestGirl.PostTime.AddSeconds(antispam_cooldown);
 						if (cd > DateTime.Now)
 						{
-							sentGirlsCache.Remove(oldestGirl.MessageID.ToString());
-							await API.RemoveMessage(chatID, oldestGirl.MessageID);
-							await API.RemoveMessage(chatID, oldestGirl.CommandMessageID);
+							sentGirlsCache.Remove(oldestGirl.MessageId.ToString());
+							await API.RemoveMessage(chatId, oldestGirl.MessageId);
+							await API.RemoveMessage(chatId, oldestGirl.CommandMessageId);
 						}
 					}
 				}
@@ -180,32 +181,33 @@ namespace den0bot.Modules
 				return new EmptyCommandAnswer();
 			}
 
-			return Localization.GetAnswer("generic_fail", chatID);
+			return Localization.GetAnswer("generic_fail", chatId);
 		}
 
 		private async Task<ICommandAnswer> GetRandomPlatinumGirl(Telegram.Bot.Types.Chat sender)
 		{
-			await using (var db = new Database())
-			{
-				var girls = await db.Girls.Where(x => x.ChatID == sender.Id && x.Rating >= 10).ToArrayAsync();
-				if (girls.Length > 0)
-				{
-					var picture = girls[RNG.Next(max: girls.Length)];
-					if (picture != null && picture.Link != string.Empty)
-					{
-						await API.SendPhoto(picture.Link, sender.Id, sendTextIfFailed: false);
-						return null;
-					}
-				}
+			await using var db = new Database();
+
+			var girl = await db.Girls
+				.Where(x => x.ChatID == sender.Id && x.Rating >= 10)
+				.OrderBy(r => EF.Functions.Random())
+				.FirstOrDefaultAsync();
+
+			if (girl is null)
 				return Localization.GetAnswer("girls_not_found", sender.Id);
-			}
+
+			return new ImageCommandAnswer
+			{
+				Image = girl.Link,
+				SendTextIfFailed = false
+			};
 		}
 
-		private async Task<ICommandAnswer> TopGirls(long chatID, bool reverse = false)
+		private async Task<ICommandAnswer> TopGirls(long chatId, bool reverse = false)
 		{
 			await using var db = new Database();
 
-			var topGirls = await db.Girls.Where(x => x.ChatID == chatID).OrderByDescending(x => x.Rating).ToListAsync();
+			var topGirls = await db.Girls.Where(x => x.ChatID == chatId).OrderByDescending(x => x.Rating).ToListAsync();
 			if (topGirls.Count > 0)
 			{
 				List<InputMediaPhoto> photos = new List<InputMediaPhoto>();
@@ -231,14 +233,14 @@ namespace den0bot.Modules
 				return new ImageAlbumCommandAnswer(photos);
 			}
 
-			return Localization.GetAnswer("girls_not_found", chatID);
+			return Localization.GetAnswer("girls_not_found", chatId);
 		}
 
 		private async Task<ICommandAnswer> TopGirlsSeasonal(Message msg)
 		{
 			int season = DatabaseCache.GetGirlSeason();
 
-			var split = msg.Text.Split(' ');
+			var split = msg.Text!.Split(' ');
 			if (split.Length > 1
 			    && int.TryParse(msg.Text.Split(' ')[1], out var s)
 			    && s <= season) // we dont want to spoil next season
@@ -277,89 +279,94 @@ namespace den0bot.Modules
 
 		public async Task<string> ReceiveCallback(CallbackQuery callback)
 		{
-			if (callback.Data != "+" && callback.Data != "-") // sanity check
+			if (callback.Message is null || callback.Data != "+" && callback.Data != "-") // sanity check
 				return string.Empty;
+
+			var chatId = callback.Message.Chat.Id;
 
 			if (!sentGirlsCache.Contains(callback.Message.MessageId.ToString()))
 			{
 				// remove buttons from outdated messages
-				await API.EditMediaCaption(callback.Message.Chat.Id, callback.Message.MessageId, callback.Message.Caption);
+				await API.EditMediaCaption(chatId, callback.Message.MessageId, callback.Message.Caption);
 				return string.Empty;
 			}
 
-			long chatId = callback.Message.Chat.Id;
-			var sentGirl = sentGirlsCache.Get(callback.Message.MessageId.ToString()) as SentGirl;
-			if (sentGirl?.Voters != null && sentGirl.Voters.Contains(callback.From.Id))
+			if (sentGirlsCache.Get(callback.Message.MessageId.ToString()) is not SentGirl sentGirl)
+				return string.Empty;
+
+			if (sentGirl.Voters != null && sentGirl.Voters.Contains(callback.From.Id))
 			{
 				// they already voted
 				return Localization.Get($"rating_repeat_{RNG.NextNoMemory(1, 10)}", chatId);
 			}
+			sentGirl.Voters?.Add(callback.From.Id);
 
 			await using var db = new Database();
 
-			var dbGirl = await db.Girls.FirstOrDefaultAsync(x=> x.Id == sentGirl.ID);
-			if (callback.Data == "+")
+			var dbGirl = await db.Girls.FirstAsync(x=> x.Id == sentGirl.ID);
+
+			switch (callback.Data)
 			{
-				sentGirl.Voters?.Add(callback.From.Id);
-
-				var caption = string.Empty;
-				if (sentGirl.Seasonal)
+				case "+":
 				{
-					dbGirl.SeasonRating++;
-					sentGirl.SeasonalRating++;
-					caption = $"{sentGirl.SeasonalRating} (s{sentGirl.Season})";
+					if (sentGirl.Seasonal)
+					{
+						dbGirl.SeasonRating++;
+						sentGirl.SeasonalRating++;
+					}
+					else
+					{
+						dbGirl.Rating++;
+						sentGirl.Rating++;
+					}
+
+					var caption = sentGirl.Rating.ToString();
+					if (sentGirl.Seasonal)
+						caption = $"{sentGirl.SeasonalRating} (s{sentGirl.Season})";
+					
+					await API.EditMediaCaption(chatId, callback.Message.MessageId, caption, buttons);
+
+					await db.SaveChangesAsync();
+					return Localization.FormatGet("girls_rating_up", chatId, caption);
 				}
-				else
+				case "-":
 				{
-					dbGirl.Rating++;
-					sentGirl.Rating++;
-					caption = sentGirl.Rating.ToString();
+					if (sentGirl.Seasonal)
+					{
+						dbGirl.SeasonRating--;
+						sentGirl.SeasonalRating--;
+					}
+					else
+					{
+						dbGirl.Rating--;
+						sentGirl.Rating--;
+					}
+
+					if (sentGirl.Rating < delete_rating_threshold || sentGirl.SeasonalRating < delete_rating_threshold)
+					{
+						// remove girls with rating below delete_rating_threshold
+						sentGirlsCache.Remove(callback.Message.MessageId.ToString());
+						db.Girls.Remove(dbGirl);
+						await db.SaveChangesAsync();
+
+						await API.RemoveMessage(chatId, callback.Message.MessageId);
+						return Localization.Get("girls_rating_delete_lowrating", chatId);
+					}
+
+					var caption = sentGirl.Rating.ToString();
+					if (sentGirl.Seasonal)
+						caption = $"{sentGirl.SeasonalRating} (s{sentGirl.Season})";
+
+					await API.EditMediaCaption(chatId, callback.Message.MessageId, caption, buttons);
+
+					await db.SaveChangesAsync();
+					return Localization.FormatGet("girls_rating_down", chatId, caption);
 				}
-				await db.SaveChangesAsync();
-
-				await API.EditMediaCaption(chatId, callback.Message.MessageId, caption, buttons);
-				return Localization.FormatGet("girls_rating_up", chatId, caption);
-			}
-
-			if (callback.Data == "-")
-			{
-				sentGirl.Voters?.Add(callback.From.Id);
-
-				if (sentGirl.Seasonal)
-				{
-					dbGirl.SeasonRating--;
-					sentGirl.SeasonalRating--;
-				}
-				else
-				{
-					dbGirl.Rating--;
-					sentGirl.Rating--;
-				}
-
-				if (sentGirl.Rating < delete_rating_threshold || sentGirl.SeasonalRating < delete_rating_threshold)
-				{
-					// remove girls with rating below delete_rating_threshold
-					sentGirlsCache.Remove(callback.Message.MessageId.ToString());
-					db.Girls.Remove(dbGirl);
+				default:
 					await db.SaveChangesAsync();
 
-					await API.RemoveMessage(chatId, callback.Message.MessageId);
-					return Localization.Get("girls_rating_delete_lowrating", chatId);
-				}
-
-				var caption = sentGirl.Rating.ToString();
-				if (sentGirl.Seasonal)
-					caption = $"{sentGirl.SeasonalRating} (s{sentGirl.Season})";
-
-				await db.SaveChangesAsync();
-
-				await API.EditMediaCaption(chatId, callback.Message.MessageId, caption, buttons);
-				return Localization.FormatGet("girls_rating_down", chatId, caption);
+					return string.Empty;
 			}
-
-			await db.SaveChangesAsync();
-
-			return string.Empty;
 		}
 
 		private async Task<ICommandAnswer> DeleteGirl(Message message)
@@ -379,32 +386,28 @@ namespace den0bot.Modules
 			return Localization.GetAnswer("girls_rating_delete_manual", message.Chat.Id);
 		}
 
-		private async Task<Girl> GetGirl(long chatID)
+		private async Task<Girl> GetGirl(long chatId)
 		{
 			await using var db = new Database();
 
-			if (!db.Girls.Any(x => x.ChatID == chatID && !x.Used))
+			Girl girl;
+
+			var iteration = 0;
+			while (iteration < max_reroll_iterations)
 			{
-				var usedGirls = await db.Girls.Where(x => x.ChatID == chatID).ToArrayAsync();
-				foreach (Girl usedGirl in usedGirls)
+				girl = await db.Girls
+					.Where(x => x.ChatID == chatId)
+					.OrderBy(r => EF.Functions.Random())
+					.FirstOrDefaultAsync();
+
+				if (girl is null)
+					return null;
+
+				if (sentGirlsCache.Any(x => ((SentGirl)x.Value).ID == girl.Id))
 				{
-					usedGirl.Used = false;
-					db.Girls.Update(usedGirl);
+					iteration++;
+					continue;
 				}
-				await db.SaveChangesAsync();
-			}
-
-			var girls = await db.Girls.Where(x => x.ChatID == chatID && !x.Used).ToArrayAsync();
-			if (girls.Any())
-			{
-				int num = RNG.Next(max: girls.Length);
-
-				var girl = girls[num];
-
-				girl.SeasonUsed = true;
-				db.Girls.Update(girl);
-
-				await db.SaveChangesAsync();
 
 				return girl;
 			}
@@ -412,57 +415,55 @@ namespace den0bot.Modules
 			return null;
 		}
 
-		private async Task<Girl> GetGirlSeasonal(long chatID)
+		private async Task<Girl> GetGirlSeasonal(long chatId)
 		{
 			var season = DatabaseCache.GetGirlSeason();
 			await using var db = new Database();
 
-			var girls = await db.Girls.Where(x => x.ChatID == chatID && x.Season == season).ToArrayAsync();
-			if (girls.Length == 0)
+			Girl girl;
+
+			var iteration = 0;
+			while (iteration < max_reroll_iterations)
 			{
-				if (season == 1)
+				girl = await db.Girls
+					.Where(x => x.ChatID == chatId && x.Season == season)
+					.OrderBy(r => EF.Functions.Random())
+					.FirstOrDefaultAsync();
+
+				if (girl is null)
 				{
-					// populate first season with latest girls
-					var allGirls = await db.Girls.Where(x => x.ChatID == chatID).Reverse().Take(100).ToArrayAsync();
-					foreach (var girl in allGirls)
-					{
-						girl.Season = 1;
-						db.Girls.Update(girl);
-					}
-					await db.SaveChangesAsync();
-				}
-				else
-				{
+					await PopulateFirstSeason(chatId);
 					return null;
 				}
-			}
 
-			if (girls.All(x => x.Used))
-			{
-				foreach (Girl usedGirl in girls)
+				if (sentGirlsCache.Any(x => ((SentGirl)x.Value).ID == girl.Id))
 				{
-					usedGirl.SeasonUsed = false;
-					db.Girls.Update(usedGirl);
+					iteration++;
+					continue;
 				}
-				await db.SaveChangesAsync();
-			}
-
-			var ususedGirls = girls.Where(x => !x.Used).ToArray();
-			if (ususedGirls.Any())
-			{
-				int num = RNG.Next(max: ususedGirls.Length);
-
-				var girl = girls[num];
-
-				girl.SeasonUsed = true;
-				db.Girls.Update(girl);
-
-				await db.SaveChangesAsync();
 
 				return girl;
 			}
 
 			return null;
+		}
+
+		private async Task PopulateFirstSeason(long chatId)
+		{
+			var season = DatabaseCache.GetGirlSeason();
+			if (season == 1)
+			{
+				await using var db = new Database();
+
+				// populate first season with latest girls
+				var allGirls = await db.Girls.Where(x => x.ChatID == chatId).Reverse().Take(100).ToArrayAsync();
+				foreach (var girl in allGirls)
+				{
+					girl.Season = 1;
+					db.Girls.Update(girl);
+				}
+				await db.SaveChangesAsync();
+			}
 		}
 	}
 }

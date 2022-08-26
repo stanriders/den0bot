@@ -15,15 +15,11 @@ namespace den0bot.DB.Types
 
 		public long ChatID { get; set; }
 
-		public bool Used { get; set; }
-
 		public int Rating { get; set; }
 
 		// seasonal ratings
 		public int Season { get; set; }
 
 		public int SeasonRating { get; set; }
-
-		public bool SeasonUsed { get; set; }
 	}
 }
