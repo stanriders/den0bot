@@ -90,8 +90,8 @@ namespace den0bot.Modules
 				UserId = msg.From.Id,
 				Timestamp = msg.Date.ToUniversalTime().Ticks,
 				Type = msg.Type.ToDbType(),
-				Command = msg.Text?.Split(' ')[0].Replace($"@{API.BotUser.Username}", ""),
-				Length = msg.Text?.Length ?? 0
+				Command = (msg.Text ?? msg.Caption)?.Split(' ')[0].Replace($"@{API.BotUser.Username}", ""),
+				Length = (msg.Text ?? msg.Caption)?.Length ?? 0
 			});
 		}
 

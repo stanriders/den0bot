@@ -58,7 +58,7 @@ namespace den0bot.Modules
 
 		private static ICommandAnswer Roll(Message msg)
 		{
-			var msgArr = msg.Text.Split(' ');
+			var msgArr = (msg.Text ?? msg.Caption).Split(' ');
 
 			BigInteger roll = RNG.Next(1, 101);
 
