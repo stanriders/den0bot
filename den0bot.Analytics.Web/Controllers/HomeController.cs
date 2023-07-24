@@ -1,4 +1,4 @@
-﻿// den0bot (c) StanR 2021 - MIT License
+﻿// den0bot (c) StanR 2023 - MIT License
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -10,7 +10,6 @@ using den0bot.Analytics.Web.Models;
 using Highsoft.Web.Mvc.Charts;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Telegram.Bot;
 using Telegram.Bot.Types.Enums;
 
 namespace den0bot.Analytics.Web.Controllers
@@ -35,7 +34,7 @@ namespace den0bot.Analytics.Web.Controllers
 				var chats = await db.Messages.AsNoTracking()
 					.Where(x => x.Timestamp > DateTime.UtcNow.AddDays(-last_message_days_ago).Ticks)
 					.GroupBy(x => x.ChatId)
-					.Select(x => new{Id = x.Key, Msgs = x.Max(m => m.TelegramId)})
+					.Select(x => new{Id = x.Key, Msgs = x.LongCount()})
 					.ToArrayAsync();
 
 				foreach (var chat in chats)
@@ -87,7 +86,6 @@ namespace den0bot.Analytics.Web.Controllers
 				var dbUsers = await db.UserStatsQuery.FromSqlInterpolated($@"SELECT UserId as Id, 
 					COUNT(*) as Messages,
 					SUM(CASE WHEN Command != '' THEN 1 ELSE 0 END) as Commands,
-					SUM(CASE WHEN Command = '/devka' OR Command = '/seasonaldevka' THEN 1 ELSE 0 END) as GirlsRequested,
 					SUM(CASE WHEN Type = 2 THEN 1 ELSE 0 END) as Stickers,
 					SUM(CASE WHEN Type = 3 THEN 1 ELSE 0 END) as Voices,
 					MAX(Timestamp) as LastMessageTimestamp
@@ -106,8 +104,6 @@ namespace den0bot.Analytics.Web.Controllers
 							username = tgUser.Username;
 					}
 
-					var girlsAdded = await db.Girls.CountAsync(x => x.UserId == user.Id && x.ChatId == id);
-
 					var avgLength = await db.UserStatsAverageQuery.FromSqlInterpolated($@"SELECT AVG(Length) as AverageLength
 					FROM (SELECT Length, NTILE(4) OVER (ORDER BY Length) n
 						FROM (SELECT Length FROM Messages WHERE UserId = {user.Id} AND ChatId = {id} AND Command = '')
@@ -125,9 +121,7 @@ namespace den0bot.Analytics.Web.Controllers
 						Stickers = user.Stickers,
 						Voices = user.Voices,
 						AverageLength = avgLength?.AverageLength ?? 0.0,
-						LastMessageTime = TimeAgo(new DateTime(user.LastMessageTimestamp)),
-						GirlsAdded = girlsAdded,
-						GirlsRequested = user.GirlsRequested
+						LastMessageTime = TimeAgo(new DateTime(user.LastMessageTimestamp))
 					});
 				}
 
@@ -162,7 +156,6 @@ namespace den0bot.Analytics.Web.Controllers
 				var dbChats = await db.UserStatsQuery.FromSqlInterpolated($@"SELECT ChatId as Id, 
 					COUNT(*) as Messages,
 					SUM(CASE WHEN Command != '' THEN 1 ELSE 0 END) as Commands,
-					SUM(CASE WHEN Command = '/devka' OR Command = '/seasonaldevka' THEN 1 ELSE 0 END) as GirlsRequested,
 					SUM(CASE WHEN Type = 2 THEN 1 ELSE 0 END) as Stickers,
 					SUM(CASE WHEN Type = 3 THEN 1 ELSE 0 END) as Voices,
 					MAX(Timestamp) as LastMessageTimestamp

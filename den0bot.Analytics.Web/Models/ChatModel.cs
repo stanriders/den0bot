@@ -15,8 +15,6 @@ namespace den0bot.Analytics.Web.Models
 				public long Stickers { get; set; }
 				public long Voices { get; set; }
 				public double AverageLength { get; set; }
-				public long GirlsRequested { get; set; }
-				public long GirlsAdded { get; set; }
 				public string LastMessageTime { get; set; }
 				public long Id { get; set; }
 			}
