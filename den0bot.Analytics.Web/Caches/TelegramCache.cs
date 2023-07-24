@@ -83,7 +83,7 @@ namespace den0bot.Analytics.Web.Caches
 			}
 			catch (Exception e)
 			{
-				logger.LogError(e, "Failed to GetUser");
+				logger.LogWarning(e, "Failed to GetUser");
 				await using var db = new AnalyticsDatabase();
 
 				var dbUser = await db.Users.FirstOrDefaultAsync(x => x.Id == userId);
@@ -118,7 +118,7 @@ namespace den0bot.Analytics.Web.Caches
 			}
 			catch (Exception e)
 			{
-				logger.LogError(e, "Failed to GetChat");
+				logger.LogWarning(e, "Failed to GetChat");
 				nullCache.Add(cacheKey, cacheKey, DateTimeOffset.Now.AddHours(1));
 				return null;
 			}
@@ -148,7 +148,7 @@ namespace den0bot.Analytics.Web.Caches
 			}
 			catch (Exception e)
 			{
-				logger.LogError(e, "Failed to GetChatImage");
+				logger.LogWarning(e, "Failed to GetChatImage");
 				nullCache.Add(cacheKey, cacheKey, DateTimeOffset.Now.AddHours(1));
 				return null;
 			}
@@ -181,7 +181,7 @@ namespace den0bot.Analytics.Web.Caches
 			}
 			catch (Exception e)
 			{
-				logger.LogError(e, "Failed to GetAvatar");
+				logger.LogWarning(e, "Failed to GetAvatar");
 				nullCache.Add(cacheKey, cacheKey, DateTimeOffset.Now.AddHours(1));
 				return null;
 			}

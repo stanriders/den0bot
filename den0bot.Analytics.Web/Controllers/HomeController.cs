@@ -34,7 +34,7 @@ namespace den0bot.Analytics.Web.Controllers
 				var chats = await db.Messages.AsNoTracking()
 					.Where(x => x.Timestamp > DateTime.UtcNow.AddDays(-last_message_days_ago).Ticks)
 					.GroupBy(x => x.ChatId)
-					.Select(x => new{Id = x.Key, Msgs = x.LongCount()})
+					.Select(x => new{Id = x.Key})
 					.ToArrayAsync();
 
 				foreach (var chat in chats)
@@ -51,7 +51,7 @@ namespace den0bot.Analytics.Web.Controllers
 						{
 							Name = tgChat.Title,
 							Avatar = await telegramCache.GetChatImage(chat.Id, tgChat.Photo?.SmallFileId),
-							Messages = chat.Msgs,
+							Messages = await db.Messages.AsNoTracking().LongCountAsync(x => x.ChatId == chat.Id),
 							Id = chat.Id,
 							LastMessageTimestamp = new DateTime(lastMessageTimestamp)
 						});
