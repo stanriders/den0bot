@@ -21,6 +21,8 @@ namespace den0bot.Util
 			public string CatToken { get; set; }
 
 			public string SentryDsn { get; set; }
+
+			public string WeatherToken { get; set; }
 		}
 
 		private const string config_file = "./config.json";
