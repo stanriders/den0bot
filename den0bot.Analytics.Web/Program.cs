@@ -23,7 +23,7 @@ namespace den0bot.Analytics.Web
 					.Enrich.WithProperty("Application", "den0bot.Analytics.Web")
 					.Enrich.WithClientIp("CF-Connecting-IP")
 					.WriteTo.Console()
-					.WriteTo.File("log_analytics.txt", rollingInterval: RollingInterval.Month)
+					.WriteTo.File("log_analytics.txt", rollingInterval: RollingInterval.Month, retainedFileCountLimit: 6)
 					.WriteTo.Seq("http://127.0.0.1:5341")
 					.Enrich.FromLogContext()
 					.ReadFrom.Services(services))

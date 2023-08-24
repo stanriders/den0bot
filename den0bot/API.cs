@@ -1,4 +1,4 @@
-﻿// den0bot (c) StanR 2021 - MIT License
+﻿// den0bot (c) StanR 2023 - MIT License
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -6,11 +6,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using den0bot.Events;
 using den0bot.Util;
-using Sentry;
 using Serilog;
+using Serilog.Context;
 using Telegram.Bot;
 using Telegram.Bot.Exceptions;
-using Telegram.Bot.Extensions.Polling;
+using Telegram.Bot.Polling;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.InputFiles;
@@ -44,6 +44,7 @@ namespace den0bot
 				Log.Error("API Test failed, shutting down!");
 				return false;
 			}
+
 			BotUser = api.GetMeAsync().Result;
 
 			Log.Information("API Test successful, starting receiving...");
@@ -57,7 +58,8 @@ namespace den0bot
 		public static event EventHandler<MessageEditEventArgs> OnMessageEdit;
 		public static event EventHandler<CallbackQueryEventArgs> OnCallback;
 
-		private static Task HandleUpdates(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
+		private static Task HandleUpdates(ITelegramBotClient botClient, Update update,
+			CancellationToken cancellationToken)
 		{
 			switch (update.Type)
 			{
@@ -75,9 +77,10 @@ namespace den0bot
 			return Task.CompletedTask;
 		}
 
-		private static Task HandleError(ITelegramBotClient botClient, Exception exception, CancellationToken cancellationToken)
+		private static Task HandleError(ITelegramBotClient botClient, Exception exception,
+			CancellationToken cancellationToken)
 		{
-			Log.Error(exception.InnerMessageIfAny());
+			Log.Error(exception, exception.InnerMessageIfAny());
 
 			return Task.CompletedTask;
 		}
@@ -91,22 +94,18 @@ namespace den0bot
 		/// <param name="replyToId">Message ID to reply to</param>
 		/// <param name="replyMarkup"></param>
 		/// <param name="disablePreview"></param>
-		public static async Task<Message> SendMessage(string message, long chatId, ParseMode? parseMode = null, int replyToId = 0, IReplyMarkup replyMarkup = null, bool disablePreview = true)
+		public static async Task<Message> SendMessage(string message, long chatId, ParseMode? parseMode = null,
+			int replyToId = 0, IReplyMarkup replyMarkup = null, bool disablePreview = true)
 		{
-			SentrySdk.ConfigureScope(scope =>
-				{
-					scope.Contexts["OutData"] = new
-					{
-						ChatID = chatId,
-						Message = message,
-						ParseMode = parseMode,
-						ReplyID = replyToId,
-						ReplyMarkup = replyMarkup,
-						DisablePreview = disablePreview
-					};
-				}
-			);
-
+			using var _ = LogContext.PushProperty("OutData", new
+			       {
+				       ChatID = chatId,
+				       Message = message,
+				       ParseMode = parseMode,
+				       ReplyID = replyToId,
+				       ReplyMarkup = replyMarkup,
+				       DisablePreview = disablePreview
+			       });
 			try
 			{
 				if (!string.IsNullOrEmpty(message))
@@ -119,8 +118,9 @@ namespace den0bot
 			}
 			catch (Exception ex)
 			{
-				Log.Error(ex.InnerMessageIfAny());
+				Log.Error(ex, ex.InnerMessageIfAny());
 			}
+
 			return null;
 		}
 
@@ -134,28 +134,27 @@ namespace den0bot
 		/// <param name="replyToId">Message to reply to</param>
 		/// <param name="replyMarkup"></param>
 		/// <param name="sendTextIfFailed"></param>
-		public static async Task<Message> SendPhoto(string photo, long chatId, string caption = "", ParseMode? parseMode = null, int replyToId = 0, IReplyMarkup replyMarkup = null, bool sendTextIfFailed = true)
+		public static async Task<Message> SendPhoto(string photo, long chatId, string caption = "",
+			ParseMode? parseMode = null, int replyToId = 0, IReplyMarkup replyMarkup = null,
+			bool sendTextIfFailed = true)
 		{
-			SentrySdk.ConfigureScope(scope =>
+			using var _ = LogContext.PushProperty("OutData", new
 			{
-				scope.Contexts["OutData"] = new
-				{
-					Photo = photo,
-					ChatID = chatId,
-					Message = caption,
-					ParseMode = parseMode,
-					ReplyID = replyToId,
-					ReplyMarkup = replyMarkup,
-					SendTextIfFailed = sendTextIfFailed
-				};
+				Photo = photo,
+				ChatID = chatId,
+				Message = caption,
+				ParseMode = parseMode,
+				ReplyID = replyToId,
+				ReplyMarkup = replyMarkup,
+				SendTextIfFailed = sendTextIfFailed
 			});
 
 			try
 			{
 				if (!string.IsNullOrEmpty(photo))
 				{
-					return await api.SendPhotoAsync(chatId, new InputOnlineFile(photo), caption, parseMode, 
-						replyToMessageId: replyToId, 
+					return await api.SendPhotoAsync(chatId, new InputOnlineFile(photo), caption, parseMode,
+						replyToMessageId: replyToId,
 						replyMarkup: replyMarkup);
 				}
 			}
@@ -171,8 +170,9 @@ namespace den0bot
 			}
 			catch (Exception ex)
 			{
-				Log.Error(ex.InnerMessageIfAny());
+				Log.Error(ex, ex.InnerMessageIfAny());
 			}
+
 			return null;
 		}
 
@@ -183,13 +183,10 @@ namespace den0bot
 		/// <param name="chatId">Chat to send photos to</param>
 		public static async Task<Message[]> SendMultiplePhotos(List<InputMediaPhoto> photos, long chatId)
 		{
-			SentrySdk.ConfigureScope(scope =>
+			using var _ = LogContext.PushProperty("OutData", new
 			{
-				scope.Contexts["OutData"] = new
-				{
-					Photos = photos,
-					ChatID = chatId
-				};
+				Photos = photos,
+				ChatID = chatId
 			});
 
 			try
@@ -201,8 +198,9 @@ namespace den0bot
 			}
 			catch (Exception ex)
 			{
-				Log.Error(ex.InnerMessageIfAny());
+				Log.Error(ex, ex.InnerMessageIfAny());
 			}
+
 			return null;
 		}
 
@@ -213,13 +211,10 @@ namespace den0bot
 		/// <param name="chatId">Chat to send sticker to</param>
 		public static async Task<Message> SendSticker(InputOnlineFile sticker, long chatId)
 		{
-			SentrySdk.ConfigureScope(scope =>
+			using var _ = LogContext.PushProperty("OutData", new
 			{
-				scope.Contexts["OutData"] = new
-				{
-					Sticker = sticker,
-					ChatID = chatId
-				};
+				Sticker = sticker,
+				ChatID = chatId
 			});
 
 			try
@@ -228,8 +223,9 @@ namespace den0bot
 			}
 			catch (Exception ex)
 			{
-				Log.Error(ex.InnerMessageIfAny());
+				Log.Error(ex, ex.InnerMessageIfAny());
 			}
+
 			return null;
 		}
 
@@ -238,10 +234,7 @@ namespace den0bot
 		/// </summary>
 		public static async Task<ChatMember[]> GetAdmins(long chatId)
 		{
-			SentrySdk.ConfigureScope(scope =>
-			{
-				scope.Contexts["ChatID"] = chatId;
-			});
+			using var _ = LogContext.PushProperty("ChatID", chatId);
 
 			try
 			{
@@ -249,8 +242,9 @@ namespace den0bot
 			}
 			catch (Exception ex)
 			{
-				Log.Error(ex.InnerMessageIfAny());
+				Log.Error(ex, ex.InnerMessageIfAny());
 			}
+
 			return null;
 		}
 
@@ -261,13 +255,10 @@ namespace den0bot
 		/// <param name="msgId">Message to remove</param>
 		public static async Task RemoveMessage(long chatId, int msgId)
 		{
-			SentrySdk.ConfigureScope(scope =>
+			using var _ = LogContext.PushProperty("OutData", new
 			{
-				scope.Contexts["OutData"] = new
-				{
-					ChatID = chatId,
-					MessageID = msgId
-				};
+				ChatID = chatId,
+				MessageID = msgId
 			});
 
 			try
@@ -276,7 +267,7 @@ namespace den0bot
 			}
 			catch (Exception ex)
 			{
-				Log.Error(ex.InnerMessageIfAny());
+				Log.Error(ex, ex.InnerMessageIfAny());
 			}
 		}
 
@@ -289,30 +280,29 @@ namespace den0bot
 		/// <param name="replyMarkup"></param>
 		/// <param name="parseMode"></param>
 		/// <param name="disablePreview"></param>
-		public static async Task<Message> EditMessage(long chatId, int messageId, string message, InlineKeyboardMarkup replyMarkup = null, ParseMode? parseMode = null, bool disablePreview = true)
+		public static async Task<Message> EditMessage(long chatId, int messageId, string message,
+			InlineKeyboardMarkup replyMarkup = null, ParseMode? parseMode = null, bool disablePreview = true)
 		{
-			SentrySdk.ConfigureScope(scope =>
+			using var _ = LogContext.PushProperty("OutData", new
 			{
-				scope.Contexts["OutData"] = new
-				{
-					MessageID = messageId,
-					ChatID = chatId,
-					Message = message,
-					ParseMode = parseMode,
-					ReplyMarkup = replyMarkup
-				};
+				MessageID = messageId,
+				ChatID = chatId,
+				Message = message,
+				ParseMode = parseMode,
+				ReplyMarkup = replyMarkup
 			});
 
 			try
 			{
-				return await api.EditMessageTextAsync(chatId, messageId, message, parseMode, 
-					disableWebPagePreview: disablePreview, 
+				return await api.EditMessageTextAsync(chatId, messageId, message, parseMode,
+					disableWebPagePreview: disablePreview,
 					replyMarkup: replyMarkup);
 			}
 			catch (Exception ex)
 			{
-				Log.Error(ex.InnerMessageIfAny());
+				Log.Error(ex, ex.InnerMessageIfAny());
 			}
+
 			return null;
 		}
 
@@ -324,30 +314,29 @@ namespace den0bot
 		/// <param name="caption">New caption</param>
 		/// <param name="replyMarkup"></param>
 		/// <param name="parseMode"></param>
-		public static async Task<Message> EditMediaCaption(long chatId, int messageId, string caption, InlineKeyboardMarkup replyMarkup = null, ParseMode? parseMode = null)
+		public static async Task<Message> EditMediaCaption(long chatId, int messageId, string caption,
+			InlineKeyboardMarkup replyMarkup = null, ParseMode? parseMode = null)
 		{
-			SentrySdk.ConfigureScope(scope =>
+			using var _ = LogContext.PushProperty("OutData", new
 			{
-				scope.Contexts["OutData"] = new
-				{
-					MessageID = messageId,
-					ChatID = chatId,
-					Message = caption,
-					ParseMode = parseMode,
-					ReplyMarkup = replyMarkup
-				};
+				MessageID = messageId,
+				ChatID = chatId,
+				Message = caption,
+				ParseMode = parseMode,
+				ReplyMarkup = replyMarkup
 			});
 
 			try
 			{
-				return await api.EditMessageCaptionAsync(chatId, messageId, caption, 
-					replyMarkup: replyMarkup, 
+				return await api.EditMessageCaptionAsync(chatId, messageId, caption,
+					replyMarkup: replyMarkup,
 					parseMode: parseMode);
 			}
 			catch (Exception ex)
 			{
-				Log.Error(ex.InnerMessageIfAny());
+				Log.Error(ex, ex.InnerMessageIfAny());
 			}
+
 			return null;
 		}
 
@@ -359,14 +348,11 @@ namespace den0bot
 		/// <param name="showAlert">Alert user</param>
 		public static async Task AnswerCallbackQuery(string callbackId, string text = null, bool showAlert = false)
 		{
-			SentrySdk.ConfigureScope(scope =>
+			using var _ = LogContext.PushProperty("OutData", new
 			{
-				scope.Contexts["OutData"] = new
-				{
-					CallbackID = callbackId,
-					Message = text,
-					ShowAlert = showAlert
-				};
+				CallbackID = callbackId,
+				Message = text,
+				ShowAlert = showAlert
 			});
 
 			try
@@ -375,7 +361,7 @@ namespace den0bot
 			}
 			catch (Exception ex)
 			{
-				Log.Error(ex.InnerMessageIfAny());
+				Log.Error(ex, ex.InnerMessageIfAny());
 			}
 		}
 
@@ -388,31 +374,30 @@ namespace den0bot
 		/// <param name="parseMode"></param>
 		/// <param name="replyToId"></param>
 		/// <param name="duration"></param>
-		public static async Task<Message> SendVoice(InputOnlineFile audio, long chatId, string caption = null, ParseMode? parseMode = null, int replyToId = 0, int duration = 0)
+		public static async Task<Message> SendVoice(InputOnlineFile audio, long chatId, string caption = null,
+			ParseMode? parseMode = null, int replyToId = 0, int duration = 0)
 		{
-			SentrySdk.ConfigureScope(scope =>
+			using var _ = LogContext.PushProperty("OutData", new
 			{
-				scope.Contexts["OutData"] = new
-				{
-					Audio = audio,
-					Duration = duration,
-					ChatID = chatId,
-					Message = caption,
-					ParseMode = parseMode,
-					ReplyID = replyToId
-				};
+				Audio = audio,
+				Duration = duration,
+				ChatID = chatId,
+				Message = caption,
+				ParseMode = parseMode,
+				ReplyID = replyToId
 			});
 
 			try
 			{
-				return await api.SendVoiceAsync(chatId, audio, caption, parseMode, 
-					duration: duration, 
+				return await api.SendVoiceAsync(chatId, audio, caption, parseMode,
+					duration: duration,
 					replyToMessageId: replyToId);
 			}
 			catch (Exception ex)
 			{
-				Log.Error(ex.InnerMessageIfAny());
+				Log.Error(ex, ex.InnerMessageIfAny());
 			}
+
 			return null;
 		}
 
@@ -432,15 +417,23 @@ namespace den0bot
 			bool? canPinMessages = null,
 			bool? canPromoteMembers = null)
 		{
+			using var _ = LogContext.PushProperty("OutData", new
+			{
+				ChatID = chatId,
+				UserId = userId,
+			});
+
 			try
 			{
-				await api.PromoteChatMemberAsync(chatId, userId, isAnonymous, canManageChat, canChangeInfo, canPostMessages, canEditMessages, 
-					canDeleteMessages, canManageVoiceChats, canInviteUsers, canRestrictMembers, canPinMessages, canPromoteMembers);
+				await api.PromoteChatMemberAsync(chatId, userId, isAnonymous, canManageChat, canChangeInfo,
+					canPostMessages, canEditMessages,
+					canDeleteMessages, canManageVoiceChats, canInviteUsers, canRestrictMembers, canPinMessages,
+					canPromoteMembers);
 				return true;
 			}
 			catch (Exception e)
 			{
-				Log.Error(e.ToString());
+				Log.Error(e, e.ToString());
 				return false;
 			}
 		}
@@ -450,6 +443,12 @@ namespace den0bot
 		/// </summary>
 		public static async Task<bool> UpdatePermissions(long chatId, long userId, ChatPermissions permissions)
 		{
+			using var _ = LogContext.PushProperty("OutData", new
+			{
+				ChatID = chatId,
+				UserId = userId,
+			});
+
 			try
 			{
 				await api.RestrictChatMemberAsync(chatId, userId, permissions);
@@ -457,7 +456,7 @@ namespace den0bot
 			}
 			catch (Exception e)
 			{
-				Log.Error(e.ToString());
+				Log.Error(e, e.ToString());
 				return false;
 			}
 		}
@@ -467,6 +466,12 @@ namespace den0bot
 		/// </summary>
 		public static async Task<bool> UnbanUser(long chatId, long userId)
 		{
+			using var _ = LogContext.PushProperty("OutData", new
+			{
+				ChatID = chatId,
+				UserId = userId,
+			});
+
 			try
 			{
 				await api.UnbanChatMemberAsync(chatId, userId);
@@ -474,7 +479,7 @@ namespace den0bot
 			}
 			catch (Exception e)
 			{
-				Log.Error(e.ToString());
+				Log.Error(e, e.ToString());
 				return false;
 			}
 		}
@@ -489,21 +494,26 @@ namespace den0bot
 			if (string.IsNullOrEmpty(fileId) || string.IsNullOrEmpty(path))
 				return false;
 
-			SentrySdk.ConfigureScope(scope =>
+			using var _ = LogContext.PushProperty("OutData", new
 			{
-				scope.Contexts["OutData"] = new
-				{
-					FileId = fileId,
-					Path = path
-				};
+				FileId = fileId,
+				Path = path
 			});
 
-			await using var stream = new MemoryStream();
+			try
+			{
+				await using var stream = new MemoryStream();
 
-			var file = await api.GetFileAsync(fileId);
-			await api.DownloadFileAsync(file.FilePath, stream);
+				var file = await api.GetFileAsync(fileId);
+				await api.DownloadFileAsync(file.FilePath, stream);
 
-			await System.IO.File.WriteAllBytesAsync(path, stream.ToArray());
+				await System.IO.File.WriteAllBytesAsync(path, stream.ToArray());
+			}
+			catch (Exception e)
+			{
+				Log.Error(e, e.InnerMessageIfAny());
+				return false;
+			}
 
 			return true;
 		}

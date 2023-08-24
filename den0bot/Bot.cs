@@ -1,4 +1,4 @@
-﻿// den0bot (c) StanR 2021 - MIT License
+﻿// den0bot (c) StanR 2023 - MIT License
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -11,12 +11,11 @@ using den0bot.Events;
 using den0bot.Modules;
 using den0bot.Util;
 using den0bot.Types;
-using Sentry;
 using Serilog;
-using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
-using Telegram.Bot.Types.InputFiles;
 using MessageEventArgs = den0bot.Events.MessageEventArgs;
+using Serilog.Context;
+using Message = Telegram.Bot.Types.Message;
 
 namespace den0bot
 {
@@ -40,8 +39,10 @@ namespace den0bot
 #if DEBUG
 				.MinimumLevel.Debug()
 #endif
-				.WriteTo.Sentry(o => o.Dsn = Config.Params.SentryDsn)
-				.WriteTo.File(@"log.txt", rollingInterval: RollingInterval.Month)
+				.Enrich.WithProperty("Application", "den0bot")
+				.WriteTo.Seq("http://127.0.0.1:5341")
+				.Enrich.FromLogContext()
+				.WriteTo.File(@"log.txt", rollingInterval: RollingInterval.Month, retainedFileCountLimit: 6)
 				.WriteTo.Console()
 				.CreateLogger();
 
@@ -179,8 +180,11 @@ namespace den0bot
 				msg.Date < DateTime.Now.ToUniversalTime().AddSeconds(-15))
 				return;
 
-			SentrySdk.ConfigureScope(scope => { scope.Contexts["Data"] = new { ProcessingMessage = msg }; });
-
+			using var _ = LogContext.PushProperty("Data", new
+			{
+				ProcessingMessage = msg
+			});
+			
 			var text = msg.Text ?? msg.Caption;
 
 			var senderChatId = msg.Chat.Id;
