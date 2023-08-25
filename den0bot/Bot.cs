@@ -11,6 +11,7 @@ using den0bot.Events;
 using den0bot.Modules;
 using den0bot.Util;
 using den0bot.Types;
+using Newtonsoft.Json;
 using Serilog;
 using Telegram.Bot.Types.Enums;
 using MessageEventArgs = den0bot.Events.MessageEventArgs;
@@ -182,7 +183,7 @@ namespace den0bot
 
 			using var _ = LogContext.PushProperty("Data", new
 			{
-				ProcessingMessage = msg
+				ProcessingMessage = JsonConvert.SerializeObject(msg)
 			});
 			
 			var text = msg.Text ?? msg.Caption;

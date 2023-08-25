@@ -20,12 +20,15 @@ namespace den0bot.Analytics.Web
 					.MinimumLevel.Override("Microsoft.Hosting.Lifetime", LogEventLevel.Information)
 					.MinimumLevel.Override("Default", LogEventLevel.Debug)
 					.MinimumLevel.Override("System.Net.Http", LogEventLevel.Warning)
+					.Enrich.FromLogContext()
 					.Enrich.WithProperty("Application", "den0bot.Analytics.Web")
 					.Enrich.WithClientIp("CF-Connecting-IP")
+					.Enrich.WithRequestHeader("CF-IPCountry")
+					.Enrich.WithRequestHeader("Referer")
+					.Enrich.WithRequestHeader("User-Agent")
 					.WriteTo.Console()
 					.WriteTo.File("log_analytics.txt", rollingInterval: RollingInterval.Month, retainedFileCountLimit: 6)
 					.WriteTo.Seq("http://127.0.0.1:5341")
-					.Enrich.FromLogContext()
 					.ReadFrom.Services(services))
 				.ConfigureWebHostDefaults(webBuilder => { webBuilder.UseStartup<Startup>(); });
 	}
