@@ -25,7 +25,7 @@ namespace den0bot.Util
 			public string WeatherToken { get; set; }
 		}
 
-		private const string config_file = "./config.json";
+		private const string config_file = "./data/config.json";
 		public static ConfigFile Params { get; } = new();
 
 		static Config()

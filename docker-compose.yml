@@ -1,0 +1,39 @@
+version: '3.8'
+
+networks:
+  main:
+  logs:
+    external: true
+
+services:
+  bot:
+    build: 
+      context: ./
+      dockerfile: ./den0bot/Dockerfile
+    volumes:
+      - ./bot/data:/app/data
+      - ./bot/Modules:/app/Modules
+      - ./bot/Locales:/app/Locales
+      - ./bot/ppcache:/app/ppcache
+      - ./bot/logs:/app/logs
+    networks:
+      - main
+      - logs
+
+  analytics:
+    build:
+      context: ./
+      dockerfile: ./den0bot.Analytics.Web/Dockerfile
+    ports:
+      - "127.0.0.1:5000:3001"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_URLS=http://+:3001
+      - TelegramApiKey
+    volumes:
+      - ./bot/data:/app/data
+      - ./analytics/wwwroot:/app/wwwroot
+      - ./analytics/logs:/app/logs
+    networks:
+      - main
+      - logs

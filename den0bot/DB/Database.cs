@@ -8,7 +8,7 @@ namespace den0bot.DB
 {
 	public sealed class Database : DbContext
 	{
-		public const string database_path = "./data.db";
+		public const string database_path = "./data/data.db";
 
 		protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 		{
