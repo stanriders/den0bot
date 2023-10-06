@@ -20,6 +20,14 @@ namespace den0bot.Modules
 			}
 			public class Data
 			{
+				public class ConditionData
+				{
+					[JsonProperty("text")]
+					public string Text { get; set; }
+				}
+
+				[JsonProperty("condition")]
+				public ConditionData Condition { get; set; }
 				[JsonProperty("temp_c")]
 				public double Temperature { get; set; }
 				[JsonProperty("wind_kph")]
@@ -80,7 +88,7 @@ namespace den0bot.Modules
 				return new TextCommandAnswer(Localization.Get("generic_fail", msg.Chat.Id));
 			}
 
-			return new TextCommandAnswer($"{weather.Location.Name}, {weather.Location.Country}\r\n\r\n🌡: {weather.WeatherData.Temperature:N1}C (feels like {weather.WeatherData.FeelsLike:N1}C)\r\n💧: {weather.WeatherData.Humidity:N1}%\r\n💨: {weather.WeatherData.WindSpeed:N1}km/h {MapDirection(weather.WeatherData.WindDirection)}\r\nUV: {weather.WeatherData.Uv:N1}");
+			return new TextCommandAnswer($"{weather.Location.Name}, {weather.Location.Country}\r\n\r\n{weather.WeatherData.Condition.Text}\r\n🌡: {weather.WeatherData.Temperature:N1}C (feels like {weather.WeatherData.FeelsLike:N1}C)\r\n💧: {weather.WeatherData.Humidity:N1}%\r\n💨: {weather.WeatherData.WindSpeed:N1}km/h {MapDirection(weather.WeatherData.WindDirection)}\r\nUV: {weather.WeatherData.Uv:N1}");
 		}
 
 		private string MapDirection(string direction)
