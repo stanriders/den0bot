@@ -8,6 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Serilog;
 using Telegram.Bot;
+using UAParser;
 
 namespace den0bot.Analytics.Web
 {
@@ -25,6 +26,8 @@ namespace den0bot.Analytics.Web
 		// This method gets called by the runtime. Use this method to add services to the container.
 		public void ConfigureServices(IServiceCollection services)
 		{
+			services.AddHttpContextAccessor();
+
 			services.AddDbContext<AnalyticsDatabase>();
 
 			services.AddSingleton<ITelegramBotClient>(telegramClient);
@@ -36,7 +39,16 @@ namespace den0bot.Analytics.Web
 		// This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
 		public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
 		{
-			app.UseSerilogRequestLogging();
+			app.UseSerilogRequestLogging(options =>
+			{
+				options.EnrichDiagnosticContext = (context, httpContext) =>
+				{
+					var parsedUserAgent = Parser.GetDefault()?.Parse(httpContext.Request.Headers.UserAgent);
+					context.Set("Browser", parsedUserAgent?.UA.ToString());
+					context.Set("Device", parsedUserAgent?.Device.ToString());
+					context.Set("OS", parsedUserAgent?.OS.ToString());
+				};
+			});
 
 			if (env.IsDevelopment())
 			{
