@@ -41,7 +41,7 @@ namespace den0bot
 				.MinimumLevel.Debug()
 #endif
 				.Enrich.WithProperty("Application", "den0bot")
-				.WriteTo.Seq("http://127.0.0.1:5341")
+				.WriteTo.Seq("http://seq:5341")
 				.Enrich.FromLogContext()
 				.WriteTo.File(@"./logs/log.txt", rollingInterval: RollingInterval.Month, retainedFileCountLimit: 6)
 				.WriteTo.Console()

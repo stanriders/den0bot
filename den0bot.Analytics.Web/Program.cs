@@ -28,7 +28,7 @@ namespace den0bot.Analytics.Web
 					.Enrich.WithRequestHeader("User-Agent")
 					.WriteTo.Console()
 					.WriteTo.File("./logs/log_analytics.txt", rollingInterval: RollingInterval.Month, retainedFileCountLimit: 6)
-					.WriteTo.Seq("http://127.0.0.1:5341")
+					.WriteTo.Seq("http://seq:5341")
 					.ReadFrom.Services(services))
 				.ConfigureWebHostDefaults(webBuilder => { webBuilder.UseStartup<Startup>(); });
 	}
