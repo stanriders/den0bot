@@ -1,4 +1,4 @@
-﻿// den0bot (c) StanR 2021 - MIT License
+﻿// den0bot (c) StanR 2023 - MIT License
 #define ENDLESSTHREAD
 
 using System;
@@ -24,17 +24,30 @@ namespace den0bot.Modules
 				{
 					public class File
 					{
-						public string displayname { get; set; }
-						public string path { get; set; }
+						[JsonProperty("displayname")]
+						public string DisplayName { get; set; }
+
+						[JsonProperty("path")]
+						public string Path { get; set; }
 					}
-					public List<File> files { get; set; }
-					public int num { get; set; }
-					public string name { get; set; }
-					public string comment { get; set; }
+
+					[JsonProperty("files")]
+					public List<File>? Files { get; set; }
+
+					[JsonProperty("num")]
+					public long Num { get; set; }
+
+					[JsonProperty("name")]
+					public string Name { get; set; }
+
+					[JsonProperty("comment")]
+					public string Comment { get; set; }
 				}
-				public List<Post> posts { get; set; }
+				[JsonProperty("posts")]
+				public List<Post> Posts { get; set; }
 			}
-			public List<Thread> threads { get; set; }
+			[JsonProperty("threads")]
+			public List<Thread> Threads { get; set; }
 		}
 
 		private const int max_post_amount = 15;
@@ -118,8 +131,13 @@ namespace den0bot.Modules
 				string request = $"https://2ch.hk/a/res/{threadID}.json";
 				var data = await Web.DownloadString(request);
 				Board thread = JsonConvert.DeserializeObject<Board>(data);
+				if (thread == null || thread.Threads.Count <= 0 || thread.Threads[0].Posts.Count <= 0)
+				{
+					Log.Error("thread == null || thread.Threads.Count <= 0 || thread.Threads[0].Posts.Count <= 0");
 
-				var posts = thread.threads[0].posts;
+					return "Тред не нашелся";
+				}
+				var posts = thread.Threads[0].Posts;
 				if (posts.Count > amount)
 					posts.RemoveRange(0, posts.Count - amount);
 
@@ -127,17 +145,18 @@ namespace den0bot.Modules
 				foreach (var post in posts)
 				{
 					var images = string.Empty;
-					foreach (var file in post.files)
-						images += $"[<a href=\"https://2ch.hk{file.path}\">{file.displayname}</a>]";
+					if (post.Files?.Count > 0)
+						foreach (var file in post.Files)
+							images += $"[<a href=\"https://2ch.hk{file.Path}\">{file.DisplayName}</a>]";
 
-					result += $"<code>{post.name}({post.num})</code> {images}\n" +
-					          $"{FilterPost(post.comment)}\n" +
+					result += $"<code>{post.Name}({post.Num})</code> {images}\n" +
+					          $"{FilterPost(post.Comment)}\n" +
 					          $"________\n";
 				}
 
 				return result + $"[<a href=\"https://2ch.hk/a/res/{threadID}.html\">Thread</a>]";
 			}
-			catch (Exception ex) { Log.Error(ex.InnerMessageIfAny()); }
+			catch (Exception ex) { Log.Error(ex, ex.InnerMessageIfAny()); }
 
 			return string.Empty;
 		}
