@@ -12,6 +12,7 @@ services:
       dockerfile: ./den0bot/Dockerfile
     volumes:
       - ./bot/data:/app/data
+      - ./bot/data:/root/den0bot # legacy reasons
       - ./bot/Modules:/app/Modules
       - ./bot/Locales:/app/Locales
       - ./bot/ppcache:/app/ppcache
