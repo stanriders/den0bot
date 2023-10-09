@@ -16,9 +16,12 @@ services:
       - ./bot/Locales:/app/Locales
       - ./bot/ppcache:/app/ppcache
       - ./bot/logs:/app/logs
+    environment:
+      - DOTNET_SYSTEM_NET_DISABLEIPV6=1
     networks:
       - main
       - logs
+    restart: on-failure
 
   analytics:
     build:
@@ -37,3 +40,4 @@ services:
     networks:
       - main
       - logs
+    restart: on-failure
