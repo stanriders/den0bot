@@ -13,6 +13,7 @@ services:
     volumes:
       - ./bot/data:/app/data
       - ./bot/data:/root/den0bot # legacy reasons
+      - ./bot/data:/app # legacy reasons
       - ./bot/Modules:/app/Modules
       - ./bot/Locales:/app/Locales
       - ./bot/ppcache:/app/ppcache
