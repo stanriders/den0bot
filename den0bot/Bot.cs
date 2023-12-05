@@ -41,13 +41,13 @@ namespace den0bot
 				.MinimumLevel.Debug()
 #endif
 				.Enrich.WithProperty("Application", "den0bot")
-				.WriteTo.Seq("http://seq:5341")
 				.Enrich.FromLogContext()
 				.WriteTo.File(@"./logs/log.txt", rollingInterval: RollingInterval.Month, retainedFileCountLimit: 6)
 				.WriteTo.Console()
+				.WriteTo.Seq("http://seq:5341")
 				.CreateLogger();
 
-			AppDomain.CurrentDomain.UnhandledException += (s, e) => { Log.Error((e.ExceptionObject as Exception)?.ToString()); };
+			AppDomain.CurrentDomain.UnhandledException += (s, e) => { Log.Error(e.ExceptionObject as Exception, (e.ExceptionObject as Exception)?.Message); };
 
 			using var db = new Database();
 			db.Database.EnsureCreated();

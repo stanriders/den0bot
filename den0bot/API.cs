@@ -160,7 +160,7 @@ namespace den0bot
 			}
 			catch (ApiRequestException ex)
 			{
-				Log.Error(ex.InnerMessageIfAny());
+				Log.Error(ex, ex.InnerMessageIfAny());
 				if (sendTextIfFailed)
 				{
 					return await api.SendTextMessageAsync(chatId, caption, parseMode,
