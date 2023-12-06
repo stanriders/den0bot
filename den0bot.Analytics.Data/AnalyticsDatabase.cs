@@ -6,11 +6,8 @@ namespace den0bot.Analytics.Data
 {
 	public sealed class AnalyticsDatabase : DbContext
 	{
-#if DEBUG
-		private const string connection_string = "Filename=./analytics.db";
-#else
-		private const string connection_string = "Filename=/root/den0bot/analytics.db";
-#endif
+		private const string connection_string = "Filename=./data/analytics.db";
+
 		public AnalyticsDatabase()
 		{
 			Database.EnsureCreated();

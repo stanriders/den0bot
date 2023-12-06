@@ -1,4 +1,4 @@
-// den0bot (c) StanR 2021 - MIT License
+// den0bot (c) StanR 2023 - MIT License
 using den0bot.Analytics.Data;
 using den0bot.Analytics.Web.Caches;
 using Microsoft.AspNetCore.Builder;
@@ -6,7 +6,9 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Serilog;
 using Telegram.Bot;
+using UAParser;
 
 namespace den0bot.Analytics.Web
 {
@@ -17,7 +19,6 @@ namespace den0bot.Analytics.Web
 		{
 			Configuration = configuration;
 			telegramClient = new TelegramBotClient(configuration["TelegramAPIKey"]);
-			TelegramCache.PopulateCache();
 		}
 
 		public IConfiguration Configuration { get; }
@@ -25,9 +26,12 @@ namespace den0bot.Analytics.Web
 		// This method gets called by the runtime. Use this method to add services to the container.
 		public void ConfigureServices(IServiceCollection services)
 		{
+			services.AddHttpContextAccessor();
+
 			services.AddDbContext<AnalyticsDatabase>();
 
-			services.AddSingleton(telegramClient);
+			services.AddSingleton<ITelegramBotClient>(telegramClient);
+			services.AddSingleton<ITelegramCache, TelegramCache>();
 
 			services.AddControllersWithViews();
 		}
@@ -35,6 +39,17 @@ namespace den0bot.Analytics.Web
 		// This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
 		public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
 		{
+			app.UseSerilogRequestLogging(options =>
+			{
+				options.EnrichDiagnosticContext = (context, httpContext) =>
+				{
+					var parsedUserAgent = Parser.GetDefault()?.Parse(httpContext.Request.Headers.UserAgent);
+					context.Set("Browser", parsedUserAgent?.UA.ToString());
+					context.Set("Device", parsedUserAgent?.Device.ToString());
+					context.Set("OS", parsedUserAgent?.OS.ToString());
+				};
+			});
+
 			if (env.IsDevelopment())
 			{
 				app.UseDeveloperExceptionPage();

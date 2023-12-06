@@ -14,12 +14,11 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="6.0.6" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
     <PackageReference Include="OppaiSharp" Version="3.4.0" />
-    <PackageReference Include="Sentry.Serilog" Version="3.18.0" />
-    <PackageReference Include="Serilog.Sinks.Console" Version="4.0.1" />
+    <PackageReference Include="Serilog.Sinks.Console" Version="4.1.0" />
     <PackageReference Include="Serilog.Sinks.File" Version="5.0.0" />
+    <PackageReference Include="Serilog.Sinks.Seq" Version="5.2.2" />
     <PackageReference Include="System.Runtime.Caching" Version="6.0.0" />
     <PackageReference Include="Telegram.Bot" Version="18.0.0" />
-    <PackageReference Include="Telegram.Bot.Extensions.Polling" Version="1.0.2" />
     <PackageReference Include="xFFmpeg.NET" Version="7.1.3" />
   </ItemGroup>
 

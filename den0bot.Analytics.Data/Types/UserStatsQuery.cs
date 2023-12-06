@@ -1,4 +1,4 @@
-﻿// den0bot (c) StanR 2021 - MIT License
+﻿// den0bot (c) StanR 2023 - MIT License
 namespace den0bot.Analytics.Data.Types
 {
 	public class UserStatsQuery
@@ -6,7 +6,6 @@ namespace den0bot.Analytics.Data.Types
 		public long Id { get; set; }
 		public long Messages { get; set; }
 		public long Commands { get; set; }
-		public long GirlsRequested { get; set; }
 		public long Stickers { get; set; }
 		public long Voices { get; set; }
 		public long LastMessageTimestamp { get; set; }

@@ -428,7 +428,7 @@ namespace den0bot.Modules
 			}
 			catch (Exception e)
 			{
-				Log.Warning($"GPT error: {e}");
+				Log.Warning(e, $"GPT error: {e}");
 			}
 
 			return string.Empty;

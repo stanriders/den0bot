@@ -1,4 +1,4 @@
-﻿// den0bot (c) StanR 2021 - MIT License
+﻿// den0bot (c) StanR 2023 - MIT License
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -10,21 +10,20 @@ using den0bot.Analytics.Web.Models;
 using Highsoft.Web.Mvc.Charts;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Telegram.Bot;
 using Telegram.Bot.Types.Enums;
 
 namespace den0bot.Analytics.Web.Controllers
 {
 	public class HomeController : Controller
 	{
-		private readonly TelegramBotClient telegramClient;
+		private readonly ITelegramCache telegramCache;
 
 		private readonly DateTime minimal_date = new(2019, 10, 2);
 		private const int last_message_days_ago = 60;
 
-		public HomeController(TelegramBotClient _telegramClient)
+		public HomeController(ITelegramCache _telegramCache)
 		{
-			telegramClient = _telegramClient;
+			telegramCache = _telegramCache;
 		}
 
 		public async Task<IActionResult> Index()
@@ -35,12 +34,12 @@ namespace den0bot.Analytics.Web.Controllers
 				var chats = await db.Messages.AsNoTracking()
 					.Where(x => x.Timestamp > DateTime.UtcNow.AddDays(-last_message_days_ago).Ticks)
 					.GroupBy(x => x.ChatId)
-					.Select(x => new{Id = x.Key, Msgs = x.Max(m => m.TelegramId)})
+					.Select(x => new{Id = x.Key})
 					.ToArrayAsync();
 
 				foreach (var chat in chats)
 				{
-					var tgChat = await TelegramCache.GetChat(telegramClient, chat.Id);
+					var tgChat = await telegramCache.GetChat(chat.Id);
 					if (tgChat != null && tgChat.Type != ChatType.Private)
 					{
 						var lastMessageTimestamp = (await db.Messages.AsNoTracking()
@@ -51,8 +50,8 @@ namespace den0bot.Analytics.Web.Controllers
 						model.Add(new ShortChatModel
 						{
 							Name = tgChat.Title,
-							Avatar = await TelegramCache.GetChatImage(telegramClient, chat.Id, tgChat.Photo?.SmallFileId),
-							Messages = chat.Msgs,
+							Avatar = await telegramCache.GetChatImage(chat.Id, tgChat.Photo?.SmallFileId),
+							Messages = await db.Messages.AsNoTracking().LongCountAsync(x => x.ChatId == chat.Id),
 							Id = chat.Id,
 							LastMessageTimestamp = new DateTime(lastMessageTimestamp)
 						});
@@ -70,7 +69,7 @@ namespace den0bot.Analytics.Web.Controllers
 			{
 				db.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
 
-				var chat = await TelegramCache.GetChat(telegramClient, id);
+				var chat = await telegramCache.GetChat( id);
 				if (chat == null && !await db.Messages.AnyAsync(x => x.ChatId == id))
 					return NotFound();
 
@@ -79,7 +78,7 @@ namespace den0bot.Analytics.Web.Controllers
 				if (chat?.Photo != null)
 				{
 					ViewData["Image"] =
-						await TelegramCache.GetChatImage(telegramClient, id, chat?.Photo?.SmallFileId);
+						await telegramCache.GetChatImage(id, chat?.Photo?.SmallFileId);
 				}
 
 				var users = new List<ChatModel.UserTable.User>();
@@ -87,7 +86,6 @@ namespace den0bot.Analytics.Web.Controllers
 				var dbUsers = await db.UserStatsQuery.FromSqlInterpolated($@"SELECT UserId as Id, 
 					COUNT(*) as Messages,
 					SUM(CASE WHEN Command != '' THEN 1 ELSE 0 END) as Commands,
-					SUM(CASE WHEN Command = '/devka' OR Command = '/seasonaldevka' THEN 1 ELSE 0 END) as GirlsRequested,
 					SUM(CASE WHEN Type = 2 THEN 1 ELSE 0 END) as Stickers,
 					SUM(CASE WHEN Type = 3 THEN 1 ELSE 0 END) as Voices,
 					MAX(Timestamp) as LastMessageTimestamp
@@ -98,15 +96,13 @@ namespace den0bot.Analytics.Web.Controllers
 				{
 					var name = "???";
 					var username = string.Empty;
-					var tgUser = await TelegramCache.GetUser(telegramClient, id, user.Id);
+					var tgUser = await telegramCache.GetUser(id, user.Id);
 					if (tgUser != null)
 					{
 						name = $"{tgUser.FirstName} {tgUser.LastName}".Trim();
 						if (!string.IsNullOrEmpty(tgUser.Username))
 							username = tgUser.Username;
 					}
-
-					var girlsAdded = await db.Girls.CountAsync(x => x.UserId == user.Id && x.ChatId == id);
 
 					var avgLength = await db.UserStatsAverageQuery.FromSqlInterpolated($@"SELECT AVG(Length) as AverageLength
 					FROM (SELECT Length, NTILE(4) OVER (ORDER BY Length) n
@@ -119,15 +115,13 @@ namespace den0bot.Analytics.Web.Controllers
 						Id = user.Id,
 						Name = name,
 						Username = username,
-						Avatar = await TelegramCache.GetAvatar(telegramClient, user.Id),
+						Avatar = await telegramCache.GetAvatar(user.Id),
 						Messages = user.Messages - user.Commands,
 						Commands = user.Commands,
 						Stickers = user.Stickers,
 						Voices = user.Voices,
 						AverageLength = avgLength?.AverageLength ?? 0.0,
-						LastMessageTime = TimeAgo(new DateTime(user.LastMessageTimestamp)),
-						GirlsAdded = girlsAdded,
-						GirlsRequested = user.GirlsRequested
+						LastMessageTime = TimeAgo(new DateTime(user.LastMessageTimestamp))
 					});
 				}
 
@@ -145,7 +139,7 @@ namespace den0bot.Analytics.Web.Controllers
 			{
 				db.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
 
-				var user = await TelegramCache.GetUser(telegramClient, null, id);
+				var user = await telegramCache.GetUser(null, id);
 				if (user == null)
 					return NotFound();
 
@@ -155,14 +149,13 @@ namespace den0bot.Analytics.Web.Controllers
 				else
 					ViewData["Title"] = title;
 
-				ViewData["Image"] = await TelegramCache.GetAvatar(telegramClient, id);
+				ViewData["Image"] = await telegramCache.GetAvatar(id);
 
 				var chats = new List<UserModel.ChatTable.Chat>();
 
 				var dbChats = await db.UserStatsQuery.FromSqlInterpolated($@"SELECT ChatId as Id, 
 					COUNT(*) as Messages,
 					SUM(CASE WHEN Command != '' THEN 1 ELSE 0 END) as Commands,
-					SUM(CASE WHEN Command = '/devka' OR Command = '/seasonaldevka' THEN 1 ELSE 0 END) as GirlsRequested,
 					SUM(CASE WHEN Type = 2 THEN 1 ELSE 0 END) as Stickers,
 					SUM(CASE WHEN Type = 3 THEN 1 ELSE 0 END) as Voices,
 					MAX(Timestamp) as LastMessageTimestamp
@@ -171,7 +164,7 @@ namespace den0bot.Analytics.Web.Controllers
 
 				foreach (var chat in dbChats)
 				{
-					var tgChat = await TelegramCache.GetChat(telegramClient, chat.Id);
+					var tgChat = await telegramCache.GetChat(chat.Id);
 					var name = tgChat?.Title;
 					if (string.IsNullOrEmpty(name))
 						name = tgChat?.Id.ToString() ?? "???";
@@ -180,7 +173,7 @@ namespace den0bot.Analytics.Web.Controllers
 					{
 						Id = chat.Id,
 						Name = name,
-						Avatar = await TelegramCache.GetChatImage(telegramClient, chat.Id, tgChat?.Photo?.SmallFileId),
+						Avatar = await telegramCache.GetChatImage(chat.Id, tgChat?.Photo?.SmallFileId),
 						Messages = chat.Messages - chat.Commands,
 						Stickers = chat.Stickers,
 						Voices = chat.Voices,
@@ -240,7 +233,7 @@ namespace den0bot.Analytics.Web.Controllers
 				{
 					var name = "???";
 
-					var tgUser = await TelegramCache.GetUser(telegramClient, id, userId);
+					var tgUser = await telegramCache.GetUser(id, userId);
 					if (tgUser != null)
 					{
 						if (string.IsNullOrEmpty(tgUser.Username))
@@ -315,7 +308,7 @@ namespace den0bot.Analytics.Web.Controllers
 				{
 					var name = "???";
 
-					var tgChat = await TelegramCache.GetChat(telegramClient, chatId);
+					var tgChat = await telegramCache.GetChat(chatId);
 					if (tgChat != null)
 					{
 						if (string.IsNullOrEmpty(tgChat.Title))
