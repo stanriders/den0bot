@@ -1,4 +1,4 @@
-﻿// den0bot (c) StanR 2022 - MIT License
+﻿// den0bot (c) StanR 2023 - MIT License
 //#define PARSE_PHOTOS
 using den0bot.Modules.Osu.Types.V2;
 using den0bot.Modules.Osu.WebAPI;
@@ -15,6 +15,7 @@ using den0bot.Modules.Osu.Parsers;
 using den0bot.Modules.Osu.Types;
 using den0bot.Modules.Osu.Types.Enums;
 using IronOcr;
+using Pettanko;
 using Serilog;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.InputFiles;
@@ -44,7 +45,7 @@ namespace den0bot.Modules.Osu
 						if (mappedBy is not null)
 							query += $" creator={mappedBy}";
 
-						var sets = await WebApiHandler.MakeApiRequest(new BeatmapSetSearch(query));
+						var sets = await new BeatmapSetSearch(query).Execute();
 						if (sets.Length > 0)
 						{
 							var map = sets[0].Beatmaps.FirstOrDefault(x => name.Contains(x.Version));
@@ -72,13 +73,13 @@ namespace den0bot.Modules.Osu
 					Beatmap map = null;
 					if (beatmapLinkData.IsBeatmapset)
 					{
-						var set = await WebApiHandler.MakeApiRequest(new GetBeatmapSet(beatmapLinkData.ID));
+						var set = await new GetBeatmapSet(beatmapLinkData.ID).Execute();
 						if (set?.Beatmaps.Count > 0)
 							map = set.Beatmaps.Last();
 					}
 					else
 					{
-						map = await WebApiHandler.MakeApiRequest(new GetBeatmap(beatmapLinkData.ID));
+						map = await new GetBeatmap(beatmapLinkData.ID).Execute();
 					}
 
 					await SendMapInfo(message.Chat.Id, map, beatmapLinkData.Mods);
@@ -147,13 +148,13 @@ namespace den0bot.Modules.Osu
 			return (lines[0], mappedBy);
 		}
 
-		private async Task SendMapInfo(long chatId, Beatmap map, LegacyMods mods, bool includeName = false)
+		private async Task SendMapInfo(long chatId, Beatmap map, Mod[] mods, bool includeName = false)
 		{
 			if (map != null)
 			{
 				var sentMessage = await API.SendPhoto(map.BeatmapSet.Covers.Cover2X,
 					chatId,
-					map.GetFormattedMapInfo(mods, includeName),
+					await map.GetFormattedMapInfo(mods, includeName),
 					Telegram.Bot.Types.Enums.ParseMode.Html,
 					replyMarkup: buttons);
 

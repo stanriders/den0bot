@@ -15,7 +15,7 @@
 
   <ItemGroup>
     <PackageReference Include="IronOcr" Version="2022.1.0" />
-    <PackageReference Include="OppaiSharp" Version="3.4.0" />
+    <PackageReference Include="StanR.Pettanko" Version="1.0.1" />
     <PackageReference Include="xFFmpeg.NET" Version="7.1.3" />
   </ItemGroup>
 

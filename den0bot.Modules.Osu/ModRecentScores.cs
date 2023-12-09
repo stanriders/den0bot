@@ -1,4 +1,4 @@
-﻿// den0bot (c) StanR 2022 - MIT License
+﻿// den0bot (c) StanR 2023 - MIT License
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,7 +15,9 @@ using den0bot.Util;
 using Telegram.Bot.Types.Enums;
 using den0bot.Types;
 using den0bot.Types.Answers;
+using Pettanko;
 using Serilog;
+using Score = den0bot.Modules.Osu.Types.V2.Score;
 
 namespace den0bot.Modules.Osu
 {
@@ -83,16 +85,12 @@ namespace den0bot.Modules.Osu
 			{
 				msgSplit.Remove(msgSplit.Last());
 			}
-
-			if (amount > recent_amount)
-				amount = recent_amount;
-			else if (amount <= 0)
-				amount = 1;
+			amount = Math.Clamp(amount, 1, recent_amount);
 
 			if (msgSplit.Count > 0)
 			{
 				var playerName = string.Join(" ", msgSplit);
-				var player = await WebApiHandler.MakeApiRequest(new GetUser(playerName));
+				var player = await new GetUser(playerName).Execute();
 				if (player != null)
 					playerId = player.Id;
 			}
@@ -109,7 +107,7 @@ namespace den0bot.Modules.Osu
 			if (playerId == 0)
 				return Localization.GetAnswer("generic_fail", message.Chat.Id);
 
-			List<Score> lastScores = await WebApiHandler.MakeApiRequest(new GetUserScores(playerId, ScoreType.Recent, true));
+			List<Score> lastScores = await new GetUserScores(playerId, ScoreType.Recent, true).Execute();
 			if (lastScores != null)
 			{
 				if (lastScores.Count == 0)
@@ -121,8 +119,8 @@ namespace den0bot.Modules.Osu
 					if (amount == 1)
 						ChatBeatmapCache.StoreLastMap(message.Chat.Id, new ChatBeatmapCache.CachedBeatmap { BeatmapId = score.BeatmapShort.Id, BeatmapSetId = score.BeatmapShort.BeatmapSetId });
 
-					score.Beatmap = await WebApiHandler.MakeApiRequest(new GetBeatmap(score.BeatmapShort.Id));
-					result += FormatScore(score, true);
+					var beatmap = await new GetBeatmap(score.BeatmapShort.Id).Execute();
+					result += await FormatScore(score, beatmap, true);
 				}
 
 				return new TextCommandAnswer(result);
@@ -141,7 +139,7 @@ namespace den0bot.Modules.Osu
 			if (msgSplit.Count > 0)
 			{
 				var playerName = string.Join(" ", msgSplit);
-				var player = await WebApiHandler.MakeApiRequest(new GetUser(playerName));
+				var player = await new GetUser(playerName).Execute();
 				if (player != null)
 					playerId = player.Id;
 			}
@@ -158,14 +156,14 @@ namespace den0bot.Modules.Osu
 			if (playerId == 0)
 				return Localization.GetAnswer("generic_fail", message.Chat.Id);
 
-			var lastScores = await WebApiHandler.MakeApiRequest(new GetUserScores(playerId, ScoreType.Recent, false));
+			var lastScores = await new GetUserScores(playerId, ScoreType.Recent, false).Execute();
 			if (lastScores.Count > 0)
 			{
 				var score = lastScores[0];
 				ChatBeatmapCache.StoreLastMap(message.Chat.Id, new ChatBeatmapCache.CachedBeatmap { BeatmapId = score.BeatmapShort.Id, BeatmapSetId = score.BeatmapShort.BeatmapSetId});
 
-				score.Beatmap = await WebApiHandler.MakeApiRequest(new GetBeatmap(score.BeatmapShort.Id));
-				return new TextCommandAnswer(FormatScore(score, true));
+				var beatmap = await new GetBeatmap(score.BeatmapShort.Id).Execute();
+				return new TextCommandAnswer(await FormatScore(score, beatmap, true));
 			}
 
 			return Localization.GetAnswer("generic_fail", message.Chat.Id);
@@ -187,7 +185,7 @@ namespace den0bot.Modules.Osu
 			}
 
 			var msgSplit = msgText.Split(' ').ToList();
-			var mods = LegacyMods.NM;
+			var mods = Array.Empty<Mod>();
 			if (msgSplit.Count > 1)
 			{
 				var data = BeatmapLinkParser.Parse(msgText);
@@ -197,7 +195,7 @@ namespace den0bot.Modules.Osu
 					mods = data.Mods;
 					if (data.IsBeatmapset)
 					{
-						BeatmapSet set = await WebApiHandler.MakeApiRequest(new GetBeatmapSet(data.ID));
+						BeatmapSet set = await new GetBeatmapSet(data.ID).Execute();
 						if (set?.Beatmaps?.Count > 0)
 							mapId = set.Beatmaps.OrderBy(x => x.StarRating).Last().Id;
 					}
@@ -219,28 +217,27 @@ namespace den0bot.Modules.Osu
 
 			var result = string.Empty;
 
-			if (mods == 0)
+			if (mods.Length == 0)
 			{
-				var scores = await WebApiHandler.MakeApiRequest(new GetUserBeatmapScores(mapId, playerId.Value));
+				var scores = await new GetUserBeatmapScores(mapId, playerId.Value).Execute();
 				if (scores == null || scores.Count <= 0)
 					return Localization.GetAnswer("recentscores_no_scores", message.Chat.Id);
 
-				var map = await WebApiHandler.MakeApiRequest(new GetBeatmap(mapId));
+				var map = await new GetBeatmap(mapId).Execute();
 
 				foreach (var score in scores.Take(score_amount))
 				{
-					score.Beatmap = map;
-					result += FormatScore(score, false);
+					result += await FormatScore(score, map, false);
 				}
 			}
 			else
 			{
-				var score = await WebApiHandler.MakeApiRequest(new GetUserBeatmapScore(mapId, playerId.Value, mods));
+				var score = await new GetUserBeatmapScore(mapId, playerId.Value, mods.Select(x=> x.Acronym).ToArray()).Execute();
 				if (score == null)
 					return Localization.GetAnswer("recentscores_no_scores", message.Chat.Id);
 
-				score.Beatmap = await WebApiHandler.MakeApiRequest(new GetBeatmap(mapId));
-				result += FormatScore(score, false);
+				var beatmap = await new GetBeatmap(mapId).Execute();
+				result += await FormatScore(score, beatmap, false);
 			}
 				
 			if (!string.IsNullOrEmpty(result))
@@ -270,7 +267,7 @@ namespace den0bot.Modules.Osu
 					if (!uint.TryParse(player, out var osuID))
 					{
 						// if they used /u/cookiezi instead of /u/124493 we ask osu API for an ID
-						var info = await WebApiHandler.MakeApiRequest(new GetUser(player));
+						var info = await new GetUser(player).Execute();
 
 						if (info == null)
 							return Localization.GetAnswer("recentscores_player_add_failed", message.Chat.Id);
@@ -333,11 +330,11 @@ namespace den0bot.Modules.Osu
 			}
 		}
 
-		private static string FormatScore(ScoreBase score, bool useAgo)
+		private static async Task<string> FormatScore(Score score, Beatmap beatmap, bool useAgo)
 		{
 			string mods = string.Empty;
-			if (score.LegacyMods != LegacyMods.NM)
-				mods = $" +{score.LegacyMods?.ReadableMods()}";
+			if (score.Mods.Length > 0)
+				mods = $" +{string.Join(null, score.Mods)}";
 
 			string date = score.Date?.ToShortDateString();
 			if (useAgo && score.Date != null)
@@ -346,7 +343,6 @@ namespace den0bot.Modules.Osu
 				date = $"{ago:hh\\:mm\\:ss} ago";
 			}
 
-			Beatmap beatmap = (Beatmap)score.Beatmap;
 			// html-filtered map title
 			string mapInfo = $"{beatmap.BeatmapSet.Artist} - {beatmap.BeatmapSet.Title} [{score.Beatmap.Version}]".FilterToHTML();
 
@@ -356,25 +352,35 @@ namespace den0bot.Modules.Osu
 				try
 				{
 					// Add pp values
-					double scorePp = score.Pp ?? Oppai.GetBeatmapPP(score.Beatmap, score);
+					var shouldCalculatePp = score.Pp is null ||
+					                        score.ComboBasedMissCount(beatmap.MaxCombo, beatmap.Sliders) > 0;
+
+					Pettanko.Difficulty.OsuDifficultyAttributes attributes = null;
+
+					if (shouldCalculatePp)
+					{
+						attributes = await new GetBeatmapAttributes(beatmap.Id, score.Mods.Select(x=> Mod.AllMods.FirstOrDefault(y=> y.Acronym == x)).ToArray()).Execute();
+					}
+
+					double scorePp = score.Pp ?? PpCalculation.CalculatePerformance(score, attributes, beatmap);
 					string possiblePp = string.Empty;
 
-					if (score.ComboBasedMissCount(beatmap.MaxCombo.Value, beatmap.Sliders.Value) > 0)
+					if (score.ComboBasedMissCount(beatmap.MaxCombo, beatmap.Sliders) > 0)
 					{
 						// Add possible pp value if they missed
 						var fcScore = new Score
 						{
 							Statistics = new Score.ScoreStatistics
 							{
-								Count300 = (score.Beatmap.ObjectsTotal - score.Count100 - score.Count50) ?? 0,
-								Count100 = score.Count100,
-								Count50 = score.Count50,
+								Count300 = (score.Beatmap.ObjectsTotal - score.Statistics.Count100 - score.Statistics.Count50) ?? 0,
+								Count100 = score.Statistics.Count100,
+								Count50 = score.Statistics.Count50,
 							},
-							Combo = beatmap.MaxCombo ?? 0,
-							LegacyMods = score.LegacyMods
+							Combo = beatmap.MaxCombo,
+							Mods = score.Mods
 						};
 
-						double possiblePPval = Oppai.GetBeatmapPP(score.Beatmap, fcScore);
+						double possiblePPval = PpCalculation.CalculatePerformance(fcScore, attributes, beatmap);
 						possiblePp = $"(~{possiblePPval:N2}pp if FC)";
 					}
 
@@ -388,15 +394,15 @@ namespace den0bot.Modules.Osu
 
 			var position = string.Empty;
 			if (score.LeaderboardPosition != null)
-				position = $"#{score.LeaderboardPosition}{(!string.IsNullOrEmpty(mods) ? $" ({score.LegacyMods?.ReadableMods()})" : "") } | ";
+				position = $"#{score.LeaderboardPosition}{(score.Mods.Length > 0 ? $" ({string.Join(null, score.Mods)})" : "") } | ";
 
 			var completion = string.Empty;
 			if (useAgo)
-				completion = $" | {(double)(score.Count300 + score.Count100 + score.Count50 + score.Misses) / score.Beatmap.ObjectsTotal * 100.0:N1}% completion";
+				completion = $" | {(double)(score.Statistics.Count300 + score.Statistics.Count100 + score.Statistics.Count50 + score.Statistics.CountMiss) / score.Beatmap.ObjectsTotal * 100.0:N1}% completion";
 
 			return
 				$"<b>({score.Grade.GetDescription()})</b> <a href=\"{score.Beatmap.Link}\">{mapInfo}</a><b>{mods} ({score.Accuracy:N2}%)</b>{Environment.NewLine}" +
-				$"{score.Combo}/{beatmap.MaxCombo}x ({score.Count300} / {score.Count100} / {score.Count50} / {score.Misses}) {pp}{Environment.NewLine}" +
+				$"{score.Combo}/{beatmap.MaxCombo}x ({score.Statistics.Count300} / {score.Statistics.Count100} / {score.Statistics.Count50} / {score.Statistics.CountMiss}) {pp}{Environment.NewLine}" +
 				$"{position}{date}{completion}{Environment.NewLine}{Environment.NewLine}";
 		}
 	}

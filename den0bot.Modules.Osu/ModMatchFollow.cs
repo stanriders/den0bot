@@ -1,4 +1,4 @@
-﻿// den0bot (c) StanR 2021 - MIT License
+﻿// den0bot (c) StanR 2023 - MIT License
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -88,7 +88,7 @@ namespace den0bot.Modules.Osu
 
 			var updatingMatch = followList[currentMatchId];
 
-			var match = await WebApiHandler.MakeApiRequest(new GetMatch(updatingMatch.MatchId));
+			var match = await new GetMatch(updatingMatch.MatchId).Execute();
 			if (match.Events.Length > 0)
 			{
 				if (match.Info.EndTime == null)
@@ -141,7 +141,7 @@ namespace den0bot.Modules.Osu
 			var matchId = MatchLinkParser.Parse(message.Text)?.Id;
 			if (matchId != null)
 			{
-				var match = await WebApiHandler.MakeApiRequest(new GetMatch(matchId.Value));
+				var match = await new GetMatch(matchId.Value).Execute();
 				if (match?.Events.Length > 0)
 				{
 					var matchInfo =

@@ -13,7 +13,7 @@
     <PackageReference Include="IronOcr" Version="2022.1.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="6.0.6" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
-    <PackageReference Include="OppaiSharp" Version="3.4.0" />
+    <PackageReference Include="StanR.Pettanko" Version="1.0.1" />
     <PackageReference Include="Serilog.Sinks.Console" Version="4.1.0" />
     <PackageReference Include="Serilog.Sinks.File" Version="5.0.0" />
     <PackageReference Include="Serilog.Sinks.Seq" Version="5.2.2" />

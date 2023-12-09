@@ -1,10 +1,11 @@
-﻿// den0bot (c) StanR 2021 - MIT License
+﻿// den0bot (c) StanR 2023 - MIT License
 using System;
+using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
 using den0bot.Modules.Osu.Types.Enums;
 using den0bot.Util;
+using Pettanko;
 
 namespace den0bot.Modules.Osu.Parsers
 {
@@ -13,7 +14,7 @@ namespace den0bot.Modules.Osu.Parsers
 		public uint ID { get; set; }
 		public bool IsBeatmapset { get; set; }
 		public Mode Mode { get; set; }
-		public LegacyMods Mods { get; set; }
+		public Mod[] Mods { get; set; }
 	}
 
 	public static class BeatmapLinkParser
@@ -82,29 +83,19 @@ namespace den0bot.Modules.Osu.Parsers
 			return null;
 		}
 
-		private static LegacyMods ConvertToMods(string mods)
+		private static Mod[] ConvertToMods(string modString)
 		{
-			if (string.IsNullOrEmpty(mods) || mods.Length > 36) // every mod combination possible
-				return LegacyMods.NM;
-
-			if (Enum.TryParse(mods, true, out LegacyMods result))
-				return result;
-
-			StringBuilder builder = new StringBuilder(mods.Length * 2);
-			bool secondChar = false;
-			foreach (char c in mods)
+			var mods = new List<Mod>();
+			for (var i = 0; i < modString.Length; i += 2)
 			{
-				builder.Append(c);
-				if (secondChar)
+				var mod = Mod.AllMods.FirstOrDefault(x => x.Acronym == modString.Substring(i, 2));
+				if (mod != null)
 				{
-					builder.Append(',');
-					builder.Append(' ');
+					mods.Add(mod);
 				}
-				secondChar = !secondChar;
 			}
-			builder.Remove(builder.Length - 2, 2);
-			Enum.TryParse(builder.ToString(), true, out result);
-			return result;
+			
+			return mods.ToArray();
 		}
 	}
 }

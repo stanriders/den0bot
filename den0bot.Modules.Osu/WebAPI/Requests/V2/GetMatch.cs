@@ -1,13 +1,13 @@
-﻿// den0bot (c) StanR 2021 - MIT License
+﻿// den0bot (c) StanR 2023 - MIT License
 using den0bot.Modules.Osu.Types.V2;
 
 namespace den0bot.Modules.Osu.WebAPI.Requests.V2
 {
-	public class GetMatch : IRequest<Match, Match>
+	public class GetMatch : Request<Match, Match>
 	{
-		public APIVersion API => APIVersion.V2;
+		public override APIVersion API => APIVersion.V2;
 
-		public string Address => $"matches/{matchId}";
+		public override string Address => $"matches/{matchId}";
 
 		private readonly ulong matchId;
 
@@ -16,6 +16,6 @@ namespace den0bot.Modules.Osu.WebAPI.Requests.V2
 			this.matchId = matchId;
 		}
 
-		public Match Process(Match data) => data;
+		public override Match Process(Match data) => data;
 	}
 }

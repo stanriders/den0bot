@@ -1,4 +1,4 @@
-﻿// den0bot (c) StanR 2021 - MIT License
+﻿// den0bot (c) StanR 2023 - MIT License
 using System;
 using System.Threading.Tasks;
 using den0bot.Modules.Osu.Types.V2;
@@ -13,7 +13,7 @@ namespace den0bot.Modules.Osu.WebAPI
 	{
 		private static AccessToken v2AccessToken;
 
-		public static async Task<TOut> MakeApiRequest<TIn, TOut>(IRequest<TIn, TOut> request)
+		public static async Task<TIn> MakeApiRequest<TIn, TOut>(Request<TIn, TOut> request)
 		{
 			return request.API switch
 			{
@@ -23,7 +23,7 @@ namespace den0bot.Modules.Osu.WebAPI
 			};
 		}
 
-		private static async Task<TOut> V1ApiRequest<TIn, TOut>(IRequest<TIn, TOut> request)
+		private static async Task<TIn> V1ApiRequest<TIn, TOut>(Request<TIn, TOut> request)
 		{
 			if (string.IsNullOrEmpty(Config.Params.osuToken))
 			{
@@ -36,9 +36,7 @@ namespace den0bot.Modules.Osu.WebAPI
 				string json =
 					await Web.DownloadString($"https://osu.ppy.sh/api/{request.Address}&k={Config.Params.osuToken}");
 
-				var deserializedObject = JsonConvert.DeserializeObject<TIn>(json, new JsonSerializerSettings { DateTimeZoneHandling = DateTimeZoneHandling.Utc });
-				if (deserializedObject != null)
-					return request.Process(deserializedObject);
+				return JsonConvert.DeserializeObject<TIn>(json, new JsonSerializerSettings { DateTimeZoneHandling = DateTimeZoneHandling.Utc });
 			}
 			catch (Exception ex)
 			{
@@ -47,7 +45,32 @@ namespace den0bot.Modules.Osu.WebAPI
 			return default;
 		}
 
-		private static async Task<TOut> V2ApiRequest<TIn, TOut>(IRequest<TIn, TOut> request)
+		private static async Task<TIn> V2ApiRequest<TIn, TOut>(Request<TIn, TOut> request)
+		{
+			await RefreshToken();
+
+			if (v2AccessToken != null)
+			{
+				try
+				{
+					string json;
+
+					if (request.Body is not null)
+						json = await Web.PostJson($"https://osu.ppy.sh/api/v2/{request.Address}", request.Body, v2AccessToken.Token);
+					else
+						json = await Web.DownloadString($"https://osu.ppy.sh/api/v2/{request.Address}", v2AccessToken.Token);
+
+					return JsonConvert.DeserializeObject<TIn>(json, new JsonSerializerSettings { DateTimeZoneHandling = DateTimeZoneHandling.Utc });
+				}
+				catch (Exception ex)
+				{
+					Log.Error(ex.InnerMessageIfAny());
+				}
+			}
+			return default;
+		}
+
+		private static async Task RefreshToken()
 		{
 			if (v2AccessToken == null || v2AccessToken.Expired)
 			{
@@ -65,23 +88,6 @@ namespace den0bot.Modules.Osu.WebAPI
 					v2AccessToken = JsonConvert.DeserializeObject<AccessToken>(authJson);
 				}
 			}
-
-			if (v2AccessToken != null)
-			{
-				try
-				{
-					string json = await Web.DownloadString($"https://osu.ppy.sh/api/v2/{request.Address}", v2AccessToken.Token);
-
-					var deserializedObject = JsonConvert.DeserializeObject<TIn>(json, new JsonSerializerSettings { DateTimeZoneHandling = DateTimeZoneHandling.Utc });
-					if (deserializedObject != null)
-						return request.Process(deserializedObject);
-				}
-				catch (Exception ex)
-				{
-					Log.Error(ex.InnerMessageIfAny());
-				}
-			}
-			return default;
 		}
 	}
 }

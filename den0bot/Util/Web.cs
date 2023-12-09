@@ -1,4 +1,4 @@
-﻿// den0bot (c) StanR 2021 - MIT License
+﻿// den0bot (c) StanR 2023 - MIT License
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -81,6 +81,26 @@ namespace den0bot.Util
 			response.EnsureSuccessStatusCode();
 
 			return await response.Content.ReadAsStringAsync();
+		}
+
+		public static async Task<string> PostJson(string address, string json, string bearer)
+		{
+			var req = new HttpRequestMessage
+			{
+				Content = new StringContent(json, Encoding.UTF8, "application/json"),
+				Method = HttpMethod.Post,
+				RequestUri = new Uri(address),
+				Headers =
+				{
+					{HttpRequestHeader.Authorization.ToString(), $"Bearer {bearer}"}
+				}
+			};
+
+			var response = await client.SendAsync(req);
+			if (response.IsSuccessStatusCode)
+				return await response.Content.ReadAsStringAsync();
+
+			return string.Empty;
 		}
 	}
 }

@@ -1,14 +1,14 @@
-﻿// den0bot (c) StanR 2021 - MIT License
+﻿// den0bot (c) StanR 2023 - MIT License
 using System.Collections.Generic;
 using den0bot.Modules.Osu.Types.V2;
 
 namespace den0bot.Modules.Osu.WebAPI.Requests.V2
 {
-	public class GetUserScores : IRequest<List<Score>, List<Score>>
+	public class GetUserScores : Request<List<Score>, List<Score>>
 	{
-		public APIVersion API => APIVersion.V2;
+		public override APIVersion API => APIVersion.V2;
 
-		public string Address => $"users/{userId}/scores/{type}?include_fails={includeFails.ToString().ToLower()}&limit={limit}";
+		public override string Address => $"users/{userId}/scores/{type}?include_fails={includeFails.ToString().ToLower()}&limit={limit}";
 
 		private readonly uint userId;
 		private readonly string type;
@@ -23,7 +23,7 @@ namespace den0bot.Modules.Osu.WebAPI.Requests.V2
 			this.limit = limit;
 		}
 
-		public List<Score> Process(List<Score> data) => data;
+		public override List<Score> Process(List<Score> data) => data;
 	}
 
 	public enum ScoreType

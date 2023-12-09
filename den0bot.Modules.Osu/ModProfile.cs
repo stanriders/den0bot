@@ -1,4 +1,4 @@
-﻿// den0bot (c) StanR 2021 - MIT License
+﻿// den0bot (c) StanR 2023 - MIT License
 using System.Linq;
 using System.Threading.Tasks;
 using den0bot.DB;
@@ -47,12 +47,12 @@ namespace den0bot.Modules.Osu
 
 		private async Task<string> FormatPlayerInfo(string playerID)
 		{
-			Types.V2.User info = await WebApiHandler.MakeApiRequest(new GetUser(playerID));
+			Types.V2.User info = await new GetUser(playerID).Execute();
 
 			if (info == null)
 				return string.Empty;
 
-			var topscores = await WebApiHandler.MakeApiRequest(new GetUserScores(info.Id, ScoreType.Best, limit: topscores_to_show));
+			var topscores = await new GetUserScores(info.Id, ScoreType.Best, limit: topscores_to_show).Execute();
 			if (topscores == null || topscores.Count <= 0)
 				return string.Empty;
 

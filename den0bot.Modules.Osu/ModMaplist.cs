@@ -85,17 +85,17 @@ namespace den0bot.Modules.Osu
 				Beatmap map;
 				if (linkData.IsBeatmapset)
 				{
-					var set = await WebApiHandler.MakeApiRequest(new GetBeatmapSet(linkData.ID));
+					var set = await new GetBeatmapSet(linkData.ID).Execute();
 					map = set?.Beatmaps.Last();
 				}
 				else
 				{
-					map = await WebApiHandler.MakeApiRequest(new GetBeatmap(linkData.ID));
+					map = await new GetBeatmap(linkData.ID).Execute();
 				}
 
 				if (map != null)
 				{
-					string format = map.GetFormattedMapInfo(LegacyMods.NM);
+					string format = await map.GetFormattedMapInfo();
 					string caption = $"{maplist[num][0]} {format}";
 					if (caption.Length > 265) // 200 regular character limit + HTML
 					{

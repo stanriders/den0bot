@@ -1,13 +1,13 @@
-﻿// den0bot (c) StanR 2021 - MIT License
+﻿// den0bot (c) StanR 2023 - MIT License
 using den0bot.Modules.Osu.Types.V2;
 
 namespace den0bot.Modules.Osu.WebAPI.Requests.V2
 {
-	public class GetUser : IRequest<User, User>
+	public class GetUser : Request<User, User>
 	{
-		public APIVersion API => APIVersion.V2;
+		public override APIVersion API => APIVersion.V2;
 
-		public string Address => $"users/{username}";
+		public override string Address => $"users/{username}";
 
 		private readonly string username;
 
@@ -16,6 +16,6 @@ namespace den0bot.Modules.Osu.WebAPI.Requests.V2
 			this.username = username;
 		}
 
-		public User Process(User data) => data;
+		public override User Process(User data) => data;
 	}
 }
