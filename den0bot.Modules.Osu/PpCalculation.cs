@@ -49,7 +49,9 @@ namespace den0bot.Modules.Osu
 					Count300 = score.Statistics.Count300,
 					Count100 = score.Statistics.Count100,
 					Count50 = score.Statistics.Count50,
-					CountMiss = score.Statistics.CountMiss
+					CountMiss = score.Statistics.CountMiss,
+					CountGeki = score.Statistics.CountGeki ?? 0,
+					CountKatu = score.Statistics.CountKatu ?? 0
 				},
 				Mods = mods.ToArray()
 			});

@@ -82,10 +82,10 @@ namespace den0bot.Modules.Osu.Types.V2
 			public int Count300 { get; set; }
 
 			[JsonProperty("count_geki")]
-			public int CountGeki { get; set; }
+			public int? CountGeki { get; set; }
 
 			[JsonProperty("count_katu")]
-			public int CountKatu { get; set; }
+			public int? CountKatu { get; set; }
 
 			[JsonProperty("count_miss")]
 			public int CountMiss { get; set; }
