@@ -20,7 +20,7 @@ namespace den0bot.Util
 
 		public static Task<string> DownloadString(string address) => client.GetStringAsync(address);
 
-		public static async Task<string> DownloadString(string address, string bearer)
+		public static async Task<string> DownloadString(string address, string bearer, Dictionary<string, string> headers = null)
 		{
 			var request = new HttpRequestMessage
 			{
@@ -31,6 +31,10 @@ namespace den0bot.Util
 					{HttpRequestHeader.Authorization.ToString(), $"Bearer {bearer}"}
 				}
 			};
+
+			if (headers != null)
+				foreach (var header in headers)
+					request.Headers.Add(header.Key, header.Value);
 
 			var response = await client.SendAsync(request);
 			if (response.IsSuccessStatusCode)
@@ -83,7 +87,7 @@ namespace den0bot.Util
 			return await response.Content.ReadAsStringAsync();
 		}
 
-		public static async Task<string> PostJson(string address, string json, string bearer)
+		public static async Task<string> PostJson(string address, string json, string bearer, Dictionary<string, string> headers = null)
 		{
 			var req = new HttpRequestMessage
 			{
@@ -95,6 +99,10 @@ namespace den0bot.Util
 					{HttpRequestHeader.Authorization.ToString(), $"Bearer {bearer}"}
 				}
 			};
+
+			if (headers != null)
+				foreach (var header in headers)
+					req.Headers.Add(header.Key, header.Value);
 
 			var response = await client.SendAsync(req);
 			if (response.IsSuccessStatusCode)

@@ -1,9 +1,7 @@
-﻿// den0bot (c) StanR 2023 - MIT License
+﻿// den0bot (c) StanR 2024 - MIT License
 using System.Linq;
-using den0bot.Modules.Osu.Types.Enums;
 using den0bot.Modules.Osu.Types.V2;
 using Newtonsoft.Json;
-using Pettanko;
 
 namespace den0bot.Modules.Osu.WebAPI.Requests.V2
 {

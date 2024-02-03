@@ -1,5 +1,6 @@
 ﻿// den0bot (c) StanR 2023 - MIT License
 using System;
+using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using den0bot.Modules.Osu.Types.Enums;
@@ -112,12 +113,26 @@ namespace den0bot.Modules.Osu.Types.V2
 
 		public double ModdedBPM(Mod[] mods)
 		{
-			if (mods.Any(x=> x is ModDoubleTime) /*|| mods.HasFlag(LegacyMods.NC))*/)
+			if (mods.Any(x=> x.Acronym is "DT" or "NC") /*|| mods.HasFlag(LegacyMods.NC))*/)
 			{
+				var dt = mods.FirstOrDefault(x => x.Acronym is "DT" or "NC");
+				if (dt?.Settings.ContainsKey("speed_change") ?? false)
+				{
+					var speedChange = double.Parse(dt.Settings["speed_change"], CultureInfo.InvariantCulture); 
+					return BPM * speedChange;
+				}
+				
 				return BPM * 1.5;
 			}
-			else if (mods.Any(x => x is ModHalfTime) )
+			else if (mods.Any(x => x.Acronym == "HT") )
 			{
+				var ht = mods.FirstOrDefault(x => x.Acronym == "HT");
+				if (ht?.Settings.ContainsKey("speed_change") ?? false)
+				{
+					var speedChange = double.Parse(ht.Settings["speed_change"], CultureInfo.InvariantCulture);
+					return BPM * speedChange;
+				}
+
 				return BPM * 0.75;
 			}
 			else
@@ -128,11 +143,11 @@ namespace den0bot.Modules.Osu.Types.V2
 
 		public double ModdedCS(Mod[] mods)
 		{
-			if (mods.Any(x => x is ModHardRock))
+			if (mods.Any(x => x.Acronym == "HR"))
 			{
 				return CS * 1.3;
 			}
-			else if (mods.Any(x => x is ModEasy))
+			else if (mods.Any(x => x.Acronym == "EZ"))
 			{
 				return CS * 0.5;
 			}
@@ -146,24 +161,44 @@ namespace den0bot.Modules.Osu.Types.V2
 		{
 			double finalAR = AR;
 
-			if (mods.Any(x => x is ModHardRock))
+			if (mods.Any(x => x.Acronym == "HR"))
 			{
 				finalAR = Math.Min(finalAR * 1.4, 10);
 			}
-			else if (mods.Any(x => x is ModEasy))
+			else if (mods.Any(x => x.Acronym == "EZ"))
 			{
 				finalAR *= 0.5;
 			}
 
 			double ms = (11700.0 - (900 * finalAR)) / 6.0;
-			if (mods.Any(x => x is ModDoubleTime) /*|| mods.HasFlag(LegacyMods.NC)*/)
+			if (mods.Any(x => x.Acronym is "DT" or "NC"))
 			{
-				ms /= 1.5;
+				var dt = mods.FirstOrDefault(x => x.Acronym is "DT" or "NC");
+				if (dt?.Settings.ContainsKey("speed_change") ?? false)
+				{
+					var speedChange = double.Parse(dt.Settings["speed_change"], CultureInfo.InvariantCulture);
+					ms /= speedChange;
+				}
+				else
+				{
+					ms /= 1.5;
+				}
+
 				finalAR = (11700.0 - (6 * ms)) / 900.0;
 			}
-			else if (mods.Any(x => x is ModHalfTime))
+			else if (mods.Any(x => x.Acronym == "HT"))
 			{
-				ms /= 0.75;
+				var ht = mods.FirstOrDefault(x => x.Acronym == "HT");
+				if (ht?.Settings.ContainsKey("speed_change") ?? false)
+				{
+					var speedChange = double.Parse(ht.Settings["speed_change"], CultureInfo.InvariantCulture);
+					ms /= speedChange;
+				}
+				else
+				{
+					ms /= 0.75;
+				}
+
 				finalAR = (11700.0 - (6 * ms)) / 900.0;
 			}
 
@@ -174,37 +209,71 @@ namespace den0bot.Modules.Osu.Types.V2
 		{
 			double finalOD = OD;
 
-			if (mods.Any(x => x is ModHardRock))
+			if (mods.Any(x => x.Acronym == "HR"))
 			{
 				finalOD = Math.Min(finalOD * 1.4, 10);
 			}
-			else if (mods.Any(x => x is ModEasy))
+			else if (mods.Any(x => x.Acronym == "EZ"))
 			{
 				finalOD *= 0.5;
 			}
 
 			double ms = 79.5 - (6 * finalOD);
-			if (mods.Any(x => x is ModDoubleTime) /*|| mods.HasFlag(LegacyMods.NC)*/)
+			if (mods.Any(x => x.Acronym is "DT" or "NC"))
 			{
-				finalOD = (79.5 - (ms / 1.5)) / 6;
+				var dt = mods.FirstOrDefault(x => x.Acronym is "DT" or "NC");
+				if (dt?.Settings.ContainsKey("speed_change") ?? false)
+				{
+					var speedChange = double.Parse(dt.Settings["speed_change"], CultureInfo.InvariantCulture);
+					finalOD = (79.5 - ms / speedChange) / 6;
+				}
+				else
+				{
+					finalOD = (79.5 - (ms / 1.5)) / 6;
+				}
 			}
-			else if (mods.Any(x => x is ModHalfTime))
+			else if (mods.Any(x => x.Acronym == "HT"))
 			{
-				finalOD = (79.5 - (ms / 0.75)) / 6;
+				var ht = mods.FirstOrDefault(x => x.Acronym == "HT");
+				if (ht?.Settings.ContainsKey("speed_change") ?? false)
+				{
+					var speedChange = double.Parse(ht.Settings["speed_change"], CultureInfo.InvariantCulture);
+					finalOD = (79.5 - ms / speedChange) / 6;
+				}
+				else
+				{
+					finalOD = (79.5 - (ms / 0.75)) / 6;
+				}
 			}
 			return finalOD;
 		}
 
 		public TimeSpan ModdedDrainLength(Mod[] mods)
 		{
-			if (mods.Any(x => x is ModDoubleTime)/*|| mods.HasFlag(LegacyMods.NC)*/)
+			if (mods.Any(x => x.Acronym is "DT" or "NC"))
 			{
-				return TimeSpan.FromSeconds((long)(DrainLength * 0.6666666));
+				var dt = mods.FirstOrDefault(x => x.Acronym is "DT" or "NC");
+				if (dt?.Settings.ContainsKey("speed_change") ?? false)
+				{
+					var speedChange = double.Parse(dt.Settings["speed_change"], CultureInfo.InvariantCulture);
+					return TimeSpan.FromSeconds((long)(DrainLength / speedChange));
+				}
+
+				return TimeSpan.FromSeconds((long)(DrainLength / 1.5));
 			}
-			else if (mods.Any(x => x is ModHalfTime))
+
+			if (mods.Any(x => x.Acronym == "HT"))
 			{
-				return TimeSpan.FromSeconds((long)(DrainLength * 1.333333));
+				var ht = mods.FirstOrDefault(x => x.Acronym == "HT");
+				if (ht?.Settings.ContainsKey("speed_change") ?? false)
+				{
+					var speedChange = double.Parse(ht.Settings["speed_change"], CultureInfo.InvariantCulture);
+					return TimeSpan.FromSeconds((long)(DrainLength / speedChange));
+				}
+
+				return TimeSpan.FromSeconds((long)(DrainLength / 0.75));
 			}
+
 			return TimeSpan.FromSeconds(DrainLength);
 		}
 	}

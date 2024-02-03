@@ -31,10 +31,10 @@ namespace den0bot.Modules.Osu
 			difficultyAttributes.SliderCount = beatmap.Sliders;
 			difficultyAttributes.SpinnerCount = beatmap.Spinners;
 
-			var mods = new List<Mod>();
+			var mods = new List<Pettanko.Mod>();
 			foreach (var mod in score.Mods)
 			{
-				var pettankoMod = Mod.AllMods.FirstOrDefault(x => x.Acronym == mod);
+				var pettankoMod = Pettanko.Mod.AllMods.FirstOrDefault(x => x.Acronym == mod);
 				if (pettankoMod != null)
 					mods.Add(pettankoMod);
 			}
@@ -52,6 +52,38 @@ namespace den0bot.Modules.Osu
 					CountMiss = score.Statistics.CountMiss,
 					CountGeki = score.Statistics.CountGeki ?? 0,
 					CountKatu = score.Statistics.CountKatu ?? 0
+				},
+				Mods = mods.ToArray()
+			});
+
+			return perfAttributes.Total;
+		}
+
+		public static double CalculatePerformance(Types.V2.LazerScore score, OsuDifficultyAttributes difficultyAttributes, Beatmap beatmap)
+		{
+			difficultyAttributes.HitCircleCount = beatmap.Circles;
+			difficultyAttributes.SliderCount = beatmap.Sliders;
+			difficultyAttributes.SpinnerCount = beatmap.Spinners;
+
+			var mods = new List<Pettanko.Mod>();
+			foreach (var mod in score.Mods)
+			{
+				var pettankoMod = Pettanko.Mod.AllMods.FirstOrDefault(x => x.Acronym == mod.Acronym);
+				if (pettankoMod != null)
+					mods.Add(pettankoMod);
+			}
+
+			var perfAttributes = Pettanko.Pettanko.Calculate(difficultyAttributes, new Pettanko.Score
+			{
+				Accuracy = score.Accuracy / 100.0,
+				MaxCombo = score.Combo,
+				RulesetId = 0,
+				Statistics = new Statistics
+				{
+					Count300 = score.Statistics.Count300,
+					Count100 = score.Statistics.Count100,
+					Count50 = score.Statistics.Count50,
+					CountMiss = score.Statistics.CountMiss
 				},
 				Mods = mods.ToArray()
 			});

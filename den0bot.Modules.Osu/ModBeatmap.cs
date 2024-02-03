@@ -1,7 +1,6 @@
-﻿// den0bot (c) StanR 2023 - MIT License
+﻿// den0bot (c) StanR 2024 - MIT License
 //#define PARSE_PHOTOS
 using den0bot.Modules.Osu.Types.V2;
-using den0bot.Modules.Osu.WebAPI;
 using den0bot.Modules.Osu.WebAPI.Requests.V2;
 using den0bot.Types;
 using den0bot.Util;
@@ -13,9 +12,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using den0bot.Modules.Osu.Parsers;
 using den0bot.Modules.Osu.Types;
-using den0bot.Modules.Osu.Types.Enums;
 using IronOcr;
-using Pettanko;
 using Serilog;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.InputFiles;

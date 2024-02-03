@@ -1,5 +1,6 @@
 ﻿// den0bot (c) StanR 2023 - MIT License
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using den0bot.Modules.Osu.Types.V2;
 using den0bot.Modules.Osu.Util;
@@ -56,9 +57,9 @@ namespace den0bot.Modules.Osu.WebAPI
 					string json;
 
 					if (request.Body is not null)
-						json = await Web.PostJson($"https://osu.ppy.sh/api/v2/{request.Address}", request.Body, v2AccessToken.Token);
+						json = await Web.PostJson($"https://osu.ppy.sh/api/v2/{request.Address}", request.Body, v2AccessToken.Token, new Dictionary<string, string> {{ "x-api-version", "20240130" } });
 					else
-						json = await Web.DownloadString($"https://osu.ppy.sh/api/v2/{request.Address}", v2AccessToken.Token);
+						json = await Web.DownloadString($"https://osu.ppy.sh/api/v2/{request.Address}", v2AccessToken.Token, new Dictionary<string, string> { { "x-api-version", "20240130" } });
 
 					return JsonConvert.DeserializeObject<TIn>(json, new JsonSerializerSettings { DateTimeZoneHandling = DateTimeZoneHandling.Utc });
 				}

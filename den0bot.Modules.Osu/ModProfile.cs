@@ -60,11 +60,11 @@ namespace den0bot.Modules.Osu
 
 			for (int i = 0; i < topscores.Count; i++)
 			{
-				Score score = topscores[i];
+				LazerScore score = topscores[i];
 
 				string mods = string.Empty;
 				if (score.Mods.Length > 0)
-					mods = $" +{string.Join("", score.Mods)}";
+					mods = $" +{string.Join("", score.Mods.Where(x=> x.Acronym != "CL").Select(x=> x.Acronym))}";
 
 				// 1. 123pp | Artist - Title [Diffname] +Mods (Rank, Accuracy%)
 				string mapName = $"{score.BeatmapSet.Artist} - {score.BeatmapSet.Title} [{score.Beatmap.Version}]".FilterToHTML();
