@@ -2,21 +2,18 @@
 #define GPT_SBERBANK
 //#define GPT_YANDEX
 //#define GPT_TALKONLY
-// den0bot (c) StanR 2021 - MIT License
+// den0bot (c) StanR 2024 - MIT License
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net.Http.Headers;
-using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading;
 using System.Threading.Tasks;
 using den0bot.Types;
 using den0bot.Types.Answers;
 using den0bot.Util;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
-using Serilog;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 
@@ -24,6 +21,8 @@ namespace den0bot.Modules
 {
 	internal class ModShmalala : IModule, IReceiveAllMessages, IReceiveShutdown
 	{
+		private readonly ILogger<IModule> logger;
+
 		// Based on https://github.com/IrcDotNet/IrcDotNet/tree/master/samples/IrcDotNet.Samples.MarkovTextBot
 		private class MarkovChain
 		{
@@ -197,8 +196,9 @@ namespace den0bot.Modules
 
 		private MarkovChain markovChain = new();
 
-		public ModShmalala()
+		public ModShmalala(ILogger<IModule> logger) : base(logger)
 		{
+			this.logger = logger;
 			AddCommands(new [] 
 			{
 				new Command
@@ -404,7 +404,7 @@ namespace den0bot.Modules
 			return string.Empty;
 		}
 #elif GPT_SBERBANK
-		private static async Task<string> GetGptResponse(string input)
+		private async Task<string> GetGptResponse(string input)
 		{
 			try
 			{
@@ -428,7 +428,7 @@ namespace den0bot.Modules
 			}
 			catch (Exception e)
 			{
-				Log.Warning(e, $"GPT error: {e}");
+				logger.LogWarning(e, $"GPT error: {e}");
 			}
 
 			return string.Empty;

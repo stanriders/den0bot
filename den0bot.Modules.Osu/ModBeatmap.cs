@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using den0bot.Modules.Osu.Parsers;
 using den0bot.Modules.Osu.Types;
 using IronOcr;
+using Microsoft.Extensions.Logging;
 using Serilog;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.ReplyMarkups;
@@ -22,6 +23,8 @@ namespace den0bot.Modules.Osu
 {
 	public class ModBeatmap : OsuModule, IReceiveAllMessages, IReceiveCallbacks
 	{
+		private readonly ILogger<IModule> logger;
+
 		private readonly InlineKeyboardMarkup buttons = new(
 			new[] {new InlineKeyboardButton("Preview") {CallbackData = "preview"},}
 		);
@@ -56,7 +59,7 @@ namespace den0bot.Modules.Osu
 				}
 				catch (Exception e)
 				{
-					Log.Error(e.InnerMessageIfAny());
+					logger.LogError(e.InnerMessageIfAny());
 				}
 				return;
 			}
@@ -106,7 +109,7 @@ namespace den0bot.Modules.Osu
 				}
 				catch (Exception e)
 				{
-					Log.Error(e.InnerMessageIfAny());
+					logger.LogError(e.InnerMessageIfAny());
 					return string.Empty;
 				}
 
@@ -166,6 +169,11 @@ namespace den0bot.Modules.Osu
 					ChatBeatmapCache.StoreLastMap(chatId, cachedBeatmap);
 				}
 			}
+		}
+
+		public ModBeatmap(ILogger<IModule> logger) : base(logger)
+		{
+			this.logger = logger;
 		}
 	}
 }

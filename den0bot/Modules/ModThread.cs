@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using den0bot.Types;
 using den0bot.Types.Answers;
 using den0bot.Util;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Serilog;
 using Telegram.Bot.Types.Enums;
@@ -16,6 +17,8 @@ namespace den0bot.Modules
 {
 	internal class ModThread : IModule
 	{
+		private readonly ILogger<IModule> logger;
+
 		private class Board
 		{
 			public class Thread
@@ -53,8 +56,9 @@ namespace den0bot.Modules
 		private const int max_post_amount = 15;
 		private const int default_post_amount = 1;
 
-		public ModThread()
+		public ModThread(ILogger<IModule> logger) : base(logger)
 		{
+			this.logger = logger;
 			AddCommand(new Command
 			{
 				Name = "thread",
@@ -90,13 +94,13 @@ namespace den0bot.Modules
 					string subject = o["subject"].ToString().ToLower();
 					if (subject == ("osu!thread"))
 					{
-						Log.Information(this, subject + " | " + o["num"].ToString());
+						logger.LogInformation(this, subject + " | " + o["num"].ToString());
 						return o["num"].Value<int>();
 					}
 
 				}
 			}
-			catch (Exception ex) { Log.Error(this, ex.InnerMessageIfAny()); }
+			catch (Exception ex) { logger.LogError(this, ex.InnerMessageIfAny()); }
 
 			return 0;
 		}
@@ -133,7 +137,7 @@ namespace den0bot.Modules
 				Board thread = JsonConvert.DeserializeObject<Board>(data);
 				if (thread == null || thread.Threads.Count <= 0 || thread.Threads[0].Posts.Count <= 0)
 				{
-					Log.Error("thread == null || thread.Threads.Count <= 0 || thread.Threads[0].Posts.Count <= 0");
+					logger.LogError("thread == null || thread.Threads.Count <= 0 || thread.Threads[0].Posts.Count <= 0");
 
 					return "Тред не нашелся";
 				}
@@ -156,7 +160,7 @@ namespace den0bot.Modules
 
 				return result + $"[<a href=\"https://2ch.hk/a/res/{threadID}.html\">Thread</a>]";
 			}
-			catch (Exception ex) { Log.Error(ex, ex.InnerMessageIfAny()); }
+			catch (Exception ex) { logger.LogError(ex, ex.InnerMessageIfAny()); }
 
 			return string.Empty;
 		}

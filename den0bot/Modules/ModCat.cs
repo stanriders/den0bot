@@ -7,10 +7,11 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using den0bot.Util;
 using den0bot.Types;
+using Microsoft.Extensions.Logging;
 
 namespace den0bot.Modules
 {
-	internal class ModCat : IModule, IReceiveAllMessages
+	internal class ModCat(ILogger<IModule> logger) : IModule(logger), IReceiveAllMessages
 	{
 		private readonly string api_link = "https://api.thecatapi.com/v1/images/search?size=med&type=jpg,png&api_key=" + Config.Params.CatToken;
 
@@ -68,5 +69,6 @@ namespace den0bot.Modules
 				}
 			}
 		}
+
 	}
 }

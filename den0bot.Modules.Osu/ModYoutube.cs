@@ -7,6 +7,7 @@ using den0bot.Modules.Osu.Util;
 using den0bot.Types;
 using den0bot.Types.Answers;
 using den0bot.Util;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Serilog;
 
@@ -20,7 +21,7 @@ namespace den0bot.Modules.Osu
 		private const double check_interval = 1.0; // minutes
 		private const int default_score_amount = 3;
 
-		public ModYoutube()
+		public ModYoutube(ILogger<IModule> logger) : base(logger)
 		{
 			AddCommands(new []
 			{

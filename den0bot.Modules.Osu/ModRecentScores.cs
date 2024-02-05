@@ -16,16 +16,19 @@ using den0bot.Types;
 using den0bot.Types.Answers;
 using Serilog;
 using Score = den0bot.Modules.Osu.Types.V2.Score;
+using Microsoft.Extensions.Logging;
 
 namespace den0bot.Modules.Osu
 {
 	public class ModRecentScores : OsuModule
 	{
+		private readonly ILogger<IModule> logger;
 		private const int recent_amount = 5;
 		private const int score_amount = 5;
 
-		public ModRecentScores()
+		public ModRecentScores(ILogger<IModule> logger) : base(logger)
 		{
+			this.logger = logger;
 			AddCommands(new[]
 			{
 				new Command
@@ -328,7 +331,7 @@ namespace den0bot.Modules.Osu
 			}
 		}
 
-		private static async Task<string> FormatScore(Score score, Beatmap beatmap, bool useAgo)
+		private async Task<string> FormatScore(Score score, Beatmap beatmap, bool useAgo)
 		{
 			string mods = string.Empty;
 			if (score.Mods.Length > 0)
@@ -390,7 +393,7 @@ namespace den0bot.Modules.Osu
 				}
 				catch (Exception e)
 				{
-					Log.Error($"Oppai failed: {e.InnerMessageIfAny()}");
+					logger.LogError($"Oppai failed: {e.InnerMessageIfAny()}");
 				}
 			}
 
@@ -408,7 +411,7 @@ namespace den0bot.Modules.Osu
 				$"{position}{date}{completion}{Environment.NewLine}{Environment.NewLine}";
 		}
 
-		private static async Task<string> FormatLazerScore(LazerScore score, Beatmap beatmap, bool useAgo)
+		private async Task<string> FormatLazerScore(LazerScore score, Beatmap beatmap, bool useAgo)
 		{
 			string mods = string.Empty;
 			if (score.Mods.Length > 0)
@@ -497,7 +500,7 @@ namespace den0bot.Modules.Osu
 				}
 				catch (Exception e)
 				{
-					Log.Error($"Oppai failed: {e.InnerMessageIfAny()}");
+					logger.LogError($"Oppai failed: {e.InnerMessageIfAny()}");
 				}
 			}
 

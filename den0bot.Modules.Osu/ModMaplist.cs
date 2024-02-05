@@ -16,6 +16,7 @@ using den0bot.Types;
 using den0bot.Modules.Osu.Util;
 using den0bot.Types.Answers;
 using Serilog;
+using Microsoft.Extensions.Logging;
 
 namespace den0bot.Modules.Osu
 {
@@ -26,7 +27,7 @@ namespace den0bot.Modules.Osu
 
 		private bool isEnabled;
 
-		public ModMaplist()
+		public ModMaplist(ILogger<IModule> logger) : base(logger)
 		{
 			AddCommand(new Command
 			{

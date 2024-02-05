@@ -6,11 +6,14 @@ using den0bot.Types.Answers;
 using Newtonsoft.Json;
 using Message = Telegram.Bot.Types.Message;
 using Serilog;
+using Microsoft.Extensions.Logging;
 
 namespace den0bot.Modules
 {
 	internal class ModWeather : IModule
 	{
+		private readonly ILogger<IModule> logger;
+
 		private class WeatherResponse
 		{
 			public class LocationData
@@ -49,8 +52,9 @@ namespace den0bot.Modules
 		}
 		private readonly string apiBase = "https://api.weatherapi.com/v1/current.json?key=" + Config.Params.WeatherToken;
 
-		public ModWeather()
+		public ModWeather(ILogger<IModule> logger) : base(logger)
 		{
+			this.logger = logger;
 			AddCommand(new Command
 			{
 				Names = { "weather", "w" },
@@ -78,7 +82,7 @@ namespace den0bot.Modules
 			}
 			catch (Exception ex)
 			{
-				Log.Error(ex, ex.InnerMessageIfAny());
+				logger.LogError(ex, ex.InnerMessageIfAny());
 				return new TextCommandAnswer(Localization.Get("generic_fail", msg.Chat.Id));
 			}
 

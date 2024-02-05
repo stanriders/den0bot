@@ -7,6 +7,7 @@ using den0bot.Analytics.Data.Types;
 using den0bot.Types;
 using den0bot.Types.Answers;
 using den0bot.Util;
+using Microsoft.Extensions.Logging;
 
 namespace den0bot.Modules
 {
@@ -17,7 +18,7 @@ namespace den0bot.Modules
 		private DateTime nextFlush = DateTime.Now;
 		private const int buffer_flush_interval = 1; // minutes
 
-		public ModAnalytics()
+		public ModAnalytics(ILogger<IModule> logger) : base(logger)
 		{
 			AddCommands(new[] 
 			{
@@ -97,15 +98,13 @@ namespace den0bot.Modules
 
 		public static async Task AddGirl(long chatId, long userId)
 		{
-			await using (var db = new AnalyticsDatabase())
+			await using var db = new AnalyticsDatabase();
+			await db.Girls.AddAsync(new Girl
 			{
-				await db.Girls.AddAsync(new Girl
-				{
-					ChatId = chatId, 
-					UserId = userId
-				});
-				await db.SaveChangesAsync();
-			}
+				ChatId = chatId, 
+				UserId = userId
+			});
+			await db.SaveChangesAsync();
 		}
 
 		public void Shutdown()

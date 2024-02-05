@@ -1,8 +1,8 @@
-﻿// den0bot (c) StanR 2021 - MIT License
+﻿// den0bot (c) StanR 2024 - MIT License
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
-using Serilog;
 using Telegram.Bot.Types;
 
 namespace den0bot.Types
@@ -13,16 +13,18 @@ namespace den0bot.Types
 		private Dictionary<string, string> config = new();
 
 		private readonly List<Command> commands = new();
+		private readonly ILogger<IModule> logger;
 
-		protected IModule()
+		protected IModule(ILogger<IModule> logger)
 		{
+			this.logger = logger;
 			configFile = $"./Modules/{GetType().Name}.json";
 		}
 
 		public virtual bool Init()
 		{
 			LoadConfig();
-			Log.Debug("Enabled {Module}", GetType());
+			logger.LogDebug("Enabled {Module}", GetType());
 			return true;
 		}
 

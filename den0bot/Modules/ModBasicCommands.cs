@@ -6,12 +6,13 @@ using den0bot.Util;
 using System.Linq;
 using den0bot.Types;
 using den0bot.Types.Answers;
+using Microsoft.Extensions.Logging;
 
 namespace den0bot.Modules
 {
 	internal class ModBasicCommands : IModule
 	{
-		public ModBasicCommands()
+		public ModBasicCommands(ILogger<IModule> logger) : base(logger)
 		{
 			AddCommands(new[]
 			{

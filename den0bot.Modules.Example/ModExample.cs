@@ -3,12 +3,13 @@ using den0bot.Types;
 using System.Threading.Tasks;
 using den0bot.Types.Answers;
 using Telegram.Bot.Types;
+using Microsoft.Extensions.Logging;
 
 namespace den0bot.Modules.Example
 {
 	public class ModExample : IModule, IReceiveAllMessages
 	{
-		public ModExample()
+		public ModExample(ILogger<IModule> logger) : base(logger)
 		{
 			AddCommands(new[] 
 			{

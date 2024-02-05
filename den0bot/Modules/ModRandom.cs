@@ -11,12 +11,13 @@ using den0bot.Util;
 using Microsoft.EntityFrameworkCore;
 using den0bot.Types;
 using den0bot.Types.Answers;
+using Microsoft.Extensions.Logging;
 
 namespace den0bot.Modules
 {
 	internal class ModRandom : IModule
 	{
-		public ModRandom()
+		public ModRandom(ILogger<IModule> logger) : base(logger)
 		{
 			AddCommands(new[]
 			{

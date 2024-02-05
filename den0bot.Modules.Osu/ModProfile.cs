@@ -13,13 +13,14 @@ using den0bot.Modules.Osu.WebAPI;
 using Microsoft.EntityFrameworkCore;
 using den0bot.Types;
 using den0bot.Types.Answers;
+using Microsoft.Extensions.Logging;
 
 namespace den0bot.Modules.Osu
 {
 	public class ModProfile : OsuModule, IReceiveAllMessages
 	{
 		private readonly int topscores_to_show = 5;
-		public ModProfile()
+		public ModProfile(ILogger<IModule> logger) : base(logger)
 		{
 			AddCommands(new []
 			{

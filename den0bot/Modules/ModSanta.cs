@@ -11,6 +11,7 @@ using den0bot.DB.Types;
 using Microsoft.EntityFrameworkCore;
 using den0bot.Types;
 using den0bot.Types.Answers;
+using Microsoft.Extensions.Logging;
 
 namespace den0bot.Modules
 {
@@ -21,7 +22,7 @@ namespace den0bot.Modules
 		{
 			"StanRiders"
 		};
-		public ModSanta()
+		public ModSanta(ILogger<IModule> logger) : base(logger)
 		{
 			AddCommands(new[]
 			{

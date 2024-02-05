@@ -13,6 +13,7 @@ using den0bot.Util;
 using Microsoft.EntityFrameworkCore;
 using den0bot.Types;
 using den0bot.Types.Answers;
+using Microsoft.Extensions.Logging;
 
 namespace den0bot.Modules
 {
@@ -48,7 +49,7 @@ namespace den0bot.Modules
 		private const int delete_rating_threshold = -10; // lowest rating a girl can have before completely removing her from db
 		private const int max_reroll_iterations = 10;
 
-		public ModGirls()
+		public ModGirls(ILogger<IModule> logger) : base(logger)
 		{
 			AddCommands(new[]
 			{

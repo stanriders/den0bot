@@ -4,12 +4,13 @@ using Telegram.Bot.Types;
 using System.Threading.Tasks;
 using System.Text.RegularExpressions;
 using den0bot.Types;
+using Microsoft.Extensions.Logging;
 
 namespace den0bot.Modules
 {
-	internal class ModVxtwitter : IModule, IReceiveAllMessages
+	internal class ModVxtwitter(ILogger<IModule> logger) : IModule(logger), IReceiveAllMessages
 	{
-        private readonly Regex regex = new(@".+\/\/twitter\.com\/(.+)", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+        private readonly Regex regex = new(@".+\/\/(twitter|x)\.com\/(.+)$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 		public async Task ReceiveMessage(Message message)
 		{
 			if (string.IsNullOrEmpty(message.Text))

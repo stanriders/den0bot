@@ -1,18 +1,18 @@
-﻿// den0bot (c) StanR 2023 - MIT License
+﻿// den0bot (c) StanR 2024 - MIT License
 using System;
 using System.Collections.Generic;
-using System.Globalization;
-using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Threading;
+using System.Threading.Tasks;
 using den0bot.DB;
 using den0bot.Events;
 using den0bot.Modules;
 using den0bot.Util;
 using den0bot.Types;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
-using Serilog;
 using Telegram.Bot.Types.Enums;
 using MessageEventArgs = den0bot.Events.MessageEventArgs;
 using Serilog.Context;
@@ -20,80 +20,40 @@ using Message = Telegram.Bot.Types.Message;
 
 namespace den0bot
 {
-	public class Bot
+	public class Bot : BackgroundService
 	{
-		private readonly List<IModule> modules = new();
-		private readonly string module_path = Path.GetDirectoryName(AppContext.BaseDirectory) + Path.DirectorySeparatorChar + "Modules";
 		public const char command_trigger = '/';
-
-		public static string[] Modules { get; private set; }
 
 		private static bool shouldShutdown;
 		private static bool shouldCrash;
+
+		private readonly List<IModule> modules;
+		private readonly ILogger<Bot> logger;
+		private readonly IHostApplicationLifetime lifetime;
+
 		public static void Shutdown(bool crash = false) { shouldShutdown = true; shouldCrash = crash; }
 
-		public static int Main()
+		public Bot(ILogger<Bot> logger, IHostApplicationLifetime lifetime, IServiceProvider serviceProvider)
 		{
-			Thread.CurrentThread.CurrentCulture = new CultureInfo("ru-RU", false);
+			this.logger = logger;
+			this.lifetime = lifetime;
 
-			Log.Logger = new LoggerConfiguration()
-#if DEBUG
-				.MinimumLevel.Debug()
-#endif
-				.Enrich.WithProperty("Application", "den0bot")
-				.Enrich.FromLogContext()
-				.WriteTo.File(@"./logs/log.txt", rollingInterval: RollingInterval.Month, retainedFileCountLimit: 6)
-				.WriteTo.Console()
-				.WriteTo.Seq("http://seq:5341")
-				.CreateLogger();
-
-			AppDomain.CurrentDomain.UnhandledException += (s, e) => { Log.Error(e.ExceptionObject as Exception, (e.ExceptionObject as Exception)?.Message); };
-
-			using var db = new Database();
-			db.Database.EnsureCreated();
-
-			var bot = new Bot();
-			return bot.Run();
+			modules = serviceProvider.GetServices<IModule>().ToList();
 		}
 
-		public int Run()
+		public override Task StartAsync(CancellationToken cancellationToken)
 		{
-			Log.Information("________________");
-			if (!LoadModules())
-				return 1;
-
-			Log.Information("Done!");
+			LoadModules();
 
 			API.OnMessage += ProcessMessage;
 			API.OnMessageEdit += ProcessMessageEdit;
 			API.OnCallback += ProcessCallback;
 
-			if (API.Connect())
-			{
-				Log.Information("Started thinking...");
-				Think();
-			}
-			else
-			{
-				Log.Error("Can't connect to Telegram API!");
-				return 1;
-			}
-
-			Log.Information("Exiting...");
-			return 0;
+			return base.StartAsync(cancellationToken);
 		}
 
-		private void Think()
+		public override Task StopAsync(CancellationToken cancellationToken)
 		{
-			while (!shouldShutdown)
-			{
-				foreach (IModule m in modules)
-				{
-					m.Think();
-				}
-				Thread.Sleep(100);
-			}
-
 			// shutdown
 			foreach (IModule m in modules)
 			{
@@ -105,53 +65,38 @@ namespace den0bot
 			{
 				throw new Exception("Shutdown with crash was initiated by owner");
 			}
+
+			logger.LogInformation("Exiting...");
+
+			return base.StopAsync(cancellationToken);
 		}
 
-		private bool LoadModules()
+		protected override async Task ExecuteAsync(CancellationToken stoppingToken)
 		{
-			Log.Information("Starting modules...");
-			if (Config.Params.Modules != null)
+			while (!shouldShutdown && !stoppingToken.IsCancellationRequested)
 			{
-				List<Assembly> allAssemblies = new List<Assembly>();
-				if (Directory.Exists(module_path))
-					foreach (string dll in Directory.GetFiles(module_path, "*.dll"))
-						allAssemblies.Add(Assembly.LoadFile(dll));
-
-				foreach (var moduleName in Config.Params.Modules)
+				foreach (IModule m in modules)
 				{
-					// if it's local
-					Type type = Type.GetType($"den0bot.Modules.{moduleName}", false);
-					if (type == null)
-					{
-						// if its not local
-						foreach (var ass in allAssemblies)
-						{
-							// we only allow subclasses of IModule and only if they're in the config
-							type = ass.GetTypes().FirstOrDefault(t =>
-								t.IsPublic && t.IsSubclassOf(typeof(IModule)) && t.Name == moduleName);
-
-							if (type != null)
-								break;
-						}
-					}
-
-					if (type != null)
-					{
-						var module = (IModule) Activator.CreateInstance(type);
-						if (module != null && module.Init())
-							modules.Add(module);
-					}
-					else
-						Log.Error($"{moduleName} not found!");
+					m.Think();
 				}
-
-				Modules = modules.Select(x => x.GetType().Name).ToArray();
-
-				return true;
+				await Task.Delay(100, stoppingToken);
 			}
 
-			Log.Error("Module list not found!");
-			return false;
+			lifetime.StopApplication();
+		}
+		
+		private void LoadModules()
+		{
+			logger.LogInformation("Starting modules...");
+			foreach (var module in modules)
+			{
+				if (!module.Init())
+				{
+					modules.Remove(module);
+				}
+			}
+			
+			logger.LogInformation("Done!");
 		}
 
 		private static bool TryEvent(long chatID, out string text)
@@ -222,6 +167,7 @@ namespace den0bot
 
 			foreach (IModule module in modules)
 			{
+				// ReSharper disable once SuspiciousTypeConversion.Global
 				if (isForwarded && module is not IReceiveForwards)
 					continue;
 
@@ -259,6 +205,7 @@ namespace den0bot
 		{
 			foreach (IModule m in modules)
 			{
+				// ReSharper disable once SuspiciousTypeConversion.Global
 				if (m is IReceiveMessageEdits module)
 				{
 					await module.ReceiveMessageEdit(messageEventArgs.EditedMessage);
