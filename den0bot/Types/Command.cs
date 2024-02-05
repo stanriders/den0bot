@@ -1,4 +1,4 @@
-﻿// den0bot (c) StanR 2021 - MIT License
+﻿// den0bot (c) StanR 2024 - MIT License
 using den0bot.Util;
 using System;
 using System.Collections.Generic;
@@ -58,7 +58,7 @@ namespace den0bot.Types
 
 		private async Task<bool> IsAllowedAsync(Message message)
 		{
-			var from = message.From.Username;
+			var from = message.From?.Username;
 
 			// owner can run any commands
 			if (from == Config.Params.OwnerUsername)

@@ -1,4 +1,4 @@
-﻿// den0bot (c) StanR 2023 - MIT License
+﻿// den0bot (c) StanR 2024 - MIT License
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -28,16 +28,16 @@ namespace den0bot
 		/// <summary>
 		/// Connect and start receiving messages. Returns false if failed to connect.
 		/// </summary>
-		public static bool Connect()
+		public static bool Connect(string token)
 		{
-			if (string.IsNullOrEmpty(Config.Params.TelegamToken))
+			if (string.IsNullOrEmpty(token))
 			{
 				Log.Error("Telegram token is null or empty!");
 				return false;
 			}
 
 			Log.Information("Connecting...");
-			api = new TelegramBotClient(Config.Params.TelegamToken);
+			api = new TelegramBotClient(token);
 			if (!api.TestApiAsync().Result)
 			{
 				Log.Error("API Test failed, shutting down!");

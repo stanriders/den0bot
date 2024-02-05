@@ -12,6 +12,7 @@ using den0bot.Types;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using Telegram.Bot.Types.Enums;
 using MessageEventArgs = den0bot.Events.MessageEventArgs;
@@ -30,19 +31,26 @@ namespace den0bot
 		private readonly List<IModule> modules;
 		private readonly ILogger<Bot> logger;
 		private readonly IHostApplicationLifetime lifetime;
+		private readonly ConfigFile config;
 
 		public static void Shutdown(bool crash = false) { shouldShutdown = true; shouldCrash = crash; }
 
-		public Bot(ILogger<Bot> logger, IHostApplicationLifetime lifetime, IServiceProvider serviceProvider)
+		public Bot(ILogger<Bot> logger, IHostApplicationLifetime lifetime, IServiceProvider serviceProvider, IOptions<ConfigFile> options)
 		{
 			this.logger = logger;
 			this.lifetime = lifetime;
+			config = options.Value;
 
 			modules = serviceProvider.GetServices<IModule>().ToList();
 		}
 
 		public override Task StartAsync(CancellationToken cancellationToken)
 		{
+			if (!API.Connect(config?.TelegamToken))
+			{
+				throw new Exception("Couldn't connect to telegram API!");
+			}
+
 			LoadModules();
 
 			API.OnMessage += ProcessMessage;
@@ -153,7 +161,7 @@ namespace den0bot
 					return;
 				}
 
-				if (Config.Params.UseEvents &&
+				if (config.UseEvents &&
 				    (!DatabaseCache.Chats.FirstOrDefault(x => x.Id == senderChatId)?.DisableEvents ?? false) &&
 				    text != null &&
 				    text[0] == command_trigger &&

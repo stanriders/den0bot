@@ -1,19 +1,18 @@
-﻿using den0bot.Types;
+﻿// den0bot (c) StanR 2024 - MIT License
+using den0bot.Types;
 using den0bot.Util;
 using System;
 using System.Threading.Tasks;
 using den0bot.Types.Answers;
 using Newtonsoft.Json;
 using Message = Telegram.Bot.Types.Message;
-using Serilog;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace den0bot.Modules
 {
 	internal class ModWeather : IModule
 	{
-		private readonly ILogger<IModule> logger;
-
 		private class WeatherResponse
 		{
 			public class LocationData
@@ -50,11 +49,15 @@ namespace den0bot.Modules
 			[JsonProperty("current")] 
 			public Data WeatherData { get; set; } = new Data();
 		}
-		private readonly string apiBase = "https://api.weatherapi.com/v1/current.json?key=" + Config.Params.WeatherToken;
 
-		public ModWeather(ILogger<IModule> logger) : base(logger)
+		private readonly string apiBase;
+		private readonly ILogger<IModule> logger;
+
+		public ModWeather(ILogger<IModule> logger, IOptions<ConfigFile> options) : base(logger)
 		{
 			this.logger = logger;
+			apiBase = "https://api.weatherapi.com/v1/current.json?key=" + options.Value.WeatherToken;
+
 			AddCommand(new Command
 			{
 				Names = { "weather", "w" },

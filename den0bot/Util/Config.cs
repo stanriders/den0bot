@@ -1,30 +1,34 @@
-﻿// den0bot (c) StanR 2021 - MIT License
+﻿// den0bot (c) StanR 2024 - MIT License
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.IO;
 using Newtonsoft.Json;
 
 namespace den0bot.Util
 {
+	public class ConfigFile
+	{
+		public List<string> Modules { get; } = new();
+
+		public bool UseEvents { get; set; } = false;
+
+		// https://telegram.me/botfather
+		[Required]
+		public string TelegamToken { get; set; }
+
+		[Required]
+		public string OwnerUsername { get; set; }
+
+		// http://thecatapi.com/api-key-registration.html
+		public string? CatToken { get; set; }
+
+		public string? SentryDsn { get; set; }
+
+		public string? WeatherToken { get; set; }
+	}
+
 	internal static class Config
 	{
-		internal class ConfigFile
-		{
-			public List<string> Modules { get; } = new();
-
-			public bool UseEvents { get; set; }
-
-			// https://telegram.me/botfather
-			public string TelegamToken { get; set; }
-			public string OwnerUsername { get; set; }
-
-			// http://thecatapi.com/api-key-registration.html
-			public string CatToken { get; set; }
-
-			public string SentryDsn { get; set; }
-
-			public string WeatherToken { get; set; }
-		}
-
 		private const string config_file = "./data/config.json";
 		public static ConfigFile Params { get; } = new();
 

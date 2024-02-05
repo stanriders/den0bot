@@ -13,6 +13,7 @@
     <PackageReference Include="IronOcr" Version="2024.2.41" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="8.0.1" />
 	<PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.0" />
+	<PackageReference Include="Microsoft.Extensions.Options.DataAnnotations" Version="8.0.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="StanR.Pettanko" Version="1.1.0" />
 	<PackageReference Include="Serilog.Extensions.Hosting" Version="8.0.0" />

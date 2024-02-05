@@ -13,20 +13,53 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
+using Microsoft.Extensions.Configuration;
 
 Thread.CurrentThread.CurrentCulture = new CultureInfo("ru-RU", false);
 
-string modulePath = Path.GetDirectoryName(AppContext.BaseDirectory) + Path.DirectorySeparatorChar + "Modules";
+ConfigFile? config = null;
+
+void ConfigureAppConfiguration(HostBuilderContext context, IConfigurationBuilder configuration)
+{
+	configuration.Sources.Clear();
+
+	var env = context.HostingEnvironment;
+
+	configuration
+		.AddJsonFile("./data/config.json", true, true)
+		.AddJsonFile($"./data/config.{env.EnvironmentName}.json", true, true)
+		.AddEnvironmentVariables();
+
+	configuration.Build();
+}
 
 void ConfigureServices(HostBuilderContext context, IServiceCollection services)
 {
-	services.AddHostedService<Bot>();
+	services.AddOptions<ConfigFile>()
+		.BindConfiguration("")
+		.ValidateDataAnnotations()
+		.ValidateOnStart();
 
-	if (Config.Params.Modules == null)
+	config = context.Configuration.Get<ConfigFile>();
+	if (config == null)
+	{
+		throw new Exception("Config didn't load!");
+	}
+
+	ConfigureModules(services);
+
+	services.AddHostedService<Bot>();
+}
+
+void ConfigureModules(IServiceCollection services)
+{
+	if (config?.Modules == null)
 	{
 		Log.Error("Module list not found!");
 		return;
 	}
+
+	string modulePath = Path.GetDirectoryName(AppContext.BaseDirectory) + Path.DirectorySeparatorChar + "Modules";
 
 	List<Assembly> allAssemblies = new List<Assembly>();
 	if (Directory.Exists(modulePath))
@@ -35,7 +68,7 @@ void ConfigureServices(HostBuilderContext context, IServiceCollection services)
 			allAssemblies.Add(Assembly.LoadFile(dll));
 	}
 
-	foreach (var moduleName in Config.Params.Modules)
+	foreach (var moduleName in config.Modules)
 	{
 		// if it's local
 		Type type = Type.GetType($"den0bot.Modules.{moduleName}", false);
@@ -55,11 +88,7 @@ void ConfigureServices(HostBuilderContext context, IServiceCollection services)
 
 		if (type != null)
 		{
-			//var module = (IModule)Activator.CreateInstance(type);
-			//if (module != null && module.Init())
-			{
-				services.AddSingleton(typeof(IModule), type);
-			}
+			services.AddSingleton(typeof(IModule), type);
 		}
 		else
 		{
@@ -69,6 +98,7 @@ void ConfigureServices(HostBuilderContext context, IServiceCollection services)
 }
 
 var host = Host.CreateDefaultBuilder(args)
+	.ConfigureAppConfiguration(ConfigureAppConfiguration)
 	.ConfigureServices(ConfigureServices)
 	.UseSerilog((_, _, logger) =>
 	{
@@ -83,9 +113,6 @@ var host = Host.CreateDefaultBuilder(args)
 			.WriteTo.Seq("http://seq:5341");
 	})
 	.Build();
-
-if (!API.Connect())
-	return;
 
 await using var db = new Database();
 db.Database.EnsureCreated();
