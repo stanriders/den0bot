@@ -116,7 +116,7 @@ namespace den0bot.Modules.Osu.Types.V2
 			if (mods.Any(x=> x.Acronym is "DT" or "NC") /*|| mods.HasFlag(LegacyMods.NC))*/)
 			{
 				var dt = mods.FirstOrDefault(x => x.Acronym is "DT" or "NC");
-				if (dt?.Settings.ContainsKey("speed_change") ?? false)
+				if (dt?.Settings?.ContainsKey("speed_change") ?? false)
 				{
 					var speedChange = double.Parse(dt.Settings["speed_change"], CultureInfo.InvariantCulture); 
 					return BPM * speedChange;
@@ -127,7 +127,7 @@ namespace den0bot.Modules.Osu.Types.V2
 			else if (mods.Any(x => x.Acronym == "HT") )
 			{
 				var ht = mods.FirstOrDefault(x => x.Acronym == "HT");
-				if (ht?.Settings.ContainsKey("speed_change") ?? false)
+				if (ht?.Settings?.ContainsKey("speed_change") ?? false)
 				{
 					var speedChange = double.Parse(ht.Settings["speed_change"], CultureInfo.InvariantCulture);
 					return BPM * speedChange;
@@ -174,7 +174,7 @@ namespace den0bot.Modules.Osu.Types.V2
 			if (mods.Any(x => x.Acronym is "DT" or "NC"))
 			{
 				var dt = mods.FirstOrDefault(x => x.Acronym is "DT" or "NC");
-				if (dt?.Settings.ContainsKey("speed_change") ?? false)
+				if (dt?.Settings?.ContainsKey("speed_change") ?? false)
 				{
 					var speedChange = double.Parse(dt.Settings["speed_change"], CultureInfo.InvariantCulture);
 					ms /= speedChange;
@@ -189,7 +189,7 @@ namespace den0bot.Modules.Osu.Types.V2
 			else if (mods.Any(x => x.Acronym == "HT"))
 			{
 				var ht = mods.FirstOrDefault(x => x.Acronym == "HT");
-				if (ht?.Settings.ContainsKey("speed_change") ?? false)
+				if (ht?.Settings?.ContainsKey("speed_change") ?? false)
 				{
 					var speedChange = double.Parse(ht.Settings["speed_change"], CultureInfo.InvariantCulture);
 					ms /= speedChange;
@@ -222,7 +222,7 @@ namespace den0bot.Modules.Osu.Types.V2
 			if (mods.Any(x => x.Acronym is "DT" or "NC"))
 			{
 				var dt = mods.FirstOrDefault(x => x.Acronym is "DT" or "NC");
-				if (dt?.Settings.ContainsKey("speed_change") ?? false)
+				if (dt?.Settings?.ContainsKey("speed_change") ?? false)
 				{
 					var speedChange = double.Parse(dt.Settings["speed_change"], CultureInfo.InvariantCulture);
 					finalOD = (79.5 - ms / speedChange) / 6;
@@ -235,7 +235,7 @@ namespace den0bot.Modules.Osu.Types.V2
 			else if (mods.Any(x => x.Acronym == "HT"))
 			{
 				var ht = mods.FirstOrDefault(x => x.Acronym == "HT");
-				if (ht?.Settings.ContainsKey("speed_change") ?? false)
+				if (ht?.Settings?.ContainsKey("speed_change") ?? false)
 				{
 					var speedChange = double.Parse(ht.Settings["speed_change"], CultureInfo.InvariantCulture);
 					finalOD = (79.5 - ms / speedChange) / 6;
@@ -253,7 +253,7 @@ namespace den0bot.Modules.Osu.Types.V2
 			if (mods.Any(x => x.Acronym is "DT" or "NC"))
 			{
 				var dt = mods.FirstOrDefault(x => x.Acronym is "DT" or "NC");
-				if (dt?.Settings.ContainsKey("speed_change") ?? false)
+				if (dt?.Settings?.ContainsKey("speed_change") ?? false)
 				{
 					var speedChange = double.Parse(dt.Settings["speed_change"], CultureInfo.InvariantCulture);
 					return TimeSpan.FromSeconds((long)(DrainLength / speedChange));
@@ -265,7 +265,7 @@ namespace den0bot.Modules.Osu.Types.V2
 			if (mods.Any(x => x.Acronym == "HT"))
 			{
 				var ht = mods.FirstOrDefault(x => x.Acronym == "HT");
-				if (ht?.Settings.ContainsKey("speed_change") ?? false)
+				if (ht?.Settings?.ContainsKey("speed_change") ?? false)
 				{
 					var speedChange = double.Parse(ht.Settings["speed_change"], CultureInfo.InvariantCulture);
 					return TimeSpan.FromSeconds((long)(DrainLength / speedChange));

@@ -1,4 +1,4 @@
-// den0bot (c) StanR 2023 - MIT License
+// den0bot (c) StanR 2024 - MIT License
 using den0bot.Analytics.Data;
 using den0bot.Analytics.Web.Caches;
 using Microsoft.AspNetCore.Builder;
@@ -14,11 +14,9 @@ namespace den0bot.Analytics.Web
 {
 	public class Startup
 	{
-		private readonly TelegramBotClient telegramClient;
 		public Startup(IConfiguration configuration)
 		{
 			Configuration = configuration;
-			telegramClient = new TelegramBotClient(configuration["TelegramAPIKey"]);
 		}
 
 		public IConfiguration Configuration { get; }
@@ -30,7 +28,7 @@ namespace den0bot.Analytics.Web
 
 			services.AddDbContext<AnalyticsDatabase>();
 
-			services.AddSingleton<ITelegramBotClient>(telegramClient);
+			services.AddSingleton<ITelegramBotClient, TelegramBotClient>(_ => new TelegramBotClient(Configuration["TelegramAPIKey"]));
 			services.AddSingleton<ITelegramCache, TelegramCache>();
 
 			services.AddControllersWithViews();

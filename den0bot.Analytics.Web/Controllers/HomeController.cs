@@ -1,4 +1,4 @@
-﻿// den0bot (c) StanR 2023 - MIT License
+﻿// den0bot (c) StanR 2024 - MIT License
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -19,7 +19,7 @@ namespace den0bot.Analytics.Web.Controllers
 		private readonly ITelegramCache telegramCache;
 
 		private readonly DateTime minimal_date = new(2019, 10, 2);
-		private const int last_message_days_ago = 60;
+		private const int last_message_days_ago = 90;
 
 		public HomeController(ITelegramCache _telegramCache)
 		{
@@ -42,10 +42,11 @@ namespace den0bot.Analytics.Web.Controllers
 					var tgChat = await telegramCache.GetChat(chat.Id);
 					if (tgChat != null && tgChat.Type != ChatType.Private)
 					{
-						var lastMessageTimestamp = (await db.Messages.AsNoTracking()
+						var lastMessageTimestamp = await db.Messages.AsNoTracking()
 							.Where(x => x.ChatId == chat.Id)
-							.OrderByDescending(x => x.Timestamp)
-							.FirstAsync()).Timestamp;
+							.Select(x=> x.Timestamp)
+							.OrderByDescending(x => x)
+							.FirstAsync();
 
 						model.Add(new ShortChatModel
 						{

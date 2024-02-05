@@ -63,7 +63,7 @@ namespace den0bot.Modules.Osu
 				LazerScore score = topscores[i];
 
 				string mods = string.Empty;
-				if (score.Mods.Length > 0)
+				if (score.Mods.Any(x => x.Acronym != "CL"))
 					mods = $" +{string.Join("", score.Mods.Where(x=> x.Acronym != "CL").Select(x=> x.Acronym))}";
 
 				// 1. 123pp | Artist - Title [Diffname] +Mods (Rank, Accuracy%)

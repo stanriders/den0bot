@@ -231,7 +231,7 @@ namespace den0bot.Modules
 				if (topGirls.Count == 1)
 					return new ImageCommandAnswer { Image = topGirls[0].Link, Caption = topGirls[0].Rating.ToString() };
 
-				return new ImageAlbumCommandAnswer(topGirls.Select(girl => new InputMediaPhoto(girl.Link) { Caption = girl.Rating.ToString() }).ToList());
+				return new ImageAlbumCommandAnswer(topGirls.Select(girl => new InputMediaPhoto(new InputFileId(girl.Link)) { Caption = girl.Rating.ToString() }).ToList());
 			}
 
 			return Localization.GetAnswer("girls_not_found", chatId);
@@ -270,7 +270,7 @@ namespace den0bot.Modules
 				if (topGirls.Length == 1)
 					return new ImageCommandAnswer { Image = topGirls[0].Link, Caption = $"{topGirls[0].SeasonRating} (s{season})" };
 
-				return new ImageAlbumCommandAnswer(topGirls.Select(girl => new InputMediaPhoto(girl.Link) { Caption = $"{girl.SeasonRating} (s{season})" }).ToList());
+				return new ImageAlbumCommandAnswer(topGirls.Select(girl => new InputMediaPhoto(new InputFileId(girl.Link)) { Caption = $"{girl.SeasonRating} (s{season})" }).ToList());
 			}
 
 			return Localization.GetAnswer("girls_not_found", msg.Chat.Id);

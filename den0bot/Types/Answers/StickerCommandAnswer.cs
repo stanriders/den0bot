@@ -1,16 +1,16 @@
-﻿// den0bot (c) StanR 2021 - MIT License
+﻿// den0bot (c) StanR 2024 - MIT License
 
-using Telegram.Bot.Types.InputFiles;
+using Telegram.Bot.Types;
 
 namespace den0bot.Types.Answers
 {
 	public class StickerCommandAnswer : ICommandAnswer
 	{
-		public InputOnlineFile Sticker { get; set; }
+		public InputFileId Sticker { get; set; }
 
 		public StickerCommandAnswer(string stickerId)
 		{
-			Sticker = new InputOnlineFile(stickerId);
+			Sticker = new InputFileId(stickerId);
 		}
 	}
 }

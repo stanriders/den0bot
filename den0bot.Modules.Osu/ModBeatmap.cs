@@ -15,7 +15,6 @@ using den0bot.Modules.Osu.Types;
 using IronOcr;
 using Serilog;
 using Telegram.Bot.Types;
-using Telegram.Bot.Types.InputFiles;
 using Telegram.Bot.Types.ReplyMarkups;
 using File = System.IO.File;
 
@@ -97,10 +96,10 @@ namespace den0bot.Modules.Osu
 					await File.WriteAllBytesAsync($"./{sentMap.BeatmapSetId}.mp3", data);
 
 					await new Engine("ffmpeg")
-						.ConvertAsync(new InputFile($"./{sentMap.BeatmapSetId}.mp3"), new OutputFile($"./{sentMap.BeatmapSetId}.ogg"), CancellationToken.None);
+						.ConvertAsync(new FFmpeg.NET.InputFile($"./{sentMap.BeatmapSetId}.mp3"), new OutputFile($"./{sentMap.BeatmapSetId}.ogg"), CancellationToken.None);
 
 					await using (FileStream fs = File.Open($"./{sentMap.BeatmapSetId}.ogg", FileMode.Open, FileAccess.Read))
-						await API.SendVoice(new InputOnlineFile(fs), callback.Message.Chat.Id, replyToId: callback.Message.MessageId, duration: 10);
+						await API.SendVoice(new InputFileStream(fs), callback.Message.Chat.Id, replyToId: callback.Message.MessageId, duration: 10);
 
 					File.Delete($"./{sentMap.BeatmapSetId}.mp3");
 					File.Delete($"./{sentMap.BeatmapSetId}.ogg");

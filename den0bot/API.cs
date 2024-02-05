@@ -13,7 +13,6 @@ using Telegram.Bot.Exceptions;
 using Telegram.Bot.Polling;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
-using Telegram.Bot.Types.InputFiles;
 using Telegram.Bot.Types.ReplyMarkups;
 using CallbackQueryEventArgs = den0bot.Events.CallbackQueryEventArgs;
 using MessageEventArgs = den0bot.Events.MessageEventArgs;
@@ -110,7 +109,7 @@ namespace den0bot
 			{
 				if (!string.IsNullOrEmpty(message))
 				{
-					return await api.SendTextMessageAsync(chatId, message, parseMode,
+					return await api.SendTextMessageAsync(chatId, message, null, parseMode,
 						disableWebPagePreview: disablePreview,
 						replyToMessageId: replyToId,
 						replyMarkup: replyMarkup);
@@ -153,7 +152,7 @@ namespace den0bot
 			{
 				if (!string.IsNullOrEmpty(photo))
 				{
-					return await api.SendPhotoAsync(chatId, new InputOnlineFile(photo), caption, parseMode,
+					return await api.SendPhotoAsync(chatId, new InputFileId(photo), null, caption, parseMode,
 						replyToMessageId: replyToId,
 						replyMarkup: replyMarkup);
 				}
@@ -163,7 +162,7 @@ namespace den0bot
 				Log.Error(ex, ex.InnerMessageIfAny());
 				if (sendTextIfFailed)
 				{
-					return await api.SendTextMessageAsync(chatId, caption, parseMode,
+					return await api.SendTextMessageAsync(chatId, caption, null, parseMode,
 						replyToMessageId: replyToId,
 						replyMarkup: replyMarkup);
 				}
@@ -209,7 +208,7 @@ namespace den0bot
 		/// </summary>
 		/// <param name="sticker">Telegram sticker ID</param>
 		/// <param name="chatId">Chat to send sticker to</param>
-		public static async Task<Message> SendSticker(InputOnlineFile sticker, long chatId)
+		public static async Task<Message> SendSticker(InputFileId sticker, long chatId)
 		{
 			using var _ = LogContext.PushProperty("OutData", new
 			{
@@ -374,7 +373,7 @@ namespace den0bot
 		/// <param name="parseMode"></param>
 		/// <param name="replyToId"></param>
 		/// <param name="duration"></param>
-		public static async Task<Message> SendVoice(InputOnlineFile audio, long chatId, string caption = null,
+		public static async Task<Message> SendVoice(InputFile audio, long chatId, string caption = null,
 			ParseMode? parseMode = null, int replyToId = 0, int duration = 0)
 		{
 			using var _ = LogContext.PushProperty("OutData", new
@@ -389,7 +388,7 @@ namespace den0bot
 
 			try
 			{
-				return await api.SendVoiceAsync(chatId, audio, caption, parseMode,
+				return await api.SendVoiceAsync(chatId, audio, null, caption, parseMode,
 					duration: duration,
 					replyToMessageId: replyToId);
 			}
