@@ -1,4 +1,4 @@
-// den0bot (c) StanR 2022 - MIT License
+// den0bot (c) StanR 2024 - MIT License
 using System.Linq;
 using Telegram.Bot.Types;
 using System.Threading.Tasks;
@@ -10,7 +10,7 @@ namespace den0bot.Modules
 {
 	internal class ModVxtwitter(ILogger<IModule> logger) : IModule(logger), IReceiveAllMessages
 	{
-        private readonly Regex regex = new(@".+\/\/(twitter|x)\.com\/(.+)$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+        private readonly Regex regex = new(@".+\/\/(?>twitter|x)\.com\/(.+)$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 		public async Task ReceiveMessage(Message message)
 		{
 			if (string.IsNullOrEmpty(message.Text))
