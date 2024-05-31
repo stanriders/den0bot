@@ -1,4 +1,4 @@
-﻿// den0bot (c) StanR 2023 - MIT License
+﻿// den0bot (c) StanR 2024 - MIT License
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -14,7 +14,6 @@ using den0bot.Util;
 using Telegram.Bot.Types.Enums;
 using den0bot.Types;
 using den0bot.Types.Answers;
-using Serilog;
 using Score = den0bot.Modules.Osu.Types.V2.Score;
 using Microsoft.Extensions.Logging;
 
@@ -419,26 +418,26 @@ namespace den0bot.Modules.Osu
 				mods = " +";
 				foreach (var mod in score.Mods)
 				{
-					if (mod.Acronym != "DA")
+					if (mod.Acronym != "DA" && mod.Acronym != "CL")
 						mods += mod.Acronym;
 
-					if (mod.Settings != null && mod.Settings.Any())
+					if (mod.Settings is { Count: > 0 })
 					{
-						if (mod.Settings.ContainsKey("speed_change"))
+						if (mod.Settings.TryGetValue("speed_change", out var rate))
 						{
-							mods += $"({double.Parse(mod.Settings["speed_change"]!, CultureInfo.InvariantCulture)}x) ";
+							mods += $"({double.Parse(rate!, CultureInfo.InvariantCulture)}x) ";
 						}
-						if (mod.Settings.ContainsKey("approach_rate"))
+						if (mod.Settings.TryGetValue("approach_rate", out var ar))
 						{
-							mods += $"AR{double.Parse(mod.Settings["approach_rate"]!, CultureInfo.InvariantCulture)} ";
+							mods += $"AR{double.Parse(ar!, CultureInfo.InvariantCulture)} ";
 						}
-						if (mod.Settings.ContainsKey("circle_size"))
+						if (mod.Settings.TryGetValue("circle_size", out var cs))
 						{
-							mods += $"CS{double.Parse(mod.Settings["circle_size"]!, CultureInfo.InvariantCulture)} ";
+							mods += $"CS{double.Parse(cs!, CultureInfo.InvariantCulture)} ";
 						}
-						if (mod.Settings.ContainsKey("overall_difficulty"))
+						if (mod.Settings.TryGetValue("overall_difficulty", out var od))
 						{
-							mods += $"OD{double.Parse(mod.Settings["overall_difficulty"]!, CultureInfo.InvariantCulture)} ";
+							mods += $"OD{double.Parse(od!, CultureInfo.InvariantCulture)} ";
 						}
 					}
 				}
