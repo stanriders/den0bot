@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 
 namespace den0bot.Modules.Osu.Types.V2
 {
@@ -10,6 +6,6 @@ namespace den0bot.Modules.Osu.Types.V2
 	{
 		public string Acronym { get; set; }
 
-		public Dictionary<string, string> Settings { get; set; }
+		public Dictionary<string, string>? Settings { get; set; }
 	}
 }

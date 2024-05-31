@@ -422,7 +422,7 @@ namespace den0bot.Modules.Osu
 					if (mod.Acronym != "DA")
 						mods += mod.Acronym;
 
-					if (mod.Settings.Any())
+					if (mod.Settings != null && mod.Settings.Any())
 					{
 						if (mod.Settings.ContainsKey("speed_change"))
 						{
