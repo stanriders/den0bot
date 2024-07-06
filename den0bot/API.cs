@@ -1,4 +1,5 @@
 ﻿// den0bot (c) StanR 2024 - MIT License
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -97,14 +98,14 @@ namespace den0bot
 			int replyToId = 0, IReplyMarkup replyMarkup = null, bool disablePreview = true)
 		{
 			using var _ = LogContext.PushProperty("OutData", new
-			       {
-				       ChatID = chatId,
-				       Message = message,
-				       ParseMode = parseMode,
-				       ReplyID = replyToId,
-				       ReplyMarkup = replyMarkup,
-				       DisablePreview = disablePreview
-			       });
+			{
+				ChatID = chatId,
+				Message = message,
+				ParseMode = parseMode,
+				ReplyID = replyToId,
+				ReplyMarkup = replyMarkup,
+				DisablePreview = disablePreview
+			});
 			try
 			{
 				if (!string.IsNullOrEmpty(message))
@@ -515,6 +516,32 @@ namespace den0bot
 			}
 
 			return true;
+		}
+
+		public static async Task<Message> SendVideo(string video, long chatId, string caption = "", int replyToId = 0)
+		{
+			using var _ = LogContext.PushProperty("OutData", new
+			{
+				Video = video,
+				ChatID = chatId,
+				Message = caption,
+				ReplyID = replyToId
+			});
+
+			try
+			{
+				if (!string.IsNullOrEmpty(video))
+				{
+					return await api.SendVideoAsync(chatId, InputFile.FromString(video), null, null, null, null, null,
+						caption, null, null, null, null, null, null, replyToId);
+				}
+			}
+			catch (Exception ex)
+			{
+				Log.Error(ex, ex.InnerMessageIfAny());
+			}
+
+			return null;
 		}
 	}
 }
