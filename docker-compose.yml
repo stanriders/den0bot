@@ -28,6 +28,7 @@ services:
       - main
       - logs
     restart: on-failure
+    pull_policy: build
 
   analytics:
     build:
@@ -47,3 +48,4 @@ services:
       - main
       - logs
     restart: on-failure
+    pull_policy: build
