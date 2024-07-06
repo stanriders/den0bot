@@ -518,7 +518,31 @@ namespace den0bot
 			return true;
 		}
 
-		public static async Task<Message> SendVideo(string video, long chatId, string caption = "", int replyToId = 0)
+		public static async Task<bool> SendVideo(Stream video, long chatId, string caption = "", int replyToId = 0)
+		{
+			using var _ = LogContext.PushProperty("OutData", new
+			{
+				Video = video,
+				ChatID = chatId,
+				Message = caption,
+				ReplyID = replyToId
+			});
+
+			try
+			{
+				await api.SendVideoAsync(chatId, InputFile.FromStream(video), 
+						caption: caption, replyToMessageId: replyToId);
+
+				return true;
+			}
+			catch (Exception ex)
+			{
+				Log.Error(ex, ex.InnerMessageIfAny());
+				return false;
+			}
+		}
+
+		public static async Task<bool> SendVideo(string video, long chatId, string caption = "", int replyToId = 0)
 		{
 			using var _ = LogContext.PushProperty("OutData", new
 			{
@@ -531,9 +555,11 @@ namespace den0bot
 			try
 			{
 				if (!string.IsNullOrEmpty(video))
-				{
-					return await api.SendVideoAsync(chatId, InputFile.FromString(video), 
+				{ 
+					await api.SendVideoAsync(chatId, InputFile.FromUri(video),
 						caption: caption, replyToMessageId: replyToId);
+
+					return true;
 				}
 			}
 			catch (Exception ex)
@@ -541,7 +567,7 @@ namespace den0bot
 				Log.Error(ex, ex.InnerMessageIfAny());
 			}
 
-			return null;
+			return false;
 		}
 	}
 }

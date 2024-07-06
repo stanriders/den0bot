@@ -30,16 +30,22 @@ namespace den0bot.Modules
 			var regexMatch = ScopeLinkRegex().Match(message.Text);
 			if (regexMatch.Success)
 			{
-				var client = new HttpClient();
+				using var client = new HttpClient();
 				var page = await client.GetStringAsync(regexMatch.Value);
 				
 				var match = ClipLinkRegex().Match(page);
-				var video = string.Concat(ClipLinkReplaceRegex().Replace(match.Value, "clips"), ".mp4");
+				var videoLink = string.Concat(ClipLinkReplaceRegex().Replace(match.Value, "clips"), ".mp4");
 
 				var clipMatch = ClipTitleRegex().Match(page);
 				var caption = clipMatch.Success ? clipMatch.Groups[1].Value : "VAC";
 
-				await API.SendVideo($"{video}?{Random.Shared.Next()}", message.Chat.Id, caption, message.MessageId);
+				if (!await API.SendVideo(videoLink, message.Chat.Id, caption, message.MessageId))
+				{
+					// telegram couldn't download the video by itself, stream it manually
+					var video = await client.GetStreamAsync(videoLink);
+
+					await API.SendVideo(video, message.Chat.Id, caption, message.MessageId);
+				}
 			}
 		}
 
