@@ -413,12 +413,12 @@ namespace den0bot.Modules.Osu
 		private async Task<string> FormatLazerScore(LazerScore score, Beatmap beatmap, bool useAgo)
 		{
 			string mods = string.Empty;
-			if (score.Mods.Length > 0)
+			if (score.Mods.Count(x => x.Acronym != "CL") > 0)
 			{
 				mods = " +";
 				foreach (var mod in score.Mods)
 				{
-					if (mod.Acronym != "DA" && mod.Acronym != "CL")
+					if (mod.Acronym != "DA")
 						mods += mod.Acronym;
 
 					if (mod.Settings is { Count: > 0 })

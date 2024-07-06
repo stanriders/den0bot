@@ -532,7 +532,7 @@ namespace den0bot
 			{
 				if (!string.IsNullOrEmpty(video))
 				{
-					return await api.SendVideoAsync(chatId, InputFile.FromUri(new Uri($"{video}?0")), 
+					return await api.SendVideoAsync(chatId, InputFile.FromString(video), 
 						caption: caption, replyToMessageId: replyToId);
 				}
 			}

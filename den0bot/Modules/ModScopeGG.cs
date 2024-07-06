@@ -1,4 +1,5 @@
-﻿using System.Net.Http;
+﻿using System;
+using System.Net.Http;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using den0bot.Types;
@@ -38,7 +39,7 @@ namespace den0bot.Modules
 				var clipMatch = ClipTitleRegex().Match(page);
 				var caption = clipMatch.Success ? clipMatch.Groups[1].Value : "VAC";
 
-				await API.SendVideo(video, message.Chat.Id, caption, message.MessageId);
+				await API.SendVideo($"{video}?{Random.Shared.Next()}", message.Chat.Id, caption, message.MessageId);
 			}
 		}
 
