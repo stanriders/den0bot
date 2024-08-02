@@ -1,4 +1,4 @@
-﻿// den0bot (c) StanR 2023 - MIT License
+﻿// den0bot (c) StanR 2024 - MIT License
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,7 +10,6 @@ using Telegram.Bot.Types;
 using den0bot.Modules.Osu.WebAPI.Requests.V2;
 using den0bot.Modules.Osu.Types.V2;
 using den0bot.Util;
-using den0bot.Modules.Osu.WebAPI;
 using den0bot.Types;
 using Microsoft.Extensions.Logging;
 
@@ -23,14 +22,14 @@ namespace den0bot.Modules.Osu
 			public ulong MatchId { get; init; }
 			public long ChatId { get; init; }
 			public uint CurrentEventId { get; set; }
-			public MatchTeamStatus Status { get; set; }
+			public MatchTeamStatus? Status { get; set; }
 		}
 
 		private class MatchTeamStatus
 		{
 			public uint RedScore { get; set; }
 			public uint BlueScore { get; set; }
-			public MatchTeamNames Teams { get; init; }
+			public MatchTeamNames Teams { get; init; } = null!;
 		}
 
 		private readonly List<FollowedMatch> followList = new();
@@ -52,9 +51,9 @@ namespace den0bot.Modules.Osu
 				}
 			});
 		}
-		private ICommandAnswer StartFollowing(Message msg)
+		private ICommandAnswer? StartFollowing(Message msg)
 		{ 
-			ulong? matchId = MatchLinkParser.Parse(msg.Text)?.Id;
+			ulong? matchId = MatchLinkParser.Parse(msg.Text!)?.Id;
 			if (matchId != null)
 			{
 				var match = new FollowedMatch
@@ -90,13 +89,13 @@ namespace den0bot.Modules.Osu
 			var updatingMatch = followList[currentMatchId];
 
 			var match = await new GetMatch(updatingMatch.MatchId).Execute();
-			if (match.Events.Length > 0)
+			if (match?.Events.Length > 0)
 			{
 				if (match.Info.EndTime == null)
 				{
 					// match still running
 					var latestEvent = match.Events.Last(x=> x.Game != null);
-					if (latestEvent.Id != updatingMatch.CurrentEventId && latestEvent.Game.EndTime != null)
+					if (latestEvent.Id != updatingMatch.CurrentEventId && latestEvent.Game!.EndTime != null)
 					{
 						// current event isnt the one we have stored and it ended already
 
@@ -108,7 +107,7 @@ namespace den0bot.Modules.Osu
 
 						if (updatingMatch.CurrentEventId != 0)
 						{
-							switch (latestEvent.Game.TeamMode)
+							switch (latestEvent.Game!.TeamMode)
 							{
 								case TeamMode.HeadToHead:
 								case TeamMode.Tag:
@@ -116,7 +115,7 @@ namespace den0bot.Modules.Osu
 									break;
 								case TeamMode.Team:
 								case TeamMode.TeamTag:
-									matchInfo += FormatTeamGame(match, updatingMatch.Status);
+									matchInfo += FormatTeamGame(match, updatingMatch.Status!);
 									break;
 								default:
 									throw new ArgumentException("Incorrect TeamMode");
@@ -139,7 +138,7 @@ namespace den0bot.Modules.Osu
 
 		public async Task ReceiveMessage(Message message)
 		{
-			var matchId = MatchLinkParser.Parse(message.Text)?.Id;
+			var matchId = MatchLinkParser.Parse(message.Text!)?.Id;
 			if (matchId != null)
 			{
 				var match = await new GetMatch(matchId.Value).Execute();
@@ -149,7 +148,7 @@ namespace den0bot.Modules.Osu
 						$"<a href=\"https://osu.ppy.sh/community/matches/{match.Info.Id}\">{match.Info.Name}</a>{Environment.NewLine}";
 
 					var latestEvent = match.Events.Last(x=> x.Game != null);
-					switch (latestEvent.Game.TeamMode)
+					switch (latestEvent.Game!.TeamMode)
 					{
 						case TeamMode.HeadToHead:
 						case TeamMode.Tag:
@@ -173,11 +172,11 @@ namespace den0bot.Modules.Osu
 			string gamesString = string.Empty;
 			var game = match.Events.Where(x => x.Game != null)
 				.Select(x => x.Game)
-				.Last(x => x.EndTime != null);
+				.Last(x => x!.EndTime != null);
 
-			var scores = game.Scores.OrderByDescending(x => x.Points).ToList();
+			var scores = game!.Scores.OrderByDescending(x => x.Points).ToList();
 
-			gamesString += $"{Environment.NewLine}{game.Beatmap.BeatmapSet.Artist} - {game.Beatmap.BeatmapSet.Title}[{game.Beatmap.Version}]{Environment.NewLine}";
+			gamesString += $"{Environment.NewLine}{game.Beatmap.BeatmapSet?.Artist} - {game.Beatmap.BeatmapSet?.Title}[{game.Beatmap.Version}]{Environment.NewLine}";
 			for (int i = 0; i < scores.Count; i++)
 			{
 				if (scores[i].Points != 0)
@@ -195,15 +194,15 @@ namespace den0bot.Modules.Osu
 			string gamesString = string.Empty;
 			var game = match.Events.Where(x => x.Game != null)
 				.Select(x => x.Game)
-				.Last(x => x.EndTime != null);
+				.Last(x => x!.EndTime != null);
 
-			List<Score> allScores = game.Scores
+			List<Score> allScores = game!.Scores
 				.OrderByDescending(x => x.Points)
 				.ThenByDescending(x => x.MatchData.Team)
 				.ToList();
 
 			gamesString += $"{status.Teams.RedTeam} {status.RedScore} | {status.Teams.BlueTeam} {status.BlueScore}{Environment.NewLine}{Environment.NewLine}" +
-			               $"<b>{game.Beatmap.BeatmapSet.Artist} - {game.Beatmap.BeatmapSet.Title} [{game.Beatmap.Version}]</b>{Environment.NewLine}";
+			               $"<b>{game.Beatmap.BeatmapSet?.Artist} - {game.Beatmap.BeatmapSet?.Title} [{game.Beatmap.Version}]</b>{Environment.NewLine}";
 
 			foreach (var score in allScores)
 			{
@@ -233,7 +232,7 @@ namespace den0bot.Modules.Osu
 			uint redTotalScore = 0, blueTotalScore = 0;
 			foreach (var g in match.Events.Where(x=> x.Game != null).Select(x => x.Game))
 			{
-				var redGameScore = g.Scores.Where(x => x.MatchData.Team == Team.Red).Sum(x => x.Points);
+				var redGameScore = g!.Scores.Where(x => x.MatchData.Team == Team.Red).Sum(x => x.Points);
 				var blueGameScore = g.Scores.Where(x => x.MatchData.Team == Team.Blue).Sum(x => x.Points);
 
 				if (redGameScore > blueGameScore)

@@ -1,4 +1,4 @@
-﻿
+﻿// den0bot (c) StanR 2024 - MIT License
 using System.Text.RegularExpressions;
 
 namespace den0bot.Modules.Osu.Parsers
@@ -12,7 +12,7 @@ namespace den0bot.Modules.Osu.Parsers
 	{
 		private static readonly Regex linkRegex = new(@"(?>https?:\/\/)?osu\.ppy\.sh\/community\/matches\/(\d+)", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
-		public static MatchLinkData Parse(string text)
+		public static MatchLinkData? Parse(string text)
 		{
 			if (!string.IsNullOrEmpty(text))
 			{

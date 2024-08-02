@@ -77,7 +77,7 @@ namespace den0bot.Modules.Osu
 			uint playerId = 0;
 			int amount = 1;
 
-			List<string> msgSplit = message.Text.Split(' ').ToList();
+			List<string> msgSplit = message.Text!.Split(' ').ToList();
 			msgSplit.RemoveAt(0);
 
 			if (msgSplit.Count > 0 && int.TryParse(msgSplit.Last(), out amount))
@@ -96,7 +96,7 @@ namespace den0bot.Modules.Osu
 			else
 			{
 				await using var db = new DatabaseOsu();
-				var id = db.Players.FirstOrDefault(x=> x.TelegramID == message.From.Id)?.OsuID;
+				var id = db.Players.FirstOrDefault(x=> x.TelegramID == message.From!.Id)?.OsuID;
 				if (id == null || id == 0)
 					return Localization.GetAnswer("recentscores_unknown_player", message.Chat.Id);
 
@@ -106,7 +106,7 @@ namespace den0bot.Modules.Osu
 			if (playerId == 0)
 				return Localization.GetAnswer("generic_fail", message.Chat.Id);
 
-			List<LazerScore> lastScores = await new GetUserScores(playerId, ScoreType.Recent, true).Execute();
+			List<LazerScore>? lastScores = await new GetUserScores(playerId, ScoreType.Recent, true).Execute();
 			if (lastScores != null)
 			{
 				if (lastScores.Count == 0)
@@ -132,7 +132,7 @@ namespace den0bot.Modules.Osu
 		{
 			uint playerId = 0;
 
-			List<string> msgSplit = message.Text.Split(' ').ToList();
+			List<string> msgSplit = message.Text!.Split(' ').ToList();
 			msgSplit.RemoveAt(0);
 
 			if (msgSplit.Count > 0)
@@ -145,7 +145,7 @@ namespace den0bot.Modules.Osu
 			else
 			{
 				await using var db = new DatabaseOsu();
-				var id = db.Players.FirstOrDefault(x => x.TelegramID == message.From.Id)?.OsuID;
+				var id = db.Players.FirstOrDefault(x => x.TelegramID == message.From!.Id)?.OsuID;
 				if (id == null || id == 0)
 					return Localization.GetAnswer("recentscores_unknown_player", message.Chat.Id);
 
@@ -156,7 +156,7 @@ namespace den0bot.Modules.Osu
 				return Localization.GetAnswer("generic_fail", message.Chat.Id);
 
 			var lastScores = await new GetUserScores(playerId, ScoreType.Recent, false).Execute();
-			if (lastScores.Count > 0)
+			if (lastScores?.Count > 0)
 			{
 				var score = lastScores[0];
 				ChatBeatmapCache.StoreLastMap(message.Chat.Id, new ChatBeatmapCache.CachedBeatmap { BeatmapId = score.BeatmapShort.Id, BeatmapSetId = score.BeatmapShort.BeatmapSetId});
@@ -173,7 +173,7 @@ namespace den0bot.Modules.Osu
 			uint mapId = 0;
 
 			// beatmap id regex can parse link as part of a complex message so we dont need to clean it up beforehand
-			var msgText = message.Text;
+			var msgText = message.Text!;
 			if (message.ReplyToMessage?.Text != null)
 			{
 				var sentMap = ChatBeatmapCache.GetSentMap(message.ReplyToMessage.MessageId);
@@ -194,7 +194,7 @@ namespace den0bot.Modules.Osu
 					mods = data.Mods;
 					if (data.IsBeatmapset)
 					{
-						BeatmapSet set = await new GetBeatmapSet(data.ID).Execute();
+						BeatmapSet? set = await new GetBeatmapSet(data.ID).Execute();
 						if (set?.Beatmaps?.Count > 0)
 							mapId = set.Beatmaps.OrderBy(x => x.StarRating).Last().Id;
 					}
@@ -210,7 +210,7 @@ namespace den0bot.Modules.Osu
 
 			await using var db = new DatabaseOsu();
 
-			var playerId = db.Players.FirstOrDefault(x => x.TelegramID == message.From.Id)?.OsuID;
+			var playerId = db.Players.FirstOrDefault(x => x.TelegramID == message.From!.Id)?.OsuID;
 			if (playerId == null || playerId == 0)
 				return Localization.GetAnswer("recentscores_unknown_player", message.Chat.Id);
 
@@ -254,13 +254,13 @@ namespace den0bot.Modules.Osu
 			{
 				await using var db = new DatabaseOsu();
 
-				string player = ProfileLinkParser.Parse(message.Text)?.Id;
+				string? player = ProfileLinkParser.Parse(message.Text!)?.Id;
 				if (string.IsNullOrEmpty(player))
 					player = message.Text.Substring(7);
 
 				if (!string.IsNullOrEmpty(player))
 				{
-					if (db.Players.Any(x => x.TelegramID == message.From.Id))
+					if (db.Players.Any(x => x.TelegramID == message.From!.Id))
 						return Localization.GetAnswer($"annoy_{RNG.NextNoMemory(1, 10)}", message.Chat.Id);
 
 					if (!uint.TryParse(player, out var osuID))
@@ -279,7 +279,7 @@ namespace den0bot.Modules.Osu
 						await db.Players.AddAsync(new DatabaseOsu.Player
 						{
 							OsuID = osuID,
-							TelegramID = message.From.Id
+							TelegramID = message.From!.Id
 						});
 						await db.SaveChangesAsync();
 
@@ -295,7 +295,7 @@ namespace den0bot.Modules.Osu
 		{
 			await using (var db = new DatabaseOsu())
 			{
-				var player = db.Players.FirstOrDefault(x=> x.TelegramID == message.From.Id);
+				var player = db.Players.FirstOrDefault(x=> x.TelegramID == message.From!.Id);
 				if (player != null)
 				{
 					db.Players.Remove(player);
@@ -312,7 +312,7 @@ namespace den0bot.Modules.Osu
 		{
 			await using (var db = new DatabaseOsu())
 			{
-				var tgId = DatabaseCache.GetUserID(message.Text.Split()[1]);
+				var tgId = DatabaseCache.GetUserID(message.Text!.Split()[1]);
 				if (tgId != 0)
 				{
 					var player = db.Players.FirstOrDefault(x => x.TelegramID == tgId);
@@ -329,7 +329,7 @@ namespace den0bot.Modules.Osu
 			}
 		}
 
-		private async Task<string> FormatLazerScore(LazerScore score, Beatmap beatmap, bool useAgo)
+		private async Task<string> FormatLazerScore(LazerScore score, Beatmap? beatmap, bool useAgo)
 		{
 			string mods = string.Empty;
 			if (score.Mods.Count(x => x.Acronym != "CL") > 0)
@@ -364,7 +364,7 @@ namespace den0bot.Modules.Osu
 				mods = mods.TrimEnd();
 			}
 
-			string date = score.Date?.ToShortDateString();
+			string? date = score.Date?.ToShortDateString();
 			if (useAgo && score.Date != null)
 			{
 				TimeSpan ago = DateTime.Now.ToUniversalTime() - score.Date.Value;
@@ -372,10 +372,10 @@ namespace den0bot.Modules.Osu
 			}
 
 			// html-filtered map title
-			string mapInfo = $"{beatmap.BeatmapSet.Artist} - {beatmap.BeatmapSet.Title} [{score.Beatmap.Version}]".FilterToHTML();
+			string mapInfo = $"{beatmap?.BeatmapSet?.Artist} - {beatmap?.BeatmapSet?.Title} [{score.Beatmap.Version}]".FilterToHTML();
 
 			string pp = $"| {score.Pp:N2}pp";
-			if (beatmap.Mode == Mode.Osu)
+			if (beatmap?.Mode == Mode.Osu)
 			{
 				try
 				{
@@ -383,7 +383,7 @@ namespace den0bot.Modules.Osu
 					var shouldCalculatePp = score.Pp is null ||
 											score.ComboBasedMissCount(beatmap.MaxCombo, beatmap.Sliders) > 0;
 
-					Pettanko.Difficulty.OsuDifficultyAttributes attributes = null;
+					Pettanko.Difficulty.OsuDifficultyAttributes? attributes = null;
 
 					if (shouldCalculatePp)
 					{
@@ -392,10 +392,15 @@ namespace den0bot.Modules.Osu
 						attributes = await new GetBeatmapAttributes(beatmap.Id, difficultyMods).Execute();
 					}
 
-					double scorePp = score.Pp ?? PpCalculation.CalculatePerformance(score, attributes, beatmap);
+					double scorePp = score.Pp ?? 0;
+					if (attributes != null)
+					{
+						scorePp = score.Pp ?? PpCalculation.CalculatePerformance(score, attributes, beatmap);
+					}
+
 					string possiblePp = string.Empty;
 
-					if (score.ComboBasedMissCount(beatmap.MaxCombo, beatmap.Sliders) > 0)
+					if (attributes != null && score.ComboBasedMissCount(beatmap.MaxCombo, beatmap.Sliders) > 0)
 					{
 						// Add possible pp value if they missed
 						var fcScore = new LazerScore
@@ -432,7 +437,7 @@ namespace den0bot.Modules.Osu
 
 			return
 				$"<b>({score.Grade.GetDescription()})</b> <a href=\"{score.Beatmap.Link}\">{mapInfo}</a><b>{mods} ({score.Accuracy:N2}%)</b>{Environment.NewLine}" +
-				$"{score.Combo}/{beatmap.MaxCombo}x ({score.Statistics.Count300} / {score.Statistics.Count100} / {score.Statistics.Count50} / {score.Statistics.CountMiss}) {pp}{Environment.NewLine}" +
+				$"{score.Combo}/{beatmap?.MaxCombo}x ({score.Statistics.Count300} / {score.Statistics.Count100} / {score.Statistics.Count50} / {score.Statistics.CountMiss}) {pp}{Environment.NewLine}" +
 				$"{position}{date}{completion}{Environment.NewLine}{Environment.NewLine}";
 		}
 	}

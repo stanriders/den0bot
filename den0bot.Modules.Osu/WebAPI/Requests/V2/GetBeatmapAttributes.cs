@@ -22,8 +22,11 @@ namespace den0bot.Modules.Osu.WebAPI.Requests.V2
 			this.mods = mods;
 		}
 
-		public override Pettanko.Difficulty.OsuDifficultyAttributes Process(DifficultyAttributes data)
+		public override Pettanko.Difficulty.OsuDifficultyAttributes? Process(DifficultyAttributes? data)
 		{
+			if (data == null)
+				return null;
+
 			return new Pettanko.Difficulty.OsuDifficultyAttributes
 			{
 				StarRating = data.Attributes.StarRating,

@@ -1,4 +1,4 @@
-﻿// den0bot (c) StanR 2023 - MIT License
+﻿// den0bot (c) StanR 2024 - MIT License
 using den0bot.Modules.Osu.Types.V2;
 
 namespace den0bot.Modules.Osu.WebAPI.Requests.V2
@@ -16,6 +16,6 @@ namespace den0bot.Modules.Osu.WebAPI.Requests.V2
 			this.username = username;
 		}
 
-		public override User Process(User data) => data;
+		public override User? Process(User? data) => data;
 	}
 }

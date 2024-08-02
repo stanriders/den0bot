@@ -1,12 +1,12 @@
-﻿
+﻿// den0bot (c) StanR 2024 - MIT License
 using System.Text.RegularExpressions;
 
 namespace den0bot.Modules.Osu.Parsers
 {
 	public class MatchTeamNames
 	{
-		public string RedTeam { get; set; }
-		public string BlueTeam { get; set; }
+		public string RedTeam { get; set; } = null!;
+		public string BlueTeam { get; set; } = null!;
 	}
 
 	public static class MatchTeamsParser

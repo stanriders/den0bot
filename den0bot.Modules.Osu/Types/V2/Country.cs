@@ -1,4 +1,4 @@
-﻿// den0bot (c) StanR 2020 - MIT License
+﻿// den0bot (c) StanR 2024 - MIT License
 using Newtonsoft.Json;
 
 namespace den0bot.Modules.Osu.Types.V2
@@ -6,9 +6,9 @@ namespace den0bot.Modules.Osu.Types.V2
 	public class Country
 	{
 		[JsonProperty("code")]
-		public string Code { get; set; }
+		public string Code { get; set; } = null!;
 
 		[JsonProperty("name")]
-		public string Name { get; set; }
+		public string Name { get; set; } = null!;
 	}
 }

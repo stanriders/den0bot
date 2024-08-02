@@ -1,4 +1,4 @@
-﻿// den0bot (c) StanR 2021 - MIT License
+﻿// den0bot (c) StanR 2024 - MIT License
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -55,11 +55,16 @@ namespace den0bot.Modules.Osu
 				                 "/values/A2:B200?key=" + Config.Params.GoogleAPIToken;
 				var data = Web.DownloadString(request).Result;
 
-				JArray array = JToken.Parse(data)["values"] as JArray;
-
-				foreach (JToken token in array)
+				JArray? array = JToken.Parse(data)["values"] as JArray;
+				if (array != null)
 				{
-					maplist.Add(new string[] {token[0].ToString(), token[1].ToString()});
+					foreach (JToken token in array)
+					{
+						if (token.Count() > 1)
+						{
+							maplist.Add(new string[] { token[0]!.ToString(), token[1]!.ToString() });
+						}
+					}
 				}
 
 				isEnabled = true;
@@ -74,7 +79,7 @@ namespace den0bot.Modules.Osu
 			}
 		}
 
-		private async Task<ICommandAnswer> GetMap(Telegram.Bot.Types.Message message)
+		private async Task<ICommandAnswer?> GetMap(Telegram.Bot.Types.Message message)
 		{
 			if (isEnabled && maplist.Count > 0)
 			{
@@ -83,7 +88,7 @@ namespace den0bot.Modules.Osu
 				if (linkData == null)
 					return new TextCommandAnswer(maplist[num][0] + Environment.NewLine + maplist[num][1]);
 
-				Beatmap map;
+				Beatmap? map;
 				if (linkData.IsBeatmapset)
 				{
 					var set = await new GetBeatmapSet(linkData.ID).Execute();
@@ -109,7 +114,7 @@ namespace den0bot.Modules.Osu
 
 					return new ImageCommandAnswer
 					{
-						Image = map.BeatmapSet.Covers.Cover2X,
+						Image = map.BeatmapSet?.Covers.Cover2X,
 						Caption = caption
 					};
 				}

@@ -1,4 +1,4 @@
-﻿// den0bot (c) StanR 2021 - MIT License
+﻿// den0bot (c) StanR 2024 - MIT License
 
 using System;
 using System.Collections.Generic;
@@ -19,7 +19,7 @@ namespace den0bot.Modules.Osu
 		private static readonly MemoryCache sentMapsCache = MemoryCache.Default;
 		private const int days_to_keep_messages = 1; // how long do we keep maps in cache
 
-		public static CachedBeatmap GetLastMap(long chatId)
+		public static CachedBeatmap? GetLastMap(long chatId)
 		{
 			if (lastMapCache.ContainsKey(chatId))
 				return lastMapCache[chatId];
@@ -40,7 +40,7 @@ namespace den0bot.Modules.Osu
 			sentMapsCache.Add(messageId.ToString(), map, DateTimeOffset.Now.AddDays(days_to_keep_messages));
 		}
 
-		public static CachedBeatmap GetSentMap(int messageId)
+		public static CachedBeatmap? GetSentMap(int messageId)
 		{
 			return sentMapsCache.Get(messageId.ToString()) as CachedBeatmap;
 		}

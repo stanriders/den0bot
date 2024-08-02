@@ -71,7 +71,7 @@ namespace den0bot.Modules.Osu
 				var beatmapLinkData = BeatmapLinkParser.Parse(message.Text);
 				if (beatmapLinkData != null)
 				{
-					Beatmap map = null;
+					Beatmap? map = null;
 					if (beatmapLinkData.IsBeatmapset)
 					{
 						var set = await new GetBeatmapSet(beatmapLinkData.ID).Execute();
@@ -90,7 +90,7 @@ namespace den0bot.Modules.Osu
 
 		public async Task<string> ReceiveCallback(CallbackQuery callback)
 		{
-			var sentMap = ChatBeatmapCache.GetSentMap(callback.Message.MessageId);
+			var sentMap = ChatBeatmapCache.GetSentMap(callback.Message!.MessageId);
 			if (callback.Data == "preview" && sentMap?.BeatmapSetId is not null)
 			{
 				await API.AnswerCallbackQuery(callback.Id, "Ща всё будет");
@@ -151,11 +151,11 @@ namespace den0bot.Modules.Osu
 		}
 #endif
 
-		private async Task SendMapInfo(long chatId, Beatmap map, Mod[] mods, bool includeName = false)
+		private async Task SendMapInfo(long chatId, Beatmap? map, Mod[] mods, bool includeName = false)
 		{
 			if (map != null)
 			{
-				var sentMessage = await API.SendPhoto(map.BeatmapSet.Covers.Cover2X,
+				var sentMessage = await API.SendPhoto(map.BeatmapSet?.Covers.Cover2X,
 					chatId,
 					await map.GetFormattedMapInfo(mods, includeName),
 					Telegram.Bot.Types.Enums.ParseMode.Html,

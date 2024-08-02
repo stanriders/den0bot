@@ -1,4 +1,4 @@
-﻿// den0bot (c) StanR 2021 - MIT License
+﻿// den0bot (c) StanR 2024 - MIT License
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -60,7 +60,7 @@ namespace den0bot.Modules.Osu
 					{
 						try
 						{
-							int amount = int.Parse(msg.Text.Remove(0, 10));
+							int amount = int.Parse(msg.Text!.Remove(0, 10));
 							if (amount > 20)
 								return new TextCommandAnswer(await GetLastScores(default_score_amount));
 							else
@@ -116,9 +116,9 @@ namespace den0bot.Modules.Osu
 				var data = await Web.DownloadString(request);
 				if (!string.IsNullOrEmpty(data))
 				{
-					dynamic items = JsonConvert.DeserializeObject(data);
+					dynamic items = JsonConvert.DeserializeObject(data)!;
 
-					foreach (var vid in items.items)
+					foreach (var vid in items!.items)
 					{
 						// this needs remaking with proper per-chat subscriptions 
 						//await API.SendMessageToAllChats(
@@ -143,11 +143,11 @@ namespace den0bot.Modules.Osu
 				var data = await Web.DownloadString(request);
 				if (!string.IsNullOrEmpty(data))
 				{
-					dynamic items = JsonConvert.DeserializeObject(data);
+					dynamic items = JsonConvert.DeserializeObject(data)!;
 
 					for (int i = 0; i < 3; i++)
 					{
-						var vid = items.items[i];
+						var vid = items!.items[i];
 						result += $"{vid.snippet.title}\nhttp://youtu.be/{vid.contentDetails.upload.videoId}";
 					}
 				}

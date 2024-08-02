@@ -10,7 +10,7 @@ namespace den0bot.Modules.Osu.WebAPI.Requests.V2
 		public override string Address => $"beatmaps/{beatmapId}/scores{mods}";
 
 		private readonly uint beatmapId;
-		private readonly string mods;
+		private readonly string mods = string.Empty;
 
 		public GetBeatmapScores(uint beatmapId, Mod[]? mods)
 		{
@@ -29,6 +29,6 @@ namespace den0bot.Modules.Osu.WebAPI.Requests.V2
 			
 		}
 
-		public override LazerScore[] Process(BeatmapScores data) => data.Scores;
+		public override LazerScore[]? Process(BeatmapScores? data) => data?.Scores;
 	}
 }

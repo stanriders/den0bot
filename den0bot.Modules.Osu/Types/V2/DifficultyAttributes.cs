@@ -1,4 +1,4 @@
-﻿// den0bot (c) StanR 2023 - MIT License
+﻿// den0bot (c) StanR 2024 - MIT License
 using Newtonsoft.Json;
 
 namespace den0bot.Modules.Osu.Types.V2
@@ -6,7 +6,7 @@ namespace den0bot.Modules.Osu.Types.V2
     public class DifficultyAttributes
     {
 	    [JsonProperty("attributes")]
-	    public InnerDifficultyAttributes Attributes { get; set; }
+	    public InnerDifficultyAttributes Attributes { get; set; } = null!;
 	}
 
     public class InnerDifficultyAttributes

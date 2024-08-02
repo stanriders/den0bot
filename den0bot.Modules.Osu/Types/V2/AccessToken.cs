@@ -1,4 +1,4 @@
-﻿// den0bot (c) StanR 2021 - MIT License
+﻿// den0bot (c) StanR 2024 - MIT License
 using Newtonsoft.Json;
 using System;
 
@@ -7,7 +7,7 @@ namespace den0bot.Modules.Osu.Types.V2
 	public class AccessToken
 	{
 		[JsonProperty("token_type")]
-		public string Type { get; set; }
+		public string Type { get; set; } = null!;
 
 		private DateTime expireDate;
 		[JsonProperty("expires_in")]
@@ -20,6 +20,6 @@ namespace den0bot.Modules.Osu.Types.V2
 		public bool Expired => expireDate < DateTime.Now;
 
 		[JsonProperty("access_token")]
-		public string Token { get; set; }
+		public string Token { get; set; } = null!;
 	}
 }

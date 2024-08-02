@@ -1,4 +1,4 @@
-﻿// den0bot (c) StanR 2023 - MIT License
+﻿// den0bot (c) StanR 2024 - MIT License
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,14 +15,14 @@ namespace den0bot.Modules.Osu.Parsers
 		public uint ID { get; set; }
 		public bool IsBeatmapset { get; set; }
 		public Mode Mode { get; set; }
-		public Mod[] Mods { get; set; }
+		public Mod[] Mods { get; set; } = null!;
 	}
 
 	public static class BeatmapLinkParser
 	{
 		private static readonly Regex linkRegex = new(@"(?>https?:\/\/)?(?>osu|old)\.ppy\.sh\/([b,s]|(?>beatmaps)|(?>beatmapsets))\/(\d+)\/?\#?(\w+)?\/?(\d+)?\/?(?>[&,?].+=\w+)?\s?(?>\+(\w+))?", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
-		public static BeatmapLinkData Parse(string text)
+		public static BeatmapLinkData? Parse(string text)
 		{
 			if (string.IsNullOrEmpty(text))
 				return null;

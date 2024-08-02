@@ -1,4 +1,5 @@
-﻿using System;
+﻿// den0bot (c) StanR 2024 - MIT License
+using System;
 using den0bot.Modules.Osu.Types.Enums;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
@@ -8,7 +9,7 @@ namespace den0bot.Modules.Osu.Types.V2
 	public class Match
 	{
 		[JsonProperty("match")]
-		public MatchInfo Info { get; set; }
+		public MatchInfo Info { get; set; } = null!;
 
 		public class MatchInfo
 		{
@@ -22,11 +23,11 @@ namespace den0bot.Modules.Osu.Types.V2
 			public DateTime? EndTime { get; set; }
 
 			[JsonProperty("name")]
-			public string Name { get; set; }
+			public string Name { get; set; } = null!;
 		}
 
 		[JsonProperty("events")]
-		public MatchEvent[] Events { get; set; }
+		public MatchEvent[] Events { get; set; } = null!;
 
 		public class MatchEvent
 		{
@@ -42,7 +43,7 @@ namespace den0bot.Modules.Osu.Types.V2
 			public int? UserId { get; set; }
 
 			[JsonProperty("game")]
-			public MatchGame Game { get; set; }
+			public MatchGame? Game { get; set; }
 
 			public class MatchGame
 			{
@@ -67,18 +68,18 @@ namespace den0bot.Modules.Osu.Types.V2
 				public TeamMode TeamMode { get; set; }
 
 				[JsonProperty("mods")]
-				public string[] Mods { get; set; }
+				public string[] Mods { get; set; } = null!;
 
 				[JsonProperty("beatmap")]
-				public BeatmapShort Beatmap { get; set; }
+				public BeatmapShort Beatmap { get; set; } = null!;
 
 				[JsonProperty("scores")]
-				public Score[] Scores { get; set; }
+				public Score[] Scores { get; set; } = null!;
 			}
 		}
 
 		[JsonProperty("users")]
-		public UserShort[] Users { get; set; }
+		public UserShort[] Users { get; set; } = null!;
 
 		[JsonProperty("first_event_id")]
 		public int FirstEventId { get; set; }

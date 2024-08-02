@@ -12,7 +12,7 @@ namespace den0bot.Modules.Osu.WebAPI.Requests.V2
 
 		private readonly uint beatmapId;
 		private readonly uint userId;
-		private readonly string mods;
+		private readonly string mods = string.Empty;
 
 		public GetUserBeatmapScore(uint beatmapId, uint userId, string[] mods)
 		{
@@ -25,10 +25,15 @@ namespace den0bot.Modules.Osu.WebAPI.Requests.V2
 			}
 		}
 
-		public override LazerScore Process(BeatmapUserScore data) 
+		public override LazerScore? Process(BeatmapUserScore? data) 
 		{
-			var score = data.Score;
-			score.LeaderboardPosition = data.Position;
+			var score = data?.Score;
+			if (score == null)
+			{
+				return null;
+			}
+
+			score.LeaderboardPosition = data?.Position;
 			return score;
 		}
 	}

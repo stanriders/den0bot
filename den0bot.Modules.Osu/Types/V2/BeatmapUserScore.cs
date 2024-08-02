@@ -9,6 +9,6 @@ namespace den0bot.Modules.Osu.Types.V2
 		public int Position { get; set; }
 
 		[JsonProperty("score")]
-		public LazerScore Score { get; set; }
+		public LazerScore Score { get; set; } = null!;
 	}
 }

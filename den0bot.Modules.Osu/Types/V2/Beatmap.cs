@@ -1,4 +1,4 @@
-﻿// den0bot (c) StanR 2023 - MIT License
+﻿// den0bot (c) StanR 2024 - MIT License
 using System;
 using System.Globalization;
 using System.Linq;
@@ -24,16 +24,16 @@ namespace den0bot.Modules.Osu.Types.V2
 		public uint BeatmapSetId { get; set; }
 
 		[JsonProperty("version")]
-		public string Version { get; set; }
+		public string Version { get; set; } = null!;
 
 		[JsonProperty("mode_int")]
 		public Mode Mode { get; set; }
 
 		[JsonProperty("mode")]
-		public string ModeName { get; set; }
+		public string ModeName { get; set; } = null!;
 
 		[JsonProperty("url")]
-		public string Url { get; set; }
+		public string Url { get; set; } = null!;
 
 		[JsonProperty("ar")]
 		public double AR { get; set; }
@@ -73,10 +73,10 @@ namespace den0bot.Modules.Osu.Types.V2
 		public double StarRating { get; set; }
 
 		[JsonProperty("ranked")]
-		public bool Ranked { get; set; }
+		public bool Ranked { get; set; } 
 
 		[JsonProperty("beatmapset")]
-		public BeatmapSetShort BeatmapSet { get; set; }
+		public BeatmapSetShort? BeatmapSet { get; set; }
 
 		/*
             "convert": false,
@@ -90,8 +90,8 @@ namespace den0bot.Modules.Osu.Types.V2
 		public string Link => "https://osu.ppy.sh/b/" + Id;
 		public int? ObjectsTotal => Circles + Sliders + Spinners;
 
-		private byte[] fileBytes = null;
-		public byte[] FileBytes
+		private byte[]? fileBytes = null;
+		public byte[]? FileBytes
 		{
 			get
 			{
@@ -283,7 +283,7 @@ namespace den0bot.Modules.Osu.Types.V2
 		[JsonProperty("max_combo")]
 		public int MaxCombo { get; set; }
 
-		public string Thumbnail => BeatmapSet?.Covers?.Cover2X;
+		public string? Thumbnail => BeatmapSet?.Covers?.Cover2X;
 
 		public Task<string> GetFormattedMapInfo(bool includeName = false)
 		{
@@ -296,7 +296,7 @@ namespace den0bot.Modules.Osu.Types.V2
 
 			var difficultyAttributes = await new GetBeatmapAttributes(Id, mods).Execute();
 
-			if (Mode == Mode.Osu)
+			if (Mode == Mode.Osu && difficultyAttributes != null)
 			{
 				try
 				{
@@ -333,8 +333,8 @@ namespace den0bot.Modules.Osu.Types.V2
 				case Mode.Osu:
 					return
 						$"{fullName}" +
-						$"[{Version.FilterToHTML()}] - {difficultyAttributes.StarRating:N2}* - {ModdedDrainLength(mods):mm\':\'ss} - {BeatmapSet?.CreatorName} - <b>{Status}</b>\n" +
-						$"⭕️ | <b>CS:</b> {ModdedCS(mods):N2} | <b>AR:</b> {difficultyAttributes.ApproachRate:N2} | <b>OD:</b> {difficultyAttributes.OverallDifficulty:N2} | <b>BPM:</b> {ModdedBPM(mods):N2}\n" +
+						$"[{Version.FilterToHTML()}] - {difficultyAttributes?.StarRating:N2}* - {ModdedDrainLength(mods):mm\':\'ss} - {BeatmapSet?.CreatorName} - <b>{Status}</b>\n" +
+						$"⭕️ | <b>CS:</b> {ModdedCS(mods):N2} | <b>AR:</b> {difficultyAttributes?.ApproachRate:N2} | <b>OD:</b> {difficultyAttributes?.OverallDifficulty:N2} | <b>BPM:</b> {ModdedBPM(mods):N2}\n" +
 						$"{pp}";
 				case Mode.Taiko:
 					return

@@ -1,4 +1,4 @@
-﻿// den0bot (c) StanR 2023 - MIT License
+﻿// den0bot (c) StanR 2024 - MIT License
 using System.Collections.Generic;
 using den0bot.Modules.Osu.Types.V2;
 
@@ -23,7 +23,7 @@ namespace den0bot.Modules.Osu.WebAPI.Requests.V2
 			this.limit = limit;
 		}
 
-		public override List<LazerScore> Process(List<LazerScore> data) => data;
+		public override List<LazerScore>? Process(List<LazerScore>? data) => data;
 	}
 
 	public enum ScoreType

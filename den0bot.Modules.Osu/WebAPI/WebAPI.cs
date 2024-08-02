@@ -1,4 +1,4 @@
-﻿// den0bot (c) StanR 2023 - MIT License
+﻿// den0bot (c) StanR 2024 - MIT License
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -12,9 +12,9 @@ namespace den0bot.Modules.Osu.WebAPI
 {
 	public static class WebApiHandler
 	{
-		private static AccessToken v2AccessToken;
+		private static AccessToken? v2AccessToken;
 
-		public static async Task<TIn> MakeApiRequest<TIn, TOut>(Request<TIn, TOut> request)
+		public static async Task<TIn?> MakeApiRequest<TIn, TOut>(Request<TIn, TOut> request)
 		{
 			return request.API switch
 			{
@@ -24,7 +24,7 @@ namespace den0bot.Modules.Osu.WebAPI
 			};
 		}
 
-		private static async Task<TIn> V1ApiRequest<TIn, TOut>(Request<TIn, TOut> request)
+		private static async Task<TIn?> V1ApiRequest<TIn, TOut>(Request<TIn, TOut> request)
 		{
 			if (string.IsNullOrEmpty(Config.Params.osuToken))
 			{
@@ -46,7 +46,7 @@ namespace den0bot.Modules.Osu.WebAPI
 			return default;
 		}
 
-		private static async Task<TIn> V2ApiRequest<TIn, TOut>(Request<TIn, TOut> request)
+		private static async Task<TIn?> V2ApiRequest<TIn, TOut>(Request<TIn, TOut> request)
 		{
 			await RefreshToken();
 
@@ -57,9 +57,9 @@ namespace den0bot.Modules.Osu.WebAPI
 					string json;
 
 					if (request.Body is not null)
-						json = await Web.PostJson($"https://osu.ppy.sh/api/v2/{request.Address}", request.Body, v2AccessToken.Token, new Dictionary<string, string> {{ "x-api-version", "20240130" } });
+						json = await Web.PostJson($"https://osu.ppy.sh/api/v2/{request.Address}", request.Body, v2AccessToken.Token, new Dictionary<string, string> {{ "x-api-version", "20240801" } });
 					else
-						json = await Web.DownloadString($"https://osu.ppy.sh/api/v2/{request.Address}", v2AccessToken.Token, new Dictionary<string, string> { { "x-api-version", "20240130" } });
+						json = await Web.DownloadString($"https://osu.ppy.sh/api/v2/{request.Address}", v2AccessToken.Token, new Dictionary<string, string> { { "x-api-version", "20240801" } });
 
 					return JsonConvert.DeserializeObject<TIn>(json, new JsonSerializerSettings { DateTimeZoneHandling = DateTimeZoneHandling.Utc });
 				}

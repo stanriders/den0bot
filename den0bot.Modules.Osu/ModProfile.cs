@@ -1,4 +1,4 @@
-﻿// den0bot (c) StanR 2023 - MIT License
+﻿// den0bot (c) StanR 2024 - MIT License
 using System.Linq;
 using System.Threading.Tasks;
 using den0bot.DB;
@@ -37,7 +37,7 @@ namespace den0bot.Modules.Osu
 		{
 			if (!string.IsNullOrEmpty(message.Text))
 			{
-				string playerId = ProfileLinkParser.Parse(message.Text)?.Id;
+				string? playerId = ProfileLinkParser.Parse(message.Text)?.Id;
 				if (!string.IsNullOrEmpty(playerId))
 				{
 					await API.SendMessage(await FormatPlayerInfo(playerId), message.Chat.Id, ParseMode.Html,
@@ -48,7 +48,7 @@ namespace den0bot.Modules.Osu
 
 		private async Task<string> FormatPlayerInfo(string playerID)
 		{
-			Types.V2.User info = await new GetUser(playerID).Execute();
+			Types.V2.User? info = await new GetUser(playerID).Execute();
 
 			if (info == null)
 				return string.Empty;
@@ -91,11 +91,11 @@ namespace den0bot.Modules.Osu
 			{
 				await using var dbOsu = new DatabaseOsu();
 
-				var userId = msg.From.Id;
+				var userId = msg.From!.Id;
 
 				if (msg.ReplyToMessage != null)
 				{
-					userId = msg.ReplyToMessage.From.Id;
+					userId = msg.ReplyToMessage.From!.Id;
 				}
 
 				// username in profile has priority over replies

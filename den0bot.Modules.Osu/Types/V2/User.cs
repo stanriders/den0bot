@@ -1,4 +1,4 @@
-﻿// den0bot (c) StanR 2020 - MIT License
+﻿// den0bot (c) StanR 2024 - MIT License
 using System;
 using Newtonsoft.Json;
 
@@ -10,16 +10,16 @@ namespace den0bot.Modules.Osu.Types.V2
 		public uint Id { get; set; }
 
 		[JsonProperty("username")]
-		public string Username { get; set; }
+		public string Username { get; set; } = null!;
 
 		[JsonProperty("country")]
-		public Country Country { get; set; }
+		public Country Country { get; set; } = null!;
 
 		[JsonProperty("country_code")]
-		public string CountryCode { get; set; }
+		public string CountryCode { get; set; } = null!;
 
 		[JsonProperty("avatar_url")]
-		public string AvatarUrl { get; set; }
+		public string AvatarUrl { get; set; } = null!;
 
 		[JsonProperty("is_active")]
 		public bool IsActive { get; set; }
@@ -49,39 +49,39 @@ namespace den0bot.Modules.Osu.Types.V2
 		public DateTime JoinDate { get; set; }
 
 		[JsonProperty("statistics")]
-		public UserStatistics Statistics { get; set; }
+		public UserStatistics Statistics { get; set; } = null!;
 
 		[JsonProperty("cover_url")]
-		public string CoverUrl { get; set; }
+		public string CoverUrl { get; set; } = null!;
 
 		[JsonProperty("previous_usernames")]
-		public string[] PreviousUsernames { get; set; }
+		public string[] PreviousUsernames { get; set; } = null!;
 
 		[JsonProperty("title")]
-		public string Title { get; set; }
+		public string Title { get; set; } = null!;
 
 		[JsonProperty("badges")]
-		public TournamentBadge[] Badges { get; set; }
+		public TournamentBadge[] Badges { get; set; } = null!;
 
 		[JsonProperty("follower_count")]
 		public uint Followers { get; set; }
 
 		[JsonProperty("monthly_playcounts")]
-		public TimeframeCount[] MonthlyPlays { get; set; }
+		public TimeframeCount[] MonthlyPlays { get; set; } = null!;
 
 		[JsonProperty("replays_watched_counts")]
-		public TimeframeCount[] ReplaysWatched { get; set; }
+		public TimeframeCount[] ReplaysWatched { get; set; } = null!;
 
 		[JsonProperty("rankHistory")]
-		public RankHistory Ranks { get; set; }
+		public RankHistory Ranks { get; set; } = null!;
 
 		public class UserCover
 		{
 			[JsonProperty("custom_url")]
-			public string CustomUrl { get; set; }
+			public string CustomUrl { get; set; } = null!;
 
 			[JsonProperty("url")]
-			public string Url { get; set; }
+			public string Url { get; set; } = null!;
 
 			[JsonProperty("id")]
 			public int? Id { get; set; }
@@ -93,22 +93,22 @@ namespace den0bot.Modules.Osu.Types.V2
 			public DateTime AwardedAt { get; set; }
 
 			[JsonProperty("description")]
-			public string Description { get; set; }
+			public string Description { get; set; } = null!;
 
 			[JsonProperty("image_url")]
-			public string ImageUrl { get; set; }
+			public string ImageUrl { get; set; } = null!;
 
 			[JsonProperty("url")]
-			public string Url { get; set; }
+			public string Url { get; set; } = null!;
 		}
 
 		public class RankHistory
 		{
 			[JsonProperty("mode")]
-			public string Mode { get; set; }
+			public string Mode { get; set; } = null!;
 
 			[JsonProperty("data")]
-			public int[] Ranks { get; set; }
+			public int[] Ranks { get; set; } = null!;
 		}
 
 		/*
@@ -167,7 +167,7 @@ namespace den0bot.Modules.Osu.Types.V2
 		public uint GlobalRank { get; set; }
 
 		[JsonProperty("rank")]
-		public UserRank Rank { get; set; }
+		public UserRank Rank { get; set; } = null!;
 
 		[JsonProperty("pp_country_rank")]
 		public uint CountryRank { get; set; }
@@ -176,7 +176,7 @@ namespace den0bot.Modules.Osu.Types.V2
 		public double Accuracy { get; set; }
 
 		[JsonProperty("level")]
-		public UserLevel Level { get; set; }
+		public UserLevel Level { get; set; } = null!;
 
 		[JsonProperty("ranked_score")]
 		public ulong RankedScore { get; set; }
@@ -194,7 +194,7 @@ namespace den0bot.Modules.Osu.Types.V2
 		public uint TeplaysWatched { get; set; }
 
 		[JsonProperty("grade_counts")]
-		public UserGradeCounts GradeCounts { get; set; }
+		public UserGradeCounts GradeCounts { get; set; } = null!;
 
 		[JsonProperty("is_ranked")]
 		public bool HasRank { get; set; }
