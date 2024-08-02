@@ -417,7 +417,7 @@ namespace den0bot.Modules.Osu
 						{
 							Statistics = new LazerScore.ScoreStatistics
 							{
-								Count300 = (score.Beatmap?.ObjectsTotal - score.Statistics.Count100 - score.Statistics.Count50) ?? 0,
+								Count300 = (beatmap.ObjectsTotal - score.Statistics.Count100 - score.Statistics.Count50) ?? 0,
 								Count100 = score.Statistics.Count100,
 								Count50 = score.Statistics.Count50,
 							},
@@ -446,7 +446,7 @@ namespace den0bot.Modules.Osu
 				completion = $" | {(double)(score.Statistics.Count300 + score.Statistics.Count100 + score.Statistics.Count50 + score.Statistics.CountMiss) / score.Beatmap?.ObjectsTotal * 100.0:N1}% completion";
 
 			return
-				$"<b>({score.Grade.GetDescription()})</b> <a href=\"{score.Beatmap?.Link}\">{mapInfo}</a><b>{mods} ({score.Accuracy:N2}%)</b>{Environment.NewLine}" +
+				$"<b>({score.Grade.GetDescription()})</b> <a href=\"{beatmap?.Link}\">{mapInfo}</a><b>{mods} ({score.Accuracy:N2}%)</b>{Environment.NewLine}" +
 				$"{score.Combo}/{beatmap?.MaxCombo}x ({score.Statistics.Count300} / {score.Statistics.Count100} / {score.Statistics.Count50} / {score.Statistics.CountMiss}) {pp}{Environment.NewLine}" +
 				$"{position}{date}{completion}{Environment.NewLine}{Environment.NewLine}";
 		}
