@@ -44,7 +44,7 @@ namespace den0bot.Modules
 				var match = ClipLinkRegex().Match(page);
 				var videoLink = string.Concat(ClipLinkReplaceRegex().Replace(match.Value, "clips"), ".mp4");
 
-				if (Uri.TryCreate(videoLink, UriKind.RelativeOrAbsolute, out var videoUri))
+				if (Uri.TryCreate(videoLink, UriKind.Absolute, out var videoUri))
 				{
 					var clipMatch = ClipTitleRegex().Match(page);
 					var caption = clipMatch.Success ? clipMatch.Groups[1].Value : "VAC";
