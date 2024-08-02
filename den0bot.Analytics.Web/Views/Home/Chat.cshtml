@@ -20,7 +20,7 @@
 			<td>@user.AverageLength.ToString("F1")</td>
 			<td>@user.Stickers</td>
 			<td>@user.Voices</td>
-			<td>@user.LastMessageTime.ToString(CultureInfo.InvariantCulture)</td>
+			<td>@user.LastMessageTime?.ToString(CultureInfo.InvariantCulture)</td>
 		</tr>
 	}
 	</tbody>

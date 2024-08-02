@@ -51,7 +51,7 @@ namespace den0bot.Analytics.Web.Controllers
 						model.Add(new ShortChatModel
 						{
 							Name = tgChat.Title,
-							Avatar = await telegramCache.GetChatImage(chat.Id, tgChat.Photo?.SmallFileId),
+							Avatar = tgChat.Photo?.SmallFileId != null ? await telegramCache.GetChatImage(chat.Id, tgChat.Photo.SmallFileId) : null,
 							Messages = await db.Messages.AsNoTracking().LongCountAsync(x => x.ChatId == chat.Id),
 							Id = chat.Id,
 							LastMessageTimestamp = new DateTime(lastMessageTimestamp)
@@ -79,7 +79,7 @@ namespace den0bot.Analytics.Web.Controllers
 				if (chat?.Photo != null)
 				{
 					ViewData["Image"] =
-						await telegramCache.GetChatImage(id, chat?.Photo?.SmallFileId);
+						await telegramCache.GetChatImage(id, chat.Photo.SmallFileId);
 				}
 
 				var users = new List<ChatModel.UserTable.User>();
@@ -174,7 +174,7 @@ namespace den0bot.Analytics.Web.Controllers
 					{
 						Id = chat.Id,
 						Name = name,
-						Avatar = await telegramCache.GetChatImage(chat.Id, tgChat?.Photo?.SmallFileId),
+						Avatar = tgChat?.Photo?.SmallFileId != null ? await telegramCache.GetChatImage(chat.Id, tgChat.Photo.SmallFileId) : null,
 						Messages = chat.Messages - chat.Commands,
 						Stickers = chat.Stickers,
 						Voices = chat.Voices,

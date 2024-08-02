@@ -27,14 +27,14 @@ namespace den0bot.Analytics.Data
 			modelBuilder.Entity<UserStatsAverageQuery>(eb => { eb.HasNoKey(); });
 		}
 
-		public DbSet<UserStatsQuery> UserStatsQuery { get; set; }
+		public DbSet<UserStatsQuery> UserStatsQuery { get; set; } = null!;
 
-		public DbSet<UserStatsAverageQuery> UserStatsAverageQuery { get; set; }
+		public DbSet<UserStatsAverageQuery> UserStatsAverageQuery { get; set; } = null!;
 
-		public DbSet<Message> Messages { get; set; }
+		public DbSet<Message> Messages { get; set; } = null!;
 
-		public DbSet<Girl> Girls { get; set; }
+		public DbSet<Girl> Girls { get; set; } = null!;
 
-		public DbSet<User> Users { get; set; }
+		public DbSet<User> Users { get; set; } = null!;
 	}
 }

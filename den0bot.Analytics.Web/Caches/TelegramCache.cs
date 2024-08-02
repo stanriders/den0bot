@@ -41,7 +41,7 @@ namespace den0bot.Analytics.Web.Caches
 			}
 		}
 
-		public async Task<User> GetUser(long? chatId, long userId)
+		public async Task<User?> GetUser(long? chatId, long userId)
 		{
 			var cacheKey = $"user_{userId}";
 
@@ -100,7 +100,7 @@ namespace den0bot.Analytics.Web.Caches
 			}
 		}
 
-		public async Task<Chat> GetChat(long chatId)
+		public async Task<Chat?> GetChat(long chatId)
 		{
 			var cacheKey = $"chat_{chatId}";
 
@@ -124,7 +124,7 @@ namespace den0bot.Analytics.Web.Caches
 			}
 		}
 
-		public async Task<string> GetChatImage(long chatId, string fileId)
+		public async Task<string?> GetChatImage(long chatId, string fileId)
 		{
 			var cacheKey = $"chatImg_{chatId}";
 
@@ -154,7 +154,7 @@ namespace den0bot.Analytics.Web.Caches
 			}
 		}
 
-		public async Task<string> GetAvatar(long userId)
+		public async Task<string?> GetAvatar(long userId)
 		{
 			var cacheKey = $"avatar_{userId}";
 
@@ -195,9 +195,12 @@ namespace den0bot.Analytics.Web.Caches
 			await using var stream = new MemoryStream();
 
 			var file = await client.GetFileAsync(fileId);
-			await client.DownloadFileAsync(file.FilePath, stream);
+			if (file.FilePath != null)
+			{
+				await client.DownloadFileAsync(file.FilePath, stream);
 
-			await System.IO.File.WriteAllBytesAsync(path, stream.ToArray());
+				await System.IO.File.WriteAllBytesAsync(path, stream.ToArray());
+			}
 		}
 	}
 }

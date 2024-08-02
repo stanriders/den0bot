@@ -7,9 +7,9 @@ namespace den0bot.Analytics.Web.Caches
 {
 	public interface ITelegramCache
 	{
-		Task<User> GetUser(long? chatId, long userId);
-		Task<Chat> GetChat(long chatId);
-		Task<string> GetChatImage(long chatId, string fileId);
-		Task<string> GetAvatar(long userId);
+		Task<User?> GetUser(long? chatId, long userId);
+		Task<Chat?> GetChat(long chatId);
+		Task<string?> GetChatImage(long chatId, string fileId);
+		Task<string?> GetAvatar(long userId);
 	}
 }

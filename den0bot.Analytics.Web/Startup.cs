@@ -1,4 +1,5 @@
 // den0bot (c) StanR 2024 - MIT License
+using System;
 using den0bot.Analytics.Data;
 using den0bot.Analytics.Web.Caches;
 using Microsoft.AspNetCore.Builder;
@@ -28,7 +29,13 @@ namespace den0bot.Analytics.Web
 
 			services.AddDbContext<AnalyticsDatabase>();
 
-			services.AddSingleton<ITelegramBotClient, TelegramBotClient>(_ => new TelegramBotClient(Configuration["TelegramAPIKey"]));
+			var telegramToken = Configuration["TelegramAPIKey"];
+			if (telegramToken == null)
+			{
+				throw new Exception("Null telegram token!");
+			}
+
+			services.AddSingleton<ITelegramBotClient, TelegramBotClient>(_ => new TelegramBotClient(telegramToken));
 			services.AddSingleton<ITelegramCache, TelegramCache>();
 
 			services.AddControllersWithViews();
@@ -42,7 +49,7 @@ namespace den0bot.Analytics.Web
 				options.EnrichDiagnosticContext = (context, httpContext) =>
 				{
 					var parsedUserAgent = Parser.GetDefault()?.Parse(httpContext.Request.Headers.UserAgent);
-					context.Set("Browser", parsedUserAgent?.UA.ToString());
+					context.Set("Browser", parsedUserAgent?.Browser.ToString());
 					context.Set("Device", parsedUserAgent?.Device.ToString());
 					context.Set("OS", parsedUserAgent?.OS.ToString());
 				};

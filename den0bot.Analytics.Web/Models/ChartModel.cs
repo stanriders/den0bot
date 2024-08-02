@@ -8,10 +8,10 @@ namespace den0bot.Analytics.Web.Models
 	{
 		public class TimeChart
 		{
-			public XAxis XAxis { get; set; }
-			public YAxis YAxis { get; set; }
+			public XAxis XAxis { get; set; } = null!;
+			public YAxis YAxis { get; set; } = null!;
 
-			public List<Series> Series { get; set; }
+			public List<Series> Series { get; set; } = null!;
 		}
 
 		public TimeChart Times { get; } = new();

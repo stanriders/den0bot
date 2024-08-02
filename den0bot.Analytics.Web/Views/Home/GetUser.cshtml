@@ -17,7 +17,7 @@
 			<td><a href="/chat/@chat.Id" class="text-body text-decoration-none"><img src="@chat.Avatar" width="24px" class="border border-secondary rounded-circle" /> @chat.Name</a></td>
 			<td>@chat.Messages</td>
 			<td>@chat.Voices</td>
-			<td>@chat.LastMessageTime.ToString(CultureInfo.InvariantCulture)</td>
+			<td>@chat.LastMessageTime?.ToString(CultureInfo.InvariantCulture)</td>
 		</tr>
 	}
 	</tbody>

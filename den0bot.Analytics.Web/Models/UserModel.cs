@@ -1,4 +1,6 @@
-﻿// den0bot (c) StanR 2021 - MIT License
+﻿// den0bot (c) StanR 2024 - MIT License
+using System;
+
 namespace den0bot.Analytics.Web.Models
 {
 	public class UserModel
@@ -7,16 +9,16 @@ namespace den0bot.Analytics.Web.Models
 		{
 			public class Chat
 			{
-				public string Name { get; set; }
-				public string Avatar { get; set; }
+				public string? Name { get; set; }
+				public string? Avatar { get; set; }
 				public long Messages { get; set; }
 				public long Stickers { get; set; }
 				public long Voices { get; set; }
-				public string LastMessageTime { get; set; }
+				public string? LastMessageTime { get; set; }
 				public long Id { get; set; }
 			}
 
-			public Chat[] Chats { get; set; }
+			public Chat[] Chats { get; set; } = Array.Empty<Chat>();
 		}
 
 		public ChatTable ChatsTable { get; set; } = new();
