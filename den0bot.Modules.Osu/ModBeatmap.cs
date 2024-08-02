@@ -12,7 +12,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using den0bot.Modules.Osu.Parsers;
 using den0bot.Modules.Osu.Types;
+#if PARSE_PHOTOS
 using IronOcr;
+#endif
 using Microsoft.Extensions.Logging;
 using Serilog;
 using Telegram.Bot.Types;
@@ -119,7 +121,8 @@ namespace den0bot.Modules.Osu
 
 			return string.Empty;
 		}
-		
+
+#if PARSE_PHOTOS
 		private async Task<(string? name, string? mappedBy)> ParseScoreScreenshot(PhotoSize photo)
 		{
 			var fileName = $"cache/{RNG.Next()}_{photo.FileId}";
@@ -146,6 +149,7 @@ namespace den0bot.Modules.Osu
 
 			return (lines[0], mappedBy);
 		}
+#endif
 
 		private async Task SendMapInfo(long chatId, Beatmap map, Mod[] mods, bool includeName = false)
 		{

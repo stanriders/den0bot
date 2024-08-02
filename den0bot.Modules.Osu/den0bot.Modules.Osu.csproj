@@ -4,6 +4,7 @@
     <TargetFramework>net8.0</TargetFramework>
     <OutputType>Library</OutputType>
     <LangVersion>latest</LangVersion>
+	<Nullable>enable</Nullable>
     <RootNamespace>den0bot.Modules.Osu</RootNamespace>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
@@ -14,7 +15,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="IronOcr" Version="2024.2.41" />
     <PackageReference Include="StanR.Pettanko" Version="1.1.0" />
     <PackageReference Include="xFFmpeg.NET" Version="7.2.0" />
   </ItemGroup>
