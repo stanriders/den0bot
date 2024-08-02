@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿// den0bot (c) StanR 2024 - MIT License
+using Newtonsoft.Json;
 
 namespace den0bot.Modules.Osu.Types.V2
 {
@@ -8,6 +9,6 @@ namespace den0bot.Modules.Osu.Types.V2
 		public int Position { get; set; }
 
 		[JsonProperty("score")]
-		public Score Score { get; set; }
+		public LazerScore Score { get; set; }
 	}
 }

@@ -1,10 +1,10 @@
-﻿// den0bot (c) StanR 2023 - MIT License
+﻿// den0bot (c) StanR 2024 - MIT License
 using System.Collections.Generic;
 using den0bot.Modules.Osu.Types.V2;
 
 namespace den0bot.Modules.Osu.WebAPI.Requests.V2
 {
-	public class GetUserBeatmapScores : Request<BeatmapUserScores, List<Score>>
+	public class GetUserBeatmapScores : Request<BeatmapUserScores, List<LazerScore>>
 	{
 		public override APIVersion API => APIVersion.V2;
 
@@ -19,7 +19,7 @@ namespace den0bot.Modules.Osu.WebAPI.Requests.V2
 			this.userId = userId;
 		}
 
-		public override List<Score> Process(BeatmapUserScores data)
+		public override List<LazerScore> Process(BeatmapUserScores data)
 		{
 			return data.Scores;
 		}

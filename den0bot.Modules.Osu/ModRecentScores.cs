@@ -14,7 +14,6 @@ using den0bot.Util;
 using Telegram.Bot.Types.Enums;
 using den0bot.Types;
 using den0bot.Types.Answers;
-using Score = den0bot.Modules.Osu.Types.V2.Score;
 using Microsoft.Extensions.Logging;
 
 namespace den0bot.Modules.Osu
@@ -175,7 +174,7 @@ namespace den0bot.Modules.Osu
 
 			// beatmap id regex can parse link as part of a complex message so we dont need to clean it up beforehand
 			var msgText = message.Text;
-			if (message.ReplyToMessage != null)
+			if (message.ReplyToMessage?.Text != null)
 			{
 				var sentMap = ChatBeatmapCache.GetSentMap(message.ReplyToMessage.MessageId);
 				if (sentMap?.BeatmapId is not null)
@@ -227,7 +226,7 @@ namespace den0bot.Modules.Osu
 
 				foreach (var score in scores.Take(score_amount))
 				{
-					result += await FormatScore(score, map, false);
+					result += await FormatLazerScore(score, map, false);
 				}
 			}
 			else
@@ -237,7 +236,7 @@ namespace den0bot.Modules.Osu
 					return Localization.GetAnswer("recentscores_no_scores", message.Chat.Id);
 
 				var beatmap = await new GetBeatmap(mapId).Execute();
-				result += await FormatScore(score, beatmap, false);
+				result += await FormatLazerScore(score, beatmap, false);
 			}
 				
 			if (!string.IsNullOrEmpty(result))
@@ -251,7 +250,7 @@ namespace den0bot.Modules.Osu
 
 		private async Task<ICommandAnswer> AddMe(Telegram.Bot.Types.Message message)
 		{
-			if (message.Text.Length > 6)
+			if (message.Text?.Length > 6)
 			{
 				await using var db = new DatabaseOsu();
 
@@ -328,86 +327,6 @@ namespace den0bot.Modules.Osu
 
 				return Localization.GetAnswer("generic_fail", message.Chat.Id);
 			}
-		}
-
-		private async Task<string> FormatScore(Score score, Beatmap beatmap, bool useAgo)
-		{
-			string mods = string.Empty;
-			if (score.Mods.Length > 0)
-				mods = $" +{string.Join(null, score.Mods)}";
-
-			string date = score.Date?.ToShortDateString();
-			if (useAgo && score.Date != null)
-			{
-				TimeSpan ago = DateTime.Now.ToUniversalTime() - score.Date.Value;
-				date = $"{ago:hh\\:mm\\:ss} ago";
-			}
-
-			// html-filtered map title
-			string mapInfo = $"{beatmap.BeatmapSet.Artist} - {beatmap.BeatmapSet.Title} [{score.Beatmap.Version}]".FilterToHTML();
-
-			string pp = $"| {score.Pp:N2}pp";
-			if (beatmap.Mode == Mode.Osu)
-			{
-				try
-				{
-					// Add pp values
-					var shouldCalculatePp = score.Pp is null ||
-					                        score.ComboBasedMissCount(beatmap.MaxCombo, beatmap.Sliders) > 0;
-
-					Pettanko.Difficulty.OsuDifficultyAttributes attributes = null;
-
-					if (shouldCalculatePp)
-					{
-						var difficultyMods = score.Mods.Select(x => Pettanko.Mod.AllMods.FirstOrDefault(y => y.Acronym == x))
-							.Select(x=> new Mod { Acronym = x.Acronym })
-							.ToArray();
-
-						attributes = await new GetBeatmapAttributes(beatmap.Id, difficultyMods).Execute();
-					}
-
-					double scorePp = score.Pp ?? PpCalculation.CalculatePerformance(score, attributes, beatmap);
-					string possiblePp = string.Empty;
-
-					if (score.ComboBasedMissCount(beatmap.MaxCombo, beatmap.Sliders) > 0)
-					{
-						// Add possible pp value if they missed
-						var fcScore = new Score
-						{
-							Statistics = new Score.ScoreStatistics
-							{
-								Count300 = (score.Beatmap.ObjectsTotal - score.Statistics.Count100 - score.Statistics.Count50) ?? 0,
-								Count100 = score.Statistics.Count100,
-								Count50 = score.Statistics.Count50,
-							},
-							Combo = beatmap.MaxCombo,
-							Mods = score.Mods
-						};
-
-						double possiblePPval = PpCalculation.CalculatePerformance(fcScore, attributes, beatmap);
-						possiblePp = $"(~{possiblePPval:N2}pp if FC)";
-					}
-
-					pp = $"| {(score.Pp == null ? "~" : "")}{scorePp:N2}pp {possiblePp}";
-				}
-				catch (Exception e)
-				{
-					logger.LogError($"Oppai failed: {e.InnerMessageIfAny()}");
-				}
-			}
-
-			var position = string.Empty;
-			if (score.LeaderboardPosition != null)
-				position = $"#{score.LeaderboardPosition}{(score.Mods.Length > 0 ? $" ({string.Join(null, score.Mods)})" : "") } | ";
-
-			var completion = string.Empty;
-			if (useAgo)
-				completion = $" | {(double)(score.Statistics.Count300 + score.Statistics.Count100 + score.Statistics.Count50 + score.Statistics.CountMiss) / score.Beatmap.ObjectsTotal * 100.0:N1}% completion";
-
-			return
-				$"<b>({score.Grade.GetDescription()})</b> <a href=\"{score.Beatmap.Link}\">{mapInfo}</a><b>{mods} ({score.Accuracy:N2}%)</b>{Environment.NewLine}" +
-				$"{score.Combo}/{beatmap.MaxCombo}x ({score.Statistics.Count300} / {score.Statistics.Count100} / {score.Statistics.Count50} / {score.Statistics.CountMiss}) {pp}{Environment.NewLine}" +
-				$"{position}{date}{completion}{Environment.NewLine}{Environment.NewLine}";
 		}
 
 		private async Task<string> FormatLazerScore(LazerScore score, Beatmap beatmap, bool useAgo)

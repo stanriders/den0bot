@@ -1,39 +1,34 @@
-﻿// den0bot (c) StanR 2023 - MIT License
-using den0bot.Modules.Osu.Types.Enums;
+﻿// den0bot (c) StanR 2024 - MIT License
 using den0bot.Modules.Osu.Types.V2;
-using den0bot.Modules.Osu.Util;
 
 namespace den0bot.Modules.Osu.WebAPI.Requests.V2
 {
-	public class GetBeatmapScores : Request<BeatmapScores, Score[]>
+	public class GetBeatmapScores : Request<BeatmapScores, LazerScore[]>
 	{
 		public override APIVersion API => APIVersion.V2;
 
-		public override string Address => $"beatmaps/{beatmapId}/scores";
+		public override string Address => $"beatmaps/{beatmapId}/scores{mods}";
 
 		private readonly uint beatmapId;
-		//private readonly string mods;
+		private readonly string mods;
 
-		public GetBeatmapScores(uint beatmapId/*, LegacyMods? mods*/)
+		public GetBeatmapScores(uint beatmapId, Mod[]? mods)
 		{
 			this.beatmapId = beatmapId;
-
-			// Mod querying is locked for API for now.
-			/*
+			
 			if (mods != null)
 			{
 				this.mods = "?mods[]=";
-
-				var modsArray = mods.Value.ToArray();
-				foreach (var mod in modsArray)
+				
+				foreach (var mod in mods)
 				{
 					// this will produce incorrect request because of empty last mod but api allows it so whatever
-					this.mods += mod + "&mods[]=";
+					this.mods += mod.Acronym + "&mods[]=";
 				}
 			}
-			*/
+			
 		}
 
-		public override Score[] Process(BeatmapScores data) => data.Scores;
+		public override LazerScore[] Process(BeatmapScores data) => data.Scores;
 	}
 }

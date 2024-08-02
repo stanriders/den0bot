@@ -1,10 +1,10 @@
-﻿// den0bot (c) StanR 2023 - MIT License
+﻿// den0bot (c) StanR 2024 - MIT License
 
 using den0bot.Modules.Osu.Types.V2;
 
 namespace den0bot.Modules.Osu.WebAPI.Requests.V2
 {
-	public class GetUserBeatmapScore : Request<BeatmapUserScore, Score>
+	public class GetUserBeatmapScore : Request<BeatmapUserScore, LazerScore>
 	{
 		public override APIVersion API => APIVersion.V2;
 
@@ -25,7 +25,7 @@ namespace den0bot.Modules.Osu.WebAPI.Requests.V2
 			}
 		}
 
-		public override Score Process(BeatmapUserScore data) 
+		public override LazerScore Process(BeatmapUserScore data) 
 		{
 			var score = data.Score;
 			score.LeaderboardPosition = data.Position;
