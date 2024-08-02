@@ -115,11 +115,17 @@ namespace den0bot.Modules.Osu
 				string result = string.Empty;
 				foreach (var score in lastScores.Take(amount))
 				{
-					if (amount == 1)
-						ChatBeatmapCache.StoreLastMap(message.Chat.Id, new ChatBeatmapCache.CachedBeatmap { BeatmapId = score.BeatmapShort.Id, BeatmapSetId = score.BeatmapShort.BeatmapSetId });
+					if (score.BeatmapShort != null)
+					{
+						if (amount == 1)
+						{
+							ChatBeatmapCache.StoreLastMap(message.Chat.Id, new ChatBeatmapCache.CachedBeatmap
+								{ BeatmapId = score.BeatmapShort.Id, BeatmapSetId = score.BeatmapShort.BeatmapSetId });
+						}
 
-					var beatmap = await new GetBeatmap(score.BeatmapShort.Id).Execute();
-					result += await FormatLazerScore(score, beatmap, true);
+						var beatmap = await new GetBeatmap(score.BeatmapShort.Id).Execute();
+						result += await FormatLazerScore(score, beatmap, true);
+					}
 				}
 
 				return new TextCommandAnswer(result);
@@ -159,10 +165,14 @@ namespace den0bot.Modules.Osu
 			if (lastScores?.Count > 0)
 			{
 				var score = lastScores[0];
-				ChatBeatmapCache.StoreLastMap(message.Chat.Id, new ChatBeatmapCache.CachedBeatmap { BeatmapId = score.BeatmapShort.Id, BeatmapSetId = score.BeatmapShort.BeatmapSetId});
+				if (score.BeatmapShort != null)
+				{
+					ChatBeatmapCache.StoreLastMap(message.Chat.Id, new ChatBeatmapCache.CachedBeatmap
+							{ BeatmapId = score.BeatmapShort.Id, BeatmapSetId = score.BeatmapShort.BeatmapSetId });
 
-				var beatmap = await new GetBeatmap(score.BeatmapShort.Id).Execute();
-				return new TextCommandAnswer(await FormatLazerScore(score, beatmap, true));
+					var beatmap = await new GetBeatmap(score.BeatmapShort.Id).Execute();
+					return new TextCommandAnswer(await FormatLazerScore(score, beatmap, true));
+				}
 			}
 
 			return Localization.GetAnswer("generic_fail", message.Chat.Id);
@@ -372,7 +382,7 @@ namespace den0bot.Modules.Osu
 			}
 
 			// html-filtered map title
-			string mapInfo = $"{beatmap?.BeatmapSet?.Artist} - {beatmap?.BeatmapSet?.Title} [{score.Beatmap.Version}]".FilterToHTML();
+			string mapInfo = $"{beatmap?.BeatmapSet?.Artist} - {beatmap?.BeatmapSet?.Title} [{beatmap?.Version}]".FilterToHTML();
 
 			string pp = $"| {score.Pp:N2}pp";
 			if (beatmap?.Mode == Mode.Osu)
@@ -407,7 +417,7 @@ namespace den0bot.Modules.Osu
 						{
 							Statistics = new LazerScore.ScoreStatistics
 							{
-								Count300 = (score.Beatmap.ObjectsTotal - score.Statistics.Count100 - score.Statistics.Count50) ?? 0,
+								Count300 = (score.Beatmap?.ObjectsTotal - score.Statistics.Count100 - score.Statistics.Count50) ?? 0,
 								Count100 = score.Statistics.Count100,
 								Count50 = score.Statistics.Count50,
 							},
@@ -433,10 +443,10 @@ namespace den0bot.Modules.Osu
 
 			var completion = string.Empty;
 			if (useAgo)
-				completion = $" | {(double)(score.Statistics.Count300 + score.Statistics.Count100 + score.Statistics.Count50 + score.Statistics.CountMiss) / score.Beatmap.ObjectsTotal * 100.0:N1}% completion";
+				completion = $" | {(double)(score.Statistics.Count300 + score.Statistics.Count100 + score.Statistics.Count50 + score.Statistics.CountMiss) / score.Beatmap?.ObjectsTotal * 100.0:N1}% completion";
 
 			return
-				$"<b>({score.Grade.GetDescription()})</b> <a href=\"{score.Beatmap.Link}\">{mapInfo}</a><b>{mods} ({score.Accuracy:N2}%)</b>{Environment.NewLine}" +
+				$"<b>({score.Grade.GetDescription()})</b> <a href=\"{score.Beatmap?.Link}\">{mapInfo}</a><b>{mods} ({score.Accuracy:N2}%)</b>{Environment.NewLine}" +
 				$"{score.Combo}/{beatmap?.MaxCombo}x ({score.Statistics.Count300} / {score.Statistics.Count100} / {score.Statistics.Count50} / {score.Statistics.CountMiss}) {pp}{Environment.NewLine}" +
 				$"{position}{date}{completion}{Environment.NewLine}{Environment.NewLine}";
 		}

@@ -68,7 +68,7 @@ namespace den0bot.Modules.Osu
 					mods = $" +{string.Join("", score.Mods.Where(x=> x.Acronym != "CL").Select(x=> x.Acronym))}";
 
 				// 1. 123pp | Artist - Title [Diffname] +Mods (Rank, Accuracy%)
-				string mapName = $"{score.BeatmapSet.Artist} - {score.BeatmapSet.Title} [{score.Beatmap.Version}]".FilterToHTML();
+				string mapName = $"{score.BeatmapSet?.Artist} - {score.BeatmapSet?.Title} [{score.Beatmap?.Version}]".FilterToHTML();
 				formatedTopscores +=
 					$"<b>{(i + 1)}</b>. <code>{score.Pp:F1}pp</code> | (<b>{score.Grade.GetDescription()}</b>) {mapName}{mods} ({score.Accuracy:N2}%)\n";
 			}

@@ -13,16 +13,16 @@ namespace den0bot.Modules.Osu.Types.V2
 		public ulong? Id { get; set; }
 
 		[JsonProperty("user")]
-		public UserShort User { get; set; } = null!;
+		public UserShort? User { get; set; }
 
 		[JsonProperty("user_id")]
 		public uint UserId { get; set; }
 
 		[JsonProperty("beatmap")]
-		public BeatmapShort BeatmapShort { get; set; } = null!;
+		public BeatmapShort? BeatmapShort { get; set; }
 
 		[JsonProperty("beatmapset")]
-		public BeatmapSetShort BeatmapSet { get; set; } = null!;
+		public BeatmapSetShort? BeatmapSet { get; set; }
 
 		[JsonProperty("rank")]
 		[JsonConverter(typeof(StringEnumConverter))]
@@ -87,7 +87,7 @@ namespace den0bot.Modules.Osu.Types.V2
 		}
 		
 		private BeatmapShort? beatmap;
-		public BeatmapShort Beatmap 
+		public BeatmapShort? Beatmap 
 		{ 
 			get 
 			{
