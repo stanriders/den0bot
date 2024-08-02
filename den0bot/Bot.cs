@@ -179,19 +179,26 @@ namespace den0bot
 				if (isForwarded && module is not IReceiveForwards)
 					continue;
 
-				if (module is IReceiveAllMessages messages &&
-				    !(text != null && text[0] == command_trigger))
+				try
 				{
-					await messages.ReceiveMessage(msg);
+					if (module is IReceiveAllMessages messages &&
+					    !(text != null && text[0] == command_trigger))
+					{
+						await messages.ReceiveMessage(msg);
+					}
+
+					if (await module.RunCommands(msg))
+					{
+						// add command to statistics
+						if (msg.Chat.Type != ChatType.Private)
+							ModAnalytics.AddCommand(msg);
+
+						break;
+					}
 				}
-
-				if (await module.RunCommands(msg))
+				catch (Exception e)
 				{
-					// add command to statistics
-					if (msg.Chat.Type != ChatType.Private)
-						ModAnalytics.AddCommand(msg);
-
-					break;
+					logger.LogError(e, "Module {Module} crashed on processing message with exception {Exception}!", module.GetType().FullName, e.GetType());
 				}
 			}
 		}
@@ -202,9 +209,17 @@ namespace den0bot
 			{
 				if (m is IReceiveCallbacks module)
 				{
-					var result = await module.ReceiveCallback(callbackEventArgs.CallbackQuery);
-					if (!string.IsNullOrEmpty(result))
-						await API.AnswerCallbackQuery(callbackEventArgs.CallbackQuery.Id, result);
+					try
+					{
+						var result = await module.ReceiveCallback(callbackEventArgs.CallbackQuery);
+						if (!string.IsNullOrEmpty(result))
+							await API.AnswerCallbackQuery(callbackEventArgs.CallbackQuery.Id, result);
+					}
+					catch (Exception e)
+					{
+						logger.LogError(e, "Module {Module} crashed on processing callback {Callback} with exception {Exception}!", 
+							module.GetType().FullName, callbackEventArgs.CallbackQuery.Data, e.GetType());
+					}
 				}
 			}
 		}
@@ -216,7 +231,14 @@ namespace den0bot
 				// ReSharper disable once SuspiciousTypeConversion.Global
 				if (m is IReceiveMessageEdits module)
 				{
-					await module.ReceiveMessageEdit(messageEventArgs.EditedMessage);
+					try
+					{
+						await module.ReceiveMessageEdit(messageEventArgs.EditedMessage);
+					}
+					catch (Exception e)
+					{
+						logger.LogError(e, "Module {Module} crashed on processing message edit with exception {Exception}!", module.GetType().FullName, e.GetType());
+					}
 				}
 			}
 		}
