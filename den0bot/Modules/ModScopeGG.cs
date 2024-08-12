@@ -21,14 +21,11 @@ namespace den0bot.Modules
 		[GeneratedRegex(@"(https:\/\/app\.scope\.gg([\w/]*[\w/])?)")]
 		private static partial Regex ScopeLinkRegex();
 
-		[GeneratedRegex(@"(https:\/\/mediacdn\.allstar\.gg([a-zA-Z0-9/]*[a-zA-Z0-9/])?)")]
+		[GeneratedRegex(@"(https:\/\/hl\.xplay\.cloud\/video([a-zA-Z0-9/]*[a-zA-Z0-9/])?.mp4)")]
 		private static partial Regex ClipLinkRegex();
 
-		[GeneratedRegex(@"(?>thumbs|og)")]
-		private static partial Regex ClipLinkReplaceRegex();
-
-		[GeneratedRegex(@"""clipTitle"":""(.+?)"",")]
-		private static partial Regex ClipTitleRegex();
+		[GeneratedRegex(@"""clipTitle"":\s+?""(.+?)"",")]
+		private static partial Regex ClipTitleCodeRegex();
 		
 		public async Task ReceiveMessage(Message message)
 		{
@@ -42,12 +39,22 @@ namespace den0bot.Modules
 				var page = await client.GetStringAsync(regexMatch.Value);
 				
 				var match = ClipLinkRegex().Match(page);
-				var videoLink = string.Concat(ClipLinkReplaceRegex().Replace(match.Value, "clips"), ".mp4");
+				var videoLink = match.Value;
 
 				if (Uri.TryCreate(videoLink, UriKind.Absolute, out var videoUri))
 				{
-					var clipMatch = ClipTitleRegex().Match(page);
-					var caption = clipMatch.Success ? clipMatch.Groups[1].Value : "VAC";
+					var clipTitleCodeMatch = ClipTitleCodeRegex().Match(page);
+					string caption;
+				if (clipTitleCodeMatch.Success)
+				{
+					Regex clipTitleRegex = new Regex(ClipTitlePattern(clipTitleCodeMatch.Groups[1].Value));
+					var clipTitleMatch = clipTitleRegex.Match(page);
+					caption = clipTitleMatch.Success ? clipTitleMatch.Groups[1].Value : "VAC";
+				}
+				else
+				{
+					caption = "VAC";
+				}
 
 					if (!await API.SendVideo(videoLink, message.Chat.Id, caption, message.MessageId))
 					{
@@ -64,5 +71,9 @@ namespace den0bot.Modules
 			}
 		}
 
+		private static string ClipTitlePattern(string clipTitleCode)
+		{
+			return @"""" + Regex.Escape(clipTitleCode) + @""":\s+?""(.+?)"",";
+		}  
 	}
 }
