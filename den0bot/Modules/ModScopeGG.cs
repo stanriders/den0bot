@@ -1,4 +1,5 @@
 ﻿// den0bot (c) StanR 2024 - MIT License
+
 using System;
 using System.Net.Http;
 using System.Text.RegularExpressions;
@@ -26,7 +27,7 @@ namespace den0bot.Modules
 
 		[GeneratedRegex(@"""clipTitle"":\s+?""(.+?)"",")]
 		private static partial Regex ClipTitleCodeRegex();
-		
+
 		public async Task ReceiveMessage(Message message)
 		{
 			if (string.IsNullOrEmpty(message.Text))
@@ -37,7 +38,7 @@ namespace den0bot.Modules
 			{
 				using var client = new HttpClient();
 				var page = await client.GetStringAsync(regexMatch.Value);
-				
+
 				var match = ClipLinkRegex().Match(page);
 				var videoLink = match.Value;
 
@@ -45,16 +46,16 @@ namespace den0bot.Modules
 				{
 					var clipTitleCodeMatch = ClipTitleCodeRegex().Match(page);
 					string caption;
-				if (clipTitleCodeMatch.Success)
-				{
-					Regex clipTitleRegex = new Regex(ClipTitlePattern(clipTitleCodeMatch.Groups[1].Value));
-					var clipTitleMatch = clipTitleRegex.Match(page);
-					caption = clipTitleMatch.Success ? clipTitleMatch.Groups[1].Value : "VAC";
-				}
-				else
-				{
-					caption = "VAC";
-				}
+					if (clipTitleCodeMatch.Success)
+					{
+						Regex clipTitleRegex = new Regex(ClipTitlePattern(clipTitleCodeMatch.Groups[1].Value));
+						var clipTitleMatch = clipTitleRegex.Match(page);
+						caption = clipTitleMatch.Success ? clipTitleMatch.Groups[1].Value : "VAC";
+					}
+					else
+					{
+						caption = "VAC";
+					}
 
 					if (!await API.SendVideo(videoLink, message.Chat.Id, caption, message.MessageId))
 					{
@@ -74,6 +75,6 @@ namespace den0bot.Modules
 		private static string ClipTitlePattern(string clipTitleCode)
 		{
 			return @"""" + Regex.Escape(clipTitleCode) + @""":\s+?""(.+?)"",";
-		}  
+		}
 	}
 }
