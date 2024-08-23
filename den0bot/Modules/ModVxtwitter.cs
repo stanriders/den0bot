@@ -10,19 +10,30 @@ namespace den0bot.Modules
 {
 	internal class ModVxtwitter(ILogger<IModule> logger) : IModule(logger), IReceiveAllMessages
 	{
-        private readonly Regex regex = new(@".+\/\/(?>twitter|x)\.com\/(.+)$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+		private readonly Regex twitterRegex = new(@".+\/\/(?>twitter|x)\.com\/(.+)$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+		private readonly Regex instagramRegex = new(@".+\/\/(?>www\.)?instagram\.com\/(.+)$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+
 		public async Task ReceiveMessage(Message message)
 		{
 			if (string.IsNullOrEmpty(message.Text))
 				return;
 
-            Match regexMatch = regex.Match(message.Text);
-			if (regexMatch.Groups.Count > 1)
+			var twitterRegexMatch = twitterRegex.Match(message.Text);
+			if (twitterRegexMatch.Groups.Count > 1)
 			{
-                var tail = regexMatch.Groups.Values.ToArray()[1];
+				var tail = twitterRegexMatch.Groups.Values.ToArray()[1];
 
-                await API.SendMessage($"https://vxtwitter.com/{tail}", message.Chat.Id, replyToId: message.MessageId, disablePreview: false);
-            }
+				await API.SendMessage($"https://vxtwitter.com/{tail}", message.Chat.Id, replyToId: message.MessageId, disablePreview: false);
+				return;
+			}
+
+			var instagramRegexMatch = instagramRegex.Match(message.Text);
+			if (instagramRegexMatch.Groups.Count > 1)
+			{
+				var tail = instagramRegexMatch.Groups.Values.ToArray()[1];
+
+				await API.SendMessage($"https://ddinstagram.com/{tail}", message.Chat.Id, replyToId: message.MessageId, disablePreview: false);
+			}
 		}
 	}
 }
