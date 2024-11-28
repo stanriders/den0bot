@@ -3,6 +3,8 @@
 FROM mcr.microsoft.com/dotnet/runtime:8.0-bookworm-slim AS base
 WORKDIR /app
 
+RUN apt-get update && apt-get -y install ffmpeg
+
 FROM mcr.microsoft.com/dotnet/sdk:8.0-bookworm-slim AS build
 
 WORKDIR /src
