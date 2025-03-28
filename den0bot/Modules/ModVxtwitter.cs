@@ -32,7 +32,7 @@ namespace den0bot.Modules
 			{
 				var tail = instagramRegexMatch.Groups.Values.ToArray()[1];
 
-				await API.SendMessage($"https://ddinstagram.com/{tail}", message.Chat.Id, replyToId: message.MessageId, disablePreview: false);
+				await API.SendMessage($"https://kkinstagram.com/{tail}", message.Chat.Id, replyToId: message.MessageId, disablePreview: false);
 			}
 		}
 	}
