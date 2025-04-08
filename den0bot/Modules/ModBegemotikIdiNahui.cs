@@ -10,7 +10,9 @@ namespace den0bot.Modules
 	{
 		public async Task ReceiveMessage(Message message)
 		{
-			if (message.Sticker?.SetName != null && message.Sticker.SetName.Contains("бегемо", StringComparison.InvariantCultureIgnoreCase))
+			if (message.Sticker?.SetName != null && 
+				message.Sticker.SetName.Contains("бегемо", StringComparison.InvariantCultureIgnoreCase) && 
+				message.Sticker.SetName.Contains("nyasticks", StringComparison.InvariantCultureIgnoreCase))
 			{
 				await API.SendSticker(
 					new InputFileId("CAACAgIAAxkBAAEOQsRn9Si9wV_SU5o1IAVLjOPQxiFPkgACFGYAAnewwUqltednG_eKXzYE"),
