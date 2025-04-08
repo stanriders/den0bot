@@ -209,17 +209,19 @@ namespace den0bot
 		/// </summary>
 		/// <param name="sticker">Telegram sticker ID</param>
 		/// <param name="chatId">Chat to send sticker to</param>
-		public static async Task<Message> SendSticker(InputFileId sticker, long chatId)
+		/// <param name="replyToId">Message to reply to</param>
+		public static async Task<Message> SendSticker(InputFileId sticker, long chatId, int? replyToId = null)
 		{
 			using var _ = LogContext.PushProperty("OutData", new
 			{
 				Sticker = sticker,
-				ChatID = chatId
+				ChatID = chatId,
+				ReplyTo = replyToId
 			});
 
 			try
 			{
-				return await api.SendStickerAsync(chatId, sticker);
+				return await api.SendStickerAsync(chatId, sticker, replyToMessageId: replyToId);
 			}
 			catch (Exception ex)
 			{
