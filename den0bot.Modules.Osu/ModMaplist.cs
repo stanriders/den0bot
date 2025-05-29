@@ -1,4 +1,4 @@
-﻿// den0bot (c) StanR 2024 - MIT License
+﻿// den0bot (c) StanR 2025 - MIT License
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -6,12 +6,10 @@ using System.Threading.Tasks;
 using den0bot.Modules.Osu.Parsers;
 using den0bot.Modules.Osu.Types;
 using den0bot.Modules.Osu.WebAPI.Requests.V2;
-using den0bot.Modules.Osu.Types.Enums;
 using den0bot.Modules.Osu.Types.V2;
 using den0bot.Util;
 using Newtonsoft.Json.Linq;
 using Telegram.Bot.Types.Enums;
-using den0bot.Modules.Osu.WebAPI;
 using den0bot.Types;
 using den0bot.Modules.Osu.Util;
 using den0bot.Types.Answers;
@@ -101,7 +99,7 @@ namespace den0bot.Modules.Osu
 
 				if (map != null)
 				{
-					string format = await map.GetFormattedMapInfo();
+					string format = map.GetFormattedMapInfo();
 					string caption = $"{maplist[num][0]} {format}";
 					if (caption.Length > 265) // 200 regular character limit + HTML
 					{

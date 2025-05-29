@@ -4,8 +4,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using den0bot.Modules.Osu.Types.Enums;
-using den0bot.Modules.Osu.Types.V2;
 using den0bot.Util;
+using osu.Game.Rulesets.Mods;
 using Match = System.Text.RegularExpressions.Match;
 
 namespace den0bot.Modules.Osu.Parsers
@@ -89,9 +89,9 @@ namespace den0bot.Modules.Osu.Parsers
 			var mods = new List<Mod>();
 			for (var i = 0; i < modString.Length; i += 2)
 			{
-				var mod = Pettanko.Mod.AllMods
+				var mod = PpCalculation.Osu.AllMods
 					.Where(x => x.Acronym == modString.Substring(i, 2))
-					.Select(x=> new Mod {Acronym = x.Acronym})
+					.Select(x=> x.CreateInstance())
 					.FirstOrDefault();
 
 				if (mod != null)

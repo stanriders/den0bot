@@ -2,10 +2,12 @@
 using System.Linq;
 using den0bot.Modules.Osu.Types.V2;
 using Newtonsoft.Json;
+using osu.Game.Rulesets.Mods;
+using osu.Game.Rulesets.Osu.Difficulty;
 
 namespace den0bot.Modules.Osu.WebAPI.Requests.V2
 {
-	public class GetBeatmapAttributes : Request<DifficultyAttributes, Pettanko.Difficulty.OsuDifficultyAttributes>
+	public class GetBeatmapAttributes : Request<DifficultyAttributes, DifficultyAttributes>
 	{
 		public override APIVersion API => APIVersion.V2;
 
@@ -22,22 +24,9 @@ namespace den0bot.Modules.Osu.WebAPI.Requests.V2
 			this.mods = mods;
 		}
 
-		public override Pettanko.Difficulty.OsuDifficultyAttributes? Process(DifficultyAttributes? data)
+		public override DifficultyAttributes? Process(DifficultyAttributes? data)
 		{
-			if (data == null)
-				return null;
-
-			return new Pettanko.Difficulty.OsuDifficultyAttributes
-			{
-				StarRating = data.Attributes.StarRating,
-				MaxCombo = data.Attributes.MaxCombo,
-				AimDifficulty = data.Attributes.AimDifficulty,
-				ApproachRate = data.Attributes.ApproachRate,
-				FlashlightDifficulty = data.Attributes.FlashlightDifficulty,
-				OverallDifficulty = data.Attributes.OverallDifficulty,
-				SliderFactor = data.Attributes.SliderFactor,
-				SpeedDifficulty = data.Attributes.SpeedDifficulty
-			};
+			return data;
 		}
 	}
 }

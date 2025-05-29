@@ -1,9 +1,12 @@
-﻿// den0bot (c) StanR 2024 - MIT License
+﻿// den0bot (c) StanR 2025 - MIT License
 using System;
 using System.Collections.Generic;
 using den0bot.Modules.Osu.Types.Enums;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
+using osu.Game.Online.API;
+using osu.Game.Rulesets.Scoring;
+using osu.Game.Scoring;
 
 namespace den0bot.Modules.Osu.Types.V2
 {
@@ -45,8 +48,8 @@ namespace den0bot.Modules.Osu.Types.V2
 					 * Total number of hits  =  Number of misses + Number of 50's + Number of 100's + Number of 300's
 					 */
 
-					double totalPoints = Statistics.Count50 * 50 + Statistics.Count100 * 100 + Statistics.Count300 * 300;
-					double totalHits = Statistics.CountMiss + Statistics.Count50 + Statistics.Count100 + Statistics.Count300;
+					double totalPoints = Statistics.GetValueOrDefault(HitResult.Meh) * 50 + Statistics.GetValueOrDefault(HitResult.Ok) * 100 + Statistics.GetValueOrDefault(HitResult.Great) * 300;
+					double totalHits = Statistics.GetValueOrDefault(HitResult.Miss) + Statistics.GetValueOrDefault(HitResult.Meh) + Statistics.GetValueOrDefault(HitResult.Ok) + Statistics.GetValueOrDefault(HitResult.Great);
 
 					accuracy = totalPoints / (totalHits * 300) * 100;
 				}
@@ -60,7 +63,7 @@ namespace den0bot.Modules.Osu.Types.V2
 		public int Combo { get; set; }
 
 		[JsonProperty("mods")]
-		public Mod[] Mods { get; set; } = Array.Empty<Mod>();
+		public APIMod[] Mods { get; set; } = Array.Empty<APIMod>();
 
 		[JsonProperty("ended_at")]
 		public DateTime? Date { get; set; }
@@ -69,23 +72,17 @@ namespace den0bot.Modules.Osu.Types.V2
 		public uint Points { get; set; }
 
 		[JsonProperty("statistics")]
-		public ScoreStatistics Statistics { get; set; } = null!;
+		public Dictionary<HitResult, int> Statistics { get; set; } = null!;
 
-		public class ScoreStatistics
-		{
-			[JsonProperty("meh")]
-			public int Count50 { get; set; }
+		[JsonProperty("maximum_statistics")]
+		public Dictionary<HitResult, int> MaximumStatistics { get; set; } = null!;
 
-			[JsonProperty("ok")]
-			public int Count100 { get; set; }
+		[JsonProperty("legacy_total_score")]
+		public int? LegacyTotalScore { get; set; }
 
-			[JsonProperty("great")]
-			public int Count300 { get; set; }
+		[JsonProperty("legacy_score_id")]
+		public ulong? LegacyScoreId { get; set; }
 
-			[JsonProperty("miss")]
-			public int CountMiss { get; set; }
-		}
-		
 		private BeatmapShort? beatmap;
 		public BeatmapShort? Beatmap 
 		{ 
@@ -122,7 +119,22 @@ namespace den0bot.Modules.Osu.Types.V2
 					comboBasedMissCount = Math.Pow((maxCombo - Combo) / (0.1 * countSliders), 3);
 			}
 
-			return (uint)Math.Max(Statistics.CountMiss, Math.Floor(comboBasedMissCount));
+			return (uint)Math.Max(Statistics.GetValueOrDefault(HitResult.Miss), Math.Floor(comboBasedMissCount));
+		}
+
+		public ScoreInfo ToScoreInfo()
+		{
+			return new ScoreInfo
+			{
+				OnlineID = (long?)Id ?? 0,
+				Accuracy = Accuracy / 100.0,
+				APIMods = Mods,
+				IsLegacyScore = LegacyScoreId.HasValue,
+				LegacyTotalScore = LegacyTotalScore,
+				MaxCombo = Combo,
+				Statistics = Statistics,
+				MaximumStatistics = MaximumStatistics,
+			};
 		}
 	}
 }

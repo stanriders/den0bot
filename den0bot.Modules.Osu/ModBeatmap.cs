@@ -1,4 +1,4 @@
-﻿// den0bot (c) StanR 2024 - MIT License
+﻿// den0bot (c) StanR 2025 - MIT License
 //#define PARSE_PHOTOS
 using den0bot.Modules.Osu.Types.V2;
 using den0bot.Modules.Osu.WebAPI.Requests.V2;
@@ -16,7 +16,7 @@ using den0bot.Modules.Osu.Types;
 using IronOcr;
 #endif
 using Microsoft.Extensions.Logging;
-using Serilog;
+using osu.Game.Rulesets.Mods;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.ReplyMarkups;
 using File = System.IO.File;
@@ -157,7 +157,7 @@ namespace den0bot.Modules.Osu
 			{
 				var sentMessage = await API.SendPhoto(map.BeatmapSet?.Covers.Cover2X,
 					chatId,
-					await map.GetFormattedMapInfo(mods, includeName),
+					map.GetFormattedMapInfo(mods, includeName),
 					Telegram.Bot.Types.Enums.ParseMode.Html,
 					replyMarkup: buttons);
 

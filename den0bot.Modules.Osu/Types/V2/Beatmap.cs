@@ -1,16 +1,13 @@
-﻿// den0bot (c) StanR 2024 - MIT License
+﻿// den0bot (c) StanR 2025 - MIT License
 using System;
-using System.Globalization;
 using System.Linq;
-using System.Threading.Tasks;
 using den0bot.Modules.Osu.Types.Enums;
-using den0bot.Modules.Osu.WebAPI.Requests.V2;
 using den0bot.Util;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Serialization;
-using Pettanko;
-using Pettanko.Mods;
+using osu.Game.Online.API;
+using osu.Game.Rulesets.Mods;
 using Serilog;
 
 namespace den0bot.Modules.Osu.Types.V2
@@ -111,14 +108,14 @@ namespace den0bot.Modules.Osu.Types.V2
 			}
 		}
 
-		public double ModdedBPM(Mod[] mods)
+		public double ModdedBPM(APIMod[] mods)
 		{
 			if (mods.Any(x=> x.Acronym is "DT" or "NC") /*|| mods.HasFlag(LegacyMods.NC))*/)
 			{
 				var dt = mods.FirstOrDefault(x => x.Acronym is "DT" or "NC");
 				if (dt?.Settings?.ContainsKey("speed_change") ?? false)
 				{
-					var speedChange = double.Parse(dt.Settings["speed_change"], CultureInfo.InvariantCulture); 
+					var speedChange = (double)dt.Settings["speed_change"]; 
 					return BPM * speedChange;
 				}
 				
@@ -129,7 +126,7 @@ namespace den0bot.Modules.Osu.Types.V2
 				var ht = mods.FirstOrDefault(x => x.Acronym == "HT");
 				if (ht?.Settings?.ContainsKey("speed_change") ?? false)
 				{
-					var speedChange = double.Parse(ht.Settings["speed_change"], CultureInfo.InvariantCulture);
+					var speedChange = (double)ht.Settings["speed_change"];
 					return BPM * speedChange;
 				}
 
@@ -157,7 +154,7 @@ namespace den0bot.Modules.Osu.Types.V2
 			}
 		}
 
-		public double ModdedAR(Mod[] mods)
+		public double ModdedAR(APIMod[] mods)
 		{
 			double finalAR = AR;
 
@@ -176,7 +173,7 @@ namespace den0bot.Modules.Osu.Types.V2
 				var dt = mods.FirstOrDefault(x => x.Acronym is "DT" or "NC");
 				if (dt?.Settings?.ContainsKey("speed_change") ?? false)
 				{
-					var speedChange = double.Parse(dt.Settings["speed_change"], CultureInfo.InvariantCulture);
+					var speedChange = (double)dt.Settings["speed_change"];
 					ms /= speedChange;
 				}
 				else
@@ -191,7 +188,7 @@ namespace den0bot.Modules.Osu.Types.V2
 				var ht = mods.FirstOrDefault(x => x.Acronym == "HT");
 				if (ht?.Settings?.ContainsKey("speed_change") ?? false)
 				{
-					var speedChange = double.Parse(ht.Settings["speed_change"], CultureInfo.InvariantCulture);
+					var speedChange = (double)ht.Settings["speed_change"];
 					ms /= speedChange;
 				}
 				else
@@ -205,7 +202,7 @@ namespace den0bot.Modules.Osu.Types.V2
 			return finalAR;
 		}
 
-		public double ModdedOD(Mod[] mods)
+		public double ModdedOD(APIMod[] mods)
 		{
 			double finalOD = OD;
 
@@ -224,7 +221,7 @@ namespace den0bot.Modules.Osu.Types.V2
 				var dt = mods.FirstOrDefault(x => x.Acronym is "DT" or "NC");
 				if (dt?.Settings?.ContainsKey("speed_change") ?? false)
 				{
-					var speedChange = double.Parse(dt.Settings["speed_change"], CultureInfo.InvariantCulture);
+					var speedChange = (double)dt.Settings["speed_change"];
 					finalOD = (79.5 - ms / speedChange) / 6;
 				}
 				else
@@ -237,7 +234,7 @@ namespace den0bot.Modules.Osu.Types.V2
 				var ht = mods.FirstOrDefault(x => x.Acronym == "HT");
 				if (ht?.Settings?.ContainsKey("speed_change") ?? false)
 				{
-					var speedChange = double.Parse(ht.Settings["speed_change"], CultureInfo.InvariantCulture);
+					var speedChange = (double)ht.Settings["speed_change"];
 					finalOD = (79.5 - ms / speedChange) / 6;
 				}
 				else
@@ -248,14 +245,14 @@ namespace den0bot.Modules.Osu.Types.V2
 			return finalOD;
 		}
 
-		public TimeSpan ModdedDrainLength(Mod[] mods)
+		public TimeSpan ModdedDrainLength(APIMod[] mods)
 		{
 			if (mods.Any(x => x.Acronym is "DT" or "NC"))
 			{
 				var dt = mods.FirstOrDefault(x => x.Acronym is "DT" or "NC");
 				if (dt?.Settings?.ContainsKey("speed_change") ?? false)
 				{
-					var speedChange = double.Parse(dt.Settings["speed_change"], CultureInfo.InvariantCulture);
+					var speedChange = (double)dt.Settings["speed_change"];
 					return TimeSpan.FromSeconds((long)(DrainLength / speedChange));
 				}
 
@@ -267,7 +264,7 @@ namespace den0bot.Modules.Osu.Types.V2
 				var ht = mods.FirstOrDefault(x => x.Acronym == "HT");
 				if (ht?.Settings?.ContainsKey("speed_change") ?? false)
 				{
-					var speedChange = double.Parse(ht.Settings["speed_change"], CultureInfo.InvariantCulture);
+					var speedChange = (double)ht.Settings["speed_change"];
 					return TimeSpan.FromSeconds((long)(DrainLength / speedChange));
 				}
 
@@ -285,41 +282,38 @@ namespace den0bot.Modules.Osu.Types.V2
 
 		public string? Thumbnail => BeatmapSet?.Covers?.Cover2X;
 
-		public Task<string> GetFormattedMapInfo(bool includeName = false)
+		public string GetFormattedMapInfo(bool includeName = false)
 		{
-			return GetFormattedMapInfo(Array.Empty<Mod>(), includeName);
+			return GetFormattedMapInfo([], includeName);
 		}
 
-		public async Task<string> GetFormattedMapInfo(Mod[] mods, bool includeName = false)
+		public string GetFormattedMapInfo(Mod[] mods, bool includeName = false)
 		{
 			string pp = string.Empty;
+			var attributes = PpCalculation.CalculateDifficulty(mods, this);
 
-			var difficultyAttributes = await new GetBeatmapAttributes(Id, mods).Execute();
-
-			if (Mode == Mode.Osu && difficultyAttributes != null)
+			try
 			{
-				try
+				if (attributes != null)
 				{
-					double info100 = PpCalculation.CalculatePerformance(100, Array.Empty<string>(), difficultyAttributes, this);
-					pp = $"100% - {info100:N2}pp";
-					/*double info100 = Oppai.GetBeatmapPP(this, mods, 100);
+					double info100 = PpCalculation.CalculatePerformance(100, mods, attributes, this) ?? 0;
 					if (info100 > 0)
 					{
 						pp = $"100% - {info100:N2}pp";
 
-						double info98 = Oppai.GetBeatmapPP(this, mods, 98);
+						double info98 = PpCalculation.CalculatePerformance(98, mods, attributes, this) ?? 0;
 						if (info98 > 0)
 							pp += $" | 98% - {info98:N2}pp";
 
-						double info95 = Oppai.GetBeatmapPP(this, mods, 95);
+						double info95 = PpCalculation.CalculatePerformance(95, mods, attributes, this) ?? 0;
 						if (info95 > 0)
 							pp += $" | 95% - {info95:N2}pp";
-					}*/
+					}
 				}
-				catch (Exception e)
-				{
-					Log.Error($"Oppai failed: {e.InnerMessageIfAny()}");
-				}
+			}
+			catch (Exception e)
+			{
+				Log.Error($"PP failed: {e.InnerMessageIfAny()}");
 			}
 
 			var fullName = string.Empty;
@@ -328,29 +322,34 @@ namespace den0bot.Modules.Osu.Types.V2
 				fullName = $"<a href=\"{Link}\">{BeatmapSet?.Artist} - {BeatmapSet?.Title}</a>\n";
 			}
 
+			var apiMods = mods.Select(x => new APIMod(x)).ToArray();
+
 			switch (Mode)
 			{
 				case Mode.Osu:
 					return
 						$"{fullName}" +
-						$"[{Version.FilterToHTML()}] - {difficultyAttributes?.StarRating:N2}* - {ModdedDrainLength(mods):mm\':\'ss} - {BeatmapSet?.CreatorName} - <b>{Status}</b>\n" +
-						$"⭕️ | <b>CS:</b> {ModdedCS(mods):N2} | <b>AR:</b> {difficultyAttributes?.ApproachRate:N2} | <b>OD:</b> {difficultyAttributes?.OverallDifficulty:N2} | <b>BPM:</b> {ModdedBPM(mods):N2}\n" +
+						$"[{Version.FilterToHTML()}] - {attributes?.StarRating:N2}* - {ModdedDrainLength(apiMods):mm\':\'ss} - {BeatmapSet?.CreatorName} - <b>{Status}</b>\n" +
+						$"⭕️ | <b>CS:</b> {ModdedCS(mods):N2} | <b>AR:</b> {ModdedAR(apiMods):N2} | <b>OD:</b> {ModdedOD(apiMods):N2} | <b>BPM:</b> {ModdedBPM(apiMods):N2}\n" +
 						$"{pp}";
 				case Mode.Taiko:
 					return
 						$"{fullName}" +
-						$"[{Version.FilterToHTML()}] - {StarRating:N2}* - {ModdedDrainLength(mods):mm\':\'ss} - {BeatmapSet?.CreatorName} - <b>{Status}</b>\n" +
-						$"🥁 | <b>OD:</b> {ModdedOD(mods):N2} | <b>BPM:</b> {ModdedBPM(mods):N2}";
+						$"[{Version.FilterToHTML()}] - {attributes?.StarRating:N2}* - {ModdedDrainLength(apiMods):mm\':\'ss} - {BeatmapSet?.CreatorName} - <b>{Status}</b>\n" +
+						$"🥁 | <b>OD:</b> {ModdedOD(apiMods):N2} | <b>BPM:</b> {ModdedBPM(apiMods):N2}\n" +
+						$"{pp}";
 				case Mode.Fruits:
 					return
 						$"{fullName}" +
-						$"[{Version.FilterToHTML()}] - {StarRating:N2}* - {ModdedDrainLength(mods):mm\':\'ss} - {BeatmapSet?.CreatorName} - <b>{Status}</b>\n" +
-						$"🍎 | <b>CS:</b> {ModdedCS(mods):N2} | <b>AR:</b> {ModdedAR(mods):N2} | <b>OD:</b> {ModdedOD(mods):N2} | <b>BPM:</b> {ModdedBPM(mods):N2}";
+						$"[{Version.FilterToHTML()}] - {attributes?.StarRating:N2}* - {ModdedDrainLength(apiMods):mm\':\'ss} - {BeatmapSet?.CreatorName} - <b>{Status}</b>\n" +
+						$"🍎 | <b>CS:</b> {ModdedCS(mods):N2} | <b>AR:</b> {ModdedAR(apiMods):N2} | <b>OD:</b> {ModdedOD(apiMods):N2} | <b>BPM:</b> {ModdedBPM(apiMods):N2}\n" +
+						$"{pp}";
 				case Mode.Mania:
 					return
 						$"{fullName}" +
-						$"[{Version.FilterToHTML()}] - {StarRating:N2}* - {ModdedDrainLength(mods):mm\':\'ss} - {BeatmapSet?.CreatorName} - <b>{Status}</b>\n" +
-						$"🎹 | <b>Keys:</b> {CS:N0} | <b>OD:</b> {ModdedOD(mods):N2} | <b>BPM:</b> {ModdedBPM(mods):N2}";
+						$"[{Version.FilterToHTML()}] - {attributes?.StarRating:N2}* - {ModdedDrainLength(apiMods):mm\':\'ss} - {BeatmapSet?.CreatorName} - <b>{Status}</b>\n" +
+						$"🎹 | <b>Keys:</b> {CS:N0} | <b>OD:</b> {ModdedOD(apiMods):N2} | <b>BPM:</b> {ModdedBPM(apiMods):N2}\n" +
+						$"{pp}";
 				default:
 					return string.Empty;
 			}

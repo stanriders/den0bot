@@ -1,5 +1,6 @@
 ﻿// den0bot (c) StanR 2024 - MIT License
 using den0bot.Modules.Osu.Types.V2;
+using osu.Game.Rulesets.Mods;
 
 namespace den0bot.Modules.Osu.WebAPI.Requests.V2
 {

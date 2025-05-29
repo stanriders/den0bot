@@ -1,20 +1,21 @@
-﻿// den0bot (c) StanR 2024 - MIT License
+﻿// den0bot (c) StanR 2025 - MIT License
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using den0bot.DB;
 using den0bot.Modules.Osu.Parsers;
 using den0bot.Modules.Osu.WebAPI.Requests.V2;
 using den0bot.Modules.Osu.Types;
-using den0bot.Modules.Osu.Types.Enums;
 using den0bot.Modules.Osu.Types.V2;
 using den0bot.Util;
 using Telegram.Bot.Types.Enums;
 using den0bot.Types;
 using den0bot.Types.Answers;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
+using osu.Game.Rulesets.Mods;
+using osu.Game.Rulesets.Scoring;
 
 namespace den0bot.Modules.Osu
 {
@@ -124,7 +125,7 @@ namespace den0bot.Modules.Osu
 						}
 
 						var beatmap = await new GetBeatmap(score.BeatmapShort.Id).Execute();
-						result += await FormatLazerScore(score, beatmap, true);
+						result += FormatLazerScore(score, beatmap, true);
 					}
 				}
 
@@ -171,7 +172,7 @@ namespace den0bot.Modules.Osu
 							{ BeatmapId = score.BeatmapShort.Id, BeatmapSetId = score.BeatmapShort.BeatmapSetId });
 
 					var beatmap = await new GetBeatmap(score.BeatmapShort.Id).Execute();
-					return new TextCommandAnswer(await FormatLazerScore(score, beatmap, true));
+					return new TextCommandAnswer(FormatLazerScore(score, beatmap, true));
 				}
 			}
 
@@ -236,7 +237,7 @@ namespace den0bot.Modules.Osu
 
 				foreach (var score in scores.Take(score_amount))
 				{
-					result += await FormatLazerScore(score, map, false);
+					result += FormatLazerScore(score, map, false);
 				}
 			}
 			else
@@ -246,7 +247,7 @@ namespace den0bot.Modules.Osu
 					return Localization.GetAnswer("recentscores_no_scores", message.Chat.Id);
 
 				var beatmap = await new GetBeatmap(mapId).Execute();
-				result += await FormatLazerScore(score, beatmap, false);
+				result += FormatLazerScore(score, beatmap, false);
 			}
 				
 			if (!string.IsNullOrEmpty(result))
@@ -339,7 +340,7 @@ namespace den0bot.Modules.Osu
 			}
 		}
 
-		private async Task<string> FormatLazerScore(LazerScore score, Beatmap? beatmap, bool useAgo)
+		private string FormatLazerScore(LazerScore score, Beatmap? beatmap, bool useAgo)
 		{
 			string mods = string.Empty;
 			if (score.Mods.Count(x => x.Acronym != "CL") > 0)
@@ -354,19 +355,19 @@ namespace den0bot.Modules.Osu
 					{
 						if (mod.Settings.TryGetValue("speed_change", out var rate))
 						{
-							mods += $"({double.Parse(rate!, CultureInfo.InvariantCulture)}x) ";
+							mods += $"({(double)rate}x) ";
 						}
 						if (mod.Settings.TryGetValue("approach_rate", out var ar))
 						{
-							mods += $"AR{double.Parse(ar!, CultureInfo.InvariantCulture)} ";
+							mods += $"AR{(double)ar} ";
 						}
 						if (mod.Settings.TryGetValue("circle_size", out var cs))
 						{
-							mods += $"CS{double.Parse(cs!, CultureInfo.InvariantCulture)} ";
+							mods += $"CS{(double)cs} ";
 						}
 						if (mod.Settings.TryGetValue("overall_difficulty", out var od))
 						{
-							mods += $"OD{double.Parse(od!, CultureInfo.InvariantCulture)} ";
+							mods += $"OD{(double)od} ";
 						}
 					}
 				}
@@ -385,7 +386,7 @@ namespace den0bot.Modules.Osu
 			string mapInfo = $"{beatmap?.BeatmapSet?.Artist} - {beatmap?.BeatmapSet?.Title} [{beatmap?.Version}]".FilterToHTML();
 
 			string pp = $"| {score.Pp:N2}pp";
-			if (beatmap?.Mode == Mode.Osu)
+			if (beatmap != null)
 			{
 				try
 				{
@@ -393,39 +394,30 @@ namespace den0bot.Modules.Osu
 					var shouldCalculatePp = score.Pp is null ||
 											score.ComboBasedMissCount(beatmap.MaxCombo, beatmap.Sliders) > 0;
 
-					Pettanko.Difficulty.OsuDifficultyAttributes? attributes = null;
-
+					double scorePp = score.Pp ?? 0;
 					if (shouldCalculatePp)
 					{
-						var difficultyMods = score.Mods.Where(x => Pettanko.Mod.AllMods.Any(y => y.Acronym == x.Acronym))
-							.ToArray();
-						attributes = await new GetBeatmapAttributes(beatmap.Id, difficultyMods).Execute();
-					}
-
-					double scorePp = score.Pp ?? 0;
-					if (attributes != null)
-					{
-						scorePp = score.Pp ?? PpCalculation.CalculatePerformance(score, attributes, beatmap);
+						scorePp = score.Pp ?? PpCalculation.CalculatePerformance(score.ToScoreInfo(), beatmap) ?? 0;
 					}
 
 					string possiblePp = string.Empty;
 
-					if (attributes != null && score.ComboBasedMissCount(beatmap.MaxCombo, beatmap.Sliders) > 0)
+					if (score.ComboBasedMissCount(beatmap.MaxCombo, beatmap.Sliders) > 0)
 					{
 						// Add possible pp value if they missed
-						var fcScore = new LazerScore
-						{
-							Statistics = new LazerScore.ScoreStatistics
-							{
-								Count300 = (beatmap.ObjectsTotal - score.Statistics.Count100 - score.Statistics.Count50) ?? 0,
-								Count100 = score.Statistics.Count100,
-								Count50 = score.Statistics.Count50,
-							},
-							Combo = beatmap.MaxCombo,
-							Mods = score.Mods
-						};
+						var serialized = JsonConvert.SerializeObject(score);
+						var fcScore = JsonConvert.DeserializeObject<LazerScore>(serialized);
 
-						double possiblePPval = PpCalculation.CalculatePerformance(fcScore, attributes, beatmap);
+						var greats = Math.Max(0, beatmap.ObjectsTotal ?? 0 -
+						             score.Statistics.GetValueOrDefault(HitResult.Ok) -
+						             score.Statistics.GetValueOrDefault(HitResult.Meh));
+
+						fcScore!.Statistics[HitResult.Great] = greats;
+						fcScore.Statistics[HitResult.Miss] = 0;
+						fcScore.Combo = beatmap.MaxCombo;
+						fcScore.Accuracy = PpCalculation.GetAccuracyForRuleset(beatmap, fcScore.Statistics);
+
+						double possiblePPval = PpCalculation.CalculatePerformance(fcScore.ToScoreInfo(), beatmap) ?? 0;
 						possiblePp = $"(~{possiblePPval:N2}pp if FC)";
 					}
 
@@ -443,11 +435,11 @@ namespace den0bot.Modules.Osu
 
 			var completion = string.Empty;
 			if (useAgo)
-				completion = $" | {(double)(score.Statistics.Count300 + score.Statistics.Count100 + score.Statistics.Count50 + score.Statistics.CountMiss) / score.Beatmap?.ObjectsTotal * 100.0:N1}% completion";
+				completion = $" | {(double)(score.Statistics.GetValueOrDefault(HitResult.Great) + score.Statistics.GetValueOrDefault(HitResult.Ok) + score.Statistics.GetValueOrDefault(HitResult.Meh) + score.Statistics.GetValueOrDefault(HitResult.Miss)) / score.Beatmap?.ObjectsTotal * 100.0:N1}% completion";
 
 			return
 				$"<b>({score.Grade.GetDescription()})</b> <a href=\"{beatmap?.Link}\">{mapInfo}</a><b>{mods} ({score.Accuracy:N2}%)</b>{Environment.NewLine}" +
-				$"{score.Combo}/{beatmap?.MaxCombo}x ({score.Statistics.Count300} / {score.Statistics.Count100} / {score.Statistics.Count50} / {score.Statistics.CountMiss}) {pp}{Environment.NewLine}" +
+				$"{score.Combo}/{beatmap?.MaxCombo}x ({score.Statistics.GetValueOrDefault(HitResult.Great)} / {score.Statistics.GetValueOrDefault(HitResult.Ok)} / {score.Statistics.GetValueOrDefault(HitResult.Meh)} / {score.Statistics.GetValueOrDefault(HitResult.Miss)}) {pp}{Environment.NewLine}" +
 				$"{position}{date}{completion}{Environment.NewLine}{Environment.NewLine}";
 		}
 	}
