@@ -39,6 +39,19 @@ namespace den0bot.Modules.Osu
 			var diffcalc = ruleset.CreateDifficultyCalculator(new FlatWorkingBeatmap(beatmapTempFile));
 			return diffcalc.Calculate(mods);
 		}
+		public static DifficultyAttributes? CalculateDifficulty(APIMod[] mods, Beatmap beatmap)
+		{
+			var ruleset = GetRuleset((int)beatmap.Mode);
+			var beatmapBytes = beatmap.FileBytes;
+			if (beatmapBytes == null)
+				return null;
+
+			var beatmapTempFile = Path.GetTempFileName();
+			File.WriteAllBytes(beatmapTempFile, beatmapBytes);
+
+			var diffcalc = ruleset.CreateDifficultyCalculator(new FlatWorkingBeatmap(beatmapTempFile));
+			return diffcalc.Calculate(mods.Select(x=> x.ToMod(ruleset)));
+		}
 
 		public static double? CalculatePerformance(double accuracy, Mod[] mods, DifficultyAttributes attributes, Beatmap beatmap)
 		{
@@ -121,15 +134,15 @@ namespace den0bot.Modules.Osu
 
 			return ruleset.OnlineID switch
 			{
-				0 => generateOsuHitResults(accuracy, beatmap, countMiss, countMeh, countGood, countLargeTickMisses, countSliderTailMisses),
-				1 => generateTaikoHitResults(accuracy, beatmap, countMiss, countGood),
-				2 => generateCatchHitResults(accuracy, beatmap, countMiss, countMeh, countGood),
-				3 => generateManiaHitResults(accuracy, beatmap, countMiss),
+				0 => GenerateOsuHitResults(accuracy, beatmap, countMiss, countMeh, countGood, countLargeTickMisses, countSliderTailMisses),
+				1 => GenerateTaikoHitResults(accuracy, beatmap, countMiss, countGood),
+				2 => GenerateCatchHitResults(accuracy, beatmap, countMiss, countMeh, countGood),
+				3 => GenerateManiaHitResults(accuracy, beatmap, countMiss),
 				_ => throw new ArgumentException("Invalid ruleset ID provided.")
 			};
 		}
 
-		private static Dictionary<HitResult, int> generateOsuHitResults(double accuracy, Beatmap beatmap, int countMiss, int? countMeh, int? countGood, int? countLargeTickMisses, int? countSliderTailMisses)
+		private static Dictionary<HitResult, int> GenerateOsuHitResults(double accuracy, Beatmap beatmap, int countMiss, int? countMeh, int? countGood, int? countLargeTickMisses, int? countSliderTailMisses)
 		{
 			int countGreat;
 
@@ -222,7 +235,7 @@ namespace den0bot.Modules.Osu
 			return result;
 		}
 
-		private static Dictionary<HitResult, int> generateTaikoHitResults(double accuracy, Beatmap beatmap, int countMiss, int? countGood)
+		private static Dictionary<HitResult, int> GenerateTaikoHitResults(double accuracy, Beatmap beatmap, int countMiss, int? countGood)
 		{
 			int totalResultCount = beatmap.ObjectsTotal ?? 0;
 
@@ -250,7 +263,7 @@ namespace den0bot.Modules.Osu
 			};
 		}
 
-		private static Dictionary<HitResult, int> generateCatchHitResults(double accuracy, Beatmap beatmap, int countMiss, int? countMeh, int? countGood)
+		private static Dictionary<HitResult, int> GenerateCatchHitResults(double accuracy, Beatmap beatmap, int countMiss, int? countMeh, int? countGood)
 		{
 			/*int maxCombo = beatmap.MaxCombo;
 
@@ -287,7 +300,7 @@ namespace den0bot.Modules.Osu
 			};
 		}
 
-		private static Dictionary<HitResult, int> generateManiaHitResults(double accuracy, Beatmap beatmap, int countMiss)
+		private static Dictionary<HitResult, int> GenerateManiaHitResults(double accuracy, Beatmap beatmap, int countMiss)
 		{
 			int totalResultCount = beatmap.ObjectsTotal ?? 0;
 
@@ -322,20 +335,20 @@ namespace den0bot.Modules.Osu
 
 			return ruleset.OnlineID switch
 			{
-				0 => getOsuAccuracy(beatmap, statistics),
-				1 => getTaikoAccuracy(statistics),
-				2 => getCatchAccuracy(statistics),
-				3 => getManiaAccuracy(statistics),
+				0 => GetOsuAccuracy(beatmap, statistics),
+				1 => GetTaikoAccuracy(statistics),
+				2 => GetCatchAccuracy(statistics),
+				3 => GetManiaAccuracy(statistics),
 				_ => 0.0
 			};
 		}
 
-		private static double getOsuAccuracy(Beatmap beatmap, Dictionary<HitResult, int> statistics)
+		private static double GetOsuAccuracy(Beatmap beatmap, Dictionary<HitResult, int> statistics)
 		{
-			int countGreat = statistics[HitResult.Great];
-			int countGood = statistics[HitResult.Ok];
-			int countMeh = statistics[HitResult.Meh];
-			int countMiss = statistics[HitResult.Miss];
+			int countGreat = statistics.GetValueOrDefault(HitResult.Great);
+			int countGood = statistics.GetValueOrDefault(HitResult.Ok);
+			int countMeh = statistics.GetValueOrDefault(HitResult.Meh);
+			int countMiss = statistics.GetValueOrDefault(HitResult.Miss);
 
 			double total = 6 * countGreat + 2 * countGood + countMeh;
 			double max = 6 * (countGreat + countGood + countMeh + countMiss);
@@ -360,32 +373,32 @@ namespace den0bot.Modules.Osu
 			return total / max;
 		}
 
-		private static double getTaikoAccuracy(Dictionary<HitResult, int> statistics)
+		private static double GetTaikoAccuracy(Dictionary<HitResult, int> statistics)
 		{
-			int countGreat = statistics[HitResult.Great];
-			int countGood = statistics[HitResult.Ok];
-			int countMiss = statistics[HitResult.Miss];
+			int countGreat = statistics.GetValueOrDefault(HitResult.Great);
+			int countGood = statistics.GetValueOrDefault(HitResult.Ok);
+			int countMiss = statistics.GetValueOrDefault(HitResult.Miss);
 			int total = countGreat + countGood + countMiss;
 
 			return (double)((2 * countGreat) + countGood) / (2 * total);
 		}
 
-		private static double getCatchAccuracy(Dictionary<HitResult, int> statistics)
+		private static double GetCatchAccuracy(Dictionary<HitResult, int> statistics)
 		{
-			double hits = statistics[HitResult.Great] + statistics[HitResult.LargeTickHit] + statistics[HitResult.SmallTickHit];
-			double total = hits + statistics[HitResult.Miss] + statistics[HitResult.SmallTickMiss];
+			double hits = statistics.GetValueOrDefault(HitResult.Great) + statistics.GetValueOrDefault(HitResult.LargeTickHit) + statistics.GetValueOrDefault(HitResult.SmallTickHit);
+			double total = hits + statistics.GetValueOrDefault(HitResult.Miss) + statistics.GetValueOrDefault(HitResult.SmallTickMiss);
 
 			return hits / total;
 		}
 
-		private static double getManiaAccuracy(Dictionary<HitResult, int> statistics)
+		private static double GetManiaAccuracy(Dictionary<HitResult, int> statistics)
 		{
-			int countPerfect = statistics[HitResult.Perfect];
-			int countGreat = statistics[HitResult.Great];
-			int countGood = statistics[HitResult.Good];
-			int countOk = statistics[HitResult.Ok];
-			int countMeh = statistics[HitResult.Meh];
-			int countMiss = statistics[HitResult.Miss];
+			int countPerfect = statistics.GetValueOrDefault(HitResult.Perfect);
+			int countGreat = statistics.GetValueOrDefault(HitResult.Great);
+			int countGood = statistics.GetValueOrDefault(HitResult.Good);
+			int countOk = statistics.GetValueOrDefault(HitResult.Ok);
+			int countMeh = statistics.GetValueOrDefault(HitResult.Meh);
+			int countMiss = statistics.GetValueOrDefault(HitResult.Miss);
 			int total = countPerfect + countGreat + countGood + countOk + countMeh + countMiss;
 
 			return (double)

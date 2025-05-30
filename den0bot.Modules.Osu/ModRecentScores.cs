@@ -385,47 +385,55 @@ namespace den0bot.Modules.Osu
 			// html-filtered map title
 			string mapInfo = $"{beatmap?.BeatmapSet?.Artist} - {beatmap?.BeatmapSet?.Title} [{beatmap?.Version}]".FilterToHTML();
 
+			string mapDifficulty = "";
 			string pp = $"| {score.Pp:N2}pp";
 			if (beatmap != null)
 			{
 				try
 				{
-					// Add pp values
-					var shouldCalculatePp = score.Pp is null ||
-											score.ComboBasedMissCount(beatmap.MaxCombo, beatmap.Sliders) > 0;
-
-					double scorePp = score.Pp ?? 0;
-					if (shouldCalculatePp)
+					var attributes = PpCalculation.CalculateDifficulty(score.Mods, beatmap);
+					if (attributes != null)
 					{
-						scorePp = score.Pp ?? PpCalculation.CalculatePerformance(score.ToScoreInfo(), beatmap) ?? 0;
+						mapDifficulty = $"<b>[{attributes.StarRating:N1}*]</b> ";
+						// Add pp values
+						var shouldCalculatePp = score.Pp is null ||
+						                        score.ComboBasedMissCount(beatmap.MaxCombo, beatmap.Sliders) > 0;
+
+						double scorePp = score.Pp ?? 0;
+						if (shouldCalculatePp)
+						{
+							scorePp = score.Pp ??
+							          PpCalculation.CalculatePerformance(score.ToScoreInfo(), attributes, beatmap) ?? 0;
+						}
+
+						string possiblePp = string.Empty;
+
+						if (score.ComboBasedMissCount(beatmap.MaxCombo, beatmap.Sliders) > 0)
+						{
+							// Add possible pp value if they missed
+							var serialized = JsonConvert.SerializeObject(score);
+							var fcScore = JsonConvert.DeserializeObject<LazerScore>(serialized);
+
+							var greats = Math.Max(0, beatmap.ObjectsTotal ?? 0 -
+								score.Statistics.GetValueOrDefault(HitResult.Ok) -
+								score.Statistics.GetValueOrDefault(HitResult.Meh));
+
+							fcScore!.Statistics[HitResult.Great] = greats;
+							fcScore.Statistics[HitResult.Miss] = 0;
+							fcScore.Combo = beatmap.MaxCombo;
+							fcScore.Accuracy = PpCalculation.GetAccuracyForRuleset(beatmap, fcScore.Statistics);
+
+							double possiblePPval =
+								PpCalculation.CalculatePerformance(fcScore.ToScoreInfo(), attributes, beatmap) ?? 0;
+							possiblePp = $"(~{possiblePPval:N2}pp if FC)";
+						}
+
+						pp = $"| {(score.Pp == null ? "~" : "")}{scorePp:N2}pp {possiblePp}";
 					}
-
-					string possiblePp = string.Empty;
-
-					if (score.ComboBasedMissCount(beatmap.MaxCombo, beatmap.Sliders) > 0)
-					{
-						// Add possible pp value if they missed
-						var serialized = JsonConvert.SerializeObject(score);
-						var fcScore = JsonConvert.DeserializeObject<LazerScore>(serialized);
-
-						var greats = Math.Max(0, beatmap.ObjectsTotal ?? 0 -
-						             score.Statistics.GetValueOrDefault(HitResult.Ok) -
-						             score.Statistics.GetValueOrDefault(HitResult.Meh));
-
-						fcScore!.Statistics[HitResult.Great] = greats;
-						fcScore.Statistics[HitResult.Miss] = 0;
-						fcScore.Combo = beatmap.MaxCombo;
-						fcScore.Accuracy = PpCalculation.GetAccuracyForRuleset(beatmap, fcScore.Statistics);
-
-						double possiblePPval = PpCalculation.CalculatePerformance(fcScore.ToScoreInfo(), beatmap) ?? 0;
-						possiblePp = $"(~{possiblePPval:N2}pp if FC)";
-					}
-
-					pp = $"| {(score.Pp == null ? "~" : "")}{scorePp:N2}pp {possiblePp}";
 				}
 				catch (Exception e)
 				{
-					logger.LogError($"Oppai failed: {e.InnerMessageIfAny()}");
+					logger.LogError($"PP calculation failed: {e.InnerMessageIfAny()}");
 				}
 			}
 
@@ -438,7 +446,7 @@ namespace den0bot.Modules.Osu
 				completion = $" | {(double)(score.Statistics.GetValueOrDefault(HitResult.Great) + score.Statistics.GetValueOrDefault(HitResult.Ok) + score.Statistics.GetValueOrDefault(HitResult.Meh) + score.Statistics.GetValueOrDefault(HitResult.Miss)) / score.Beatmap?.ObjectsTotal * 100.0:N1}% completion";
 
 			return
-				$"<b>({score.Grade.GetDescription()})</b> <a href=\"{beatmap?.Link}\">{mapInfo}</a><b>{mods} ({score.Accuracy:N2}%)</b>{Environment.NewLine}" +
+				$"<b>({(score.Passed ? score.Grade.GetDescription() : "F")})</b> <a href=\"{beatmap?.Link}\">{mapDifficulty}{mapInfo}</a><b>{mods} ({score.Accuracy:N2}%)</b>{Environment.NewLine}" +
 				$"{score.Combo}/{beatmap?.MaxCombo}x ({score.Statistics.GetValueOrDefault(HitResult.Great)} / {score.Statistics.GetValueOrDefault(HitResult.Ok)} / {score.Statistics.GetValueOrDefault(HitResult.Meh)} / {score.Statistics.GetValueOrDefault(HitResult.Miss)}) {pp}{Environment.NewLine}" +
 				$"{position}{date}{completion}{Environment.NewLine}{Environment.NewLine}";
 		}

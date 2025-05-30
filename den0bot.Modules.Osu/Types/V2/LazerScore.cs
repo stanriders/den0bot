@@ -83,6 +83,9 @@ namespace den0bot.Modules.Osu.Types.V2
 		[JsonProperty("legacy_score_id")]
 		public ulong? LegacyScoreId { get; set; }
 
+		[JsonProperty("passed")]
+		public bool Passed { get; set; }
+
 		private BeatmapShort? beatmap;
 		public BeatmapShort? Beatmap 
 		{ 
