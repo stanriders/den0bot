@@ -13,37 +13,15 @@ namespace den0bot.Modules.Osu.WebAPI
 	public static class WebApiHandler
 	{
 		private static AccessToken? v2AccessToken;
+		private static Dictionary<string, string> v2DefaultHeaders = new() { { "x-api-version", "20240801" } };
 
 		public static async Task<TIn?> MakeApiRequest<TIn, TOut>(Request<TIn, TOut> request)
 		{
 			return request.API switch
 			{
-				APIVersion.V1 => await V1ApiRequest(request),
 				APIVersion.V2 => await V2ApiRequest(request),
 				_ => throw new NotImplementedException(),
 			};
-		}
-
-		private static async Task<TIn?> V1ApiRequest<TIn, TOut>(Request<TIn, TOut> request)
-		{
-			if (string.IsNullOrEmpty(Config.Params.osuToken))
-			{
-				Log.Error("API Key is not defined!");
-				return default;
-			}
-
-			try
-			{
-				string json =
-					await Web.DownloadString($"https://osu.ppy.sh/api/{request.Address}&k={Config.Params.osuToken}");
-
-				return JsonConvert.DeserializeObject<TIn>(json, new JsonSerializerSettings { DateTimeZoneHandling = DateTimeZoneHandling.Utc });
-			}
-			catch (Exception ex)
-			{
-				Log.Error(ex.InnerMessageIfAny());
-			}
-			return default;
 		}
 
 		private static async Task<TIn?> V2ApiRequest<TIn, TOut>(Request<TIn, TOut> request)
@@ -57,9 +35,9 @@ namespace den0bot.Modules.Osu.WebAPI
 					string json;
 
 					if (request.Body is not null)
-						json = await Web.PostJson($"https://osu.ppy.sh/api/v2/{request.Address}", request.Body, v2AccessToken.Token, new Dictionary<string, string> {{ "x-api-version", "20240801" } });
+						json = await Web.PostJson($"https://osu.ppy.sh/api/v2/{request.Address}", request.Body, v2AccessToken.Token, v2DefaultHeaders);
 					else
-						json = await Web.DownloadString($"https://osu.ppy.sh/api/v2/{request.Address}", v2AccessToken.Token, new Dictionary<string, string> { { "x-api-version", "20240801" } });
+						json = await Web.DownloadString($"https://osu.ppy.sh/api/v2/{request.Address}", v2AccessToken.Token, v2DefaultHeaders);
 
 					return JsonConvert.DeserializeObject<TIn>(json, new JsonSerializerSettings { DateTimeZoneHandling = DateTimeZoneHandling.Utc });
 				}

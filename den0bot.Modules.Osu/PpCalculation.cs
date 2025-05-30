@@ -76,20 +76,7 @@ namespace den0bot.Modules.Osu
 			if (attributes == null)
 				return null;
 
-			var normalizedAccuracy = accuracy / 100.0;
-
-			var score = new ScoreInfo
-			{
-				Accuracy = normalizedAccuracy,
-				MaxCombo = beatmap.MaxCombo,
-				APIMods = mods.Select(x => new APIMod(x)).ToArray(),
-				Statistics = GenerateHitResultsForRuleset(normalizedAccuracy, beatmap, 0),
-				MaximumStatistics = new Dictionary<HitResult, int>
-				{
-					{HitResult.Great, beatmap.ObjectsTotal ?? 0}
-				}
-			};
-			return CalculatePerformance(score, attributes, beatmap);
+			return CalculatePerformance(accuracy, mods, attributes, beatmap);
 		}
 
 		public static double? CalculatePerformance(ScoreInfo score, DifficultyAttributes attributes, Beatmap beatmap)
@@ -104,16 +91,11 @@ namespace den0bot.Modules.Osu
 
 		public static double? CalculatePerformance(ScoreInfo score, Beatmap beatmap)
 		{
-			var ruleset = GetRuleset((int)beatmap.Mode);
-			score.Ruleset = ruleset.RulesetInfo;
-
 			var attributes = CalculateDifficulty(score.Mods, beatmap);
 			if (attributes == null)
 				return null;
 
-			var perfcalc = ruleset.CreatePerformanceCalculator();
-			var ppAttributes = perfcalc?.Calculate(score, attributes);
-			return ppAttributes?.Total;
+			return CalculatePerformance(score, attributes, beatmap);
 		}
 
 		private static Ruleset GetRuleset(int id)
