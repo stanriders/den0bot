@@ -21,7 +21,7 @@ namespace den0bot.Modules.Osu
 		{
 			public ulong MatchId { get; init; }
 			public long ChatId { get; init; }
-			public uint CurrentEventId { get; set; }
+			public ulong CurrentEventId { get; set; }
 			public MatchTeamStatus? Status { get; set; }
 		}
 
@@ -174,15 +174,15 @@ namespace den0bot.Modules.Osu
 				.Select(x => x.Game)
 				.Last(x => x!.EndTime != null);
 
-			var scores = game!.Scores.OrderByDescending(x => x.Points).ToList();
+			var scores = game!.Scores.OrderByDescending(x => x.LegacyTotalScore).ToList();
 
 			gamesString += $"{Environment.NewLine}{game.Beatmap.BeatmapSet?.Artist} - {game.Beatmap.BeatmapSet?.Title}[{game.Beatmap.Version}]{Environment.NewLine}";
 			for (int i = 0; i < scores.Count; i++)
 			{
-				if (scores[i].Points != 0)
+				if (scores[i].LegacyTotalScore != 0)
 				{
 					var player = match.Users.First(x => x.Id == scores[i].UserId);
-					gamesString += $"{i + 1}. <b>{player.Username}</b>: {scores[i].Points} ({scores[i].Combo}x, {scores[i].Accuracy:N2}%{(scores[i].MatchData.Pass ? "" : ", failed")}){Environment.NewLine}";
+					gamesString += $"{i + 1}. <b>{player.Username}</b>: {scores[i].LegacyTotalScore} ({scores[i].Combo}x, {scores[i].Accuracy:N2}%{(scores[i].MatchData.Pass ? "" : ", failed")}){Environment.NewLine}";
 				}
 			}
 
@@ -196,25 +196,25 @@ namespace den0bot.Modules.Osu
 				.Select(x => x.Game)
 				.Last(x => x!.EndTime != null);
 
-			List<Score> allScores = game!.Scores
-				.OrderByDescending(x => x.Points)
+			List<LazerScore> allScores = game!.Scores
+				.OrderByDescending(x => x.LegacyTotalScore)
 				.ThenByDescending(x => x.MatchData.Team)
 				.ToList();
 
-			gamesString += $"{status.Teams.RedTeam} {status.RedScore} | {status.Teams.BlueTeam} {status.BlueScore}{Environment.NewLine}{Environment.NewLine}" +
+			gamesString += $"🔴 {status.Teams.RedTeam} {status.RedScore} | 🔵 {status.Teams.BlueTeam} {status.BlueScore}{Environment.NewLine}{Environment.NewLine}" +
 			               $"<b>{game.Beatmap.BeatmapSet?.Artist} - {game.Beatmap.BeatmapSet?.Title} [{game.Beatmap.Version}]</b>{Environment.NewLine}";
 
 			foreach (var score in allScores)
 			{
-				if (score.Points > 0)
+				if (score.LegacyTotalScore > 0)
 				{
 					var player = match.Users.First(x => x.Id == score.UserId);
-					gamesString += $" {(score.MatchData.Team == Team.Red ? "🔴" : "🔵")} <b>{player.Username}</b>: {score.Points} ({score.Combo}x, {score.Accuracy:N2}%{(score.MatchData.Pass ? "" : ", failed")}){Environment.NewLine}";
+					gamesString += $" {(score.MatchData.Team == Team.Red ? "🔴" : "🔵")} <b>{player.Username}</b>: {score.LegacyTotalScore} ({score.Combo}x, {score.Accuracy:N2}%{(score.MatchData.Pass ? "" : ", failed")}){Environment.NewLine}";
 				}
 			}
 
-			var redScore = allScores.Where(x => x.MatchData.Team == Team.Red).Sum(x => x.Points);
-			var blueScore = allScores.Where(x => x.MatchData.Team == Team.Blue).Sum(x => x.Points);
+			var redScore = allScores.Where(x => x.MatchData.Team == Team.Red).Sum(x => x.LegacyTotalScore) ?? 0;
+			var blueScore = allScores.Where(x => x.MatchData.Team == Team.Blue).Sum(x => x.LegacyTotalScore) ?? 0;
 
 			var redWon = redScore > blueScore;
 			if (redWon)
@@ -232,8 +232,8 @@ namespace den0bot.Modules.Osu
 			uint redTotalScore = 0, blueTotalScore = 0;
 			foreach (var g in match.Events.Where(x=> x.Game != null).Select(x => x.Game))
 			{
-				var redGameScore = g!.Scores.Where(x => x.MatchData.Team == Team.Red).Sum(x => x.Points);
-				var blueGameScore = g.Scores.Where(x => x.MatchData.Team == Team.Blue).Sum(x => x.Points);
+				var redGameScore = g!.Scores.Where(x => x.MatchData.Team == Team.Red).Sum(x => x.LegacyTotalScore);
+				var blueGameScore = g.Scores.Where(x => x.MatchData.Team == Team.Blue).Sum(x => x.LegacyTotalScore);
 
 				if (redGameScore > blueGameScore)
 					redTotalScore++;

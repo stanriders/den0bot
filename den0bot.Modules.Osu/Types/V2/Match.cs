@@ -14,7 +14,7 @@ namespace den0bot.Modules.Osu.Types.V2
 		public class MatchInfo
 		{
 			[JsonProperty("id")]
-			public int Id { get; set; }
+			public long Id { get; set; }
 
 			[JsonProperty("start_time")]
 			public DateTime StartTime { get; set; }
@@ -32,7 +32,7 @@ namespace den0bot.Modules.Osu.Types.V2
 		public class MatchEvent
 		{
 			[JsonProperty("id")]
-			public uint Id { get; set; }
+			public ulong Id { get; set; }
 
 			// detail
 
@@ -40,7 +40,7 @@ namespace den0bot.Modules.Osu.Types.V2
 			public DateTime Timestamp { get; set; }
 
 			[JsonProperty("user_id")]
-			public int? UserId { get; set; }
+			public long? UserId { get; set; }
 
 			[JsonProperty("game")]
 			public MatchGame? Game { get; set; }
@@ -48,7 +48,7 @@ namespace den0bot.Modules.Osu.Types.V2
 			public class MatchGame
 			{
 				[JsonProperty("id")]
-				public int Id { get; set; }
+				public long Id { get; set; }
 
 				[JsonProperty("start_time")]
 				public DateTime StartTime { get; set; }
@@ -74,7 +74,7 @@ namespace den0bot.Modules.Osu.Types.V2
 				public BeatmapShort Beatmap { get; set; } = null!;
 
 				[JsonProperty("scores")]
-				public Score[] Scores { get; set; } = null!;
+				public LazerScore[] Scores { get; set; } = null!;
 			}
 		}
 
@@ -82,12 +82,12 @@ namespace den0bot.Modules.Osu.Types.V2
 		public UserShort[] Users { get; set; } = null!;
 
 		[JsonProperty("first_event_id")]
-		public int FirstEventId { get; set; }
+		public long FirstEventId { get; set; }
 
 		[JsonProperty("latest_event_id")]
-		public int LatestEventId { get; set; }
+		public long LatestEventId { get; set; }
 
 		[JsonProperty("current_game_id")]
-		public int? CurrentGameId { get; set; }
+		public long? CurrentGameId { get; set; }
 	}
 }

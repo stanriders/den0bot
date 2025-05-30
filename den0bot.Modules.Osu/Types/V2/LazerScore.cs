@@ -68,8 +68,8 @@ namespace den0bot.Modules.Osu.Types.V2
 		[JsonProperty("ended_at")]
 		public DateTime? Date { get; set; }
 
-		[JsonProperty("score")]
-		public uint Points { get; set; }
+		[JsonProperty("total_score")]
+		public uint TotalScore { get; set; }
 
 		[JsonProperty("statistics")]
 		public Dictionary<HitResult, int> Statistics { get; set; } = null!;
@@ -85,6 +85,22 @@ namespace den0bot.Modules.Osu.Types.V2
 
 		[JsonProperty("passed")]
 		public bool Passed { get; set; }
+
+		[JsonProperty("match")]
+		public MultiplayerData MatchData { get; set; } = null!;
+
+		public class MultiplayerData
+		{
+			[JsonProperty("slot")]
+			public uint Slot { get; set; }
+
+			[JsonProperty("team")]
+			[JsonConverter(typeof(StringEnumConverter))]
+			public Team Team { get; set; }
+
+			[JsonProperty("pass")]
+			public bool Pass { get; set; }
+		}
 
 		private BeatmapShort? beatmap;
 		public BeatmapShort? Beatmap 
