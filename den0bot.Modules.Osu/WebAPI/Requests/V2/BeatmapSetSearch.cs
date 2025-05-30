@@ -1,9 +1,10 @@
-﻿// den0bot (c) StanR 2024 - MIT License
+﻿// den0bot (c) StanR 2025 - MIT License
 using den0bot.Modules.Osu.Types.V2;
+using osu.Game.Online.API.Requests.Responses;
 
 namespace den0bot.Modules.Osu.WebAPI.Requests.V2
 {
-	public class BeatmapSetSearch : Request<BeatmapSetSearchResult, BeatmapSet[]>
+	public class BeatmapSetSearch : Request<BeatmapSetSearchResult, APIBeatmapSet[]>
 	{
 		public override APIVersion API => APIVersion.V2;
 
@@ -18,6 +19,6 @@ namespace den0bot.Modules.Osu.WebAPI.Requests.V2
 			this.ranked = ranked;
 		}
 
-		public override BeatmapSet[]? Process(BeatmapSetSearchResult? data) => data?.BeatmapSets;
+		public override APIBeatmapSet[]? Process(BeatmapSetSearchResult? data) => data?.BeatmapSets;
 	}
 }

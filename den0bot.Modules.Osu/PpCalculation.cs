@@ -28,7 +28,7 @@ namespace den0bot.Modules.Osu
 
 		public static DifficultyAttributes? CalculateDifficulty(Mod[] mods, Beatmap beatmap)
 		{
-			var ruleset = GetRuleset((int)beatmap.Mode);
+			var ruleset = GetRuleset(beatmap.RulesetID);
 			var beatmapBytes = beatmap.FileBytes;
 			if (beatmapBytes == null)
 				return null;
@@ -41,7 +41,7 @@ namespace den0bot.Modules.Osu
 		}
 		public static DifficultyAttributes? CalculateDifficulty(APIMod[] mods, Beatmap beatmap)
 		{
-			var ruleset = GetRuleset((int)beatmap.Mode);
+			var ruleset = GetRuleset(beatmap.RulesetID);
 			var beatmapBytes = beatmap.FileBytes;
 			if (beatmapBytes == null)
 				return null;
@@ -59,12 +59,12 @@ namespace den0bot.Modules.Osu
 			var score = new ScoreInfo
 			{
 				Accuracy = normalizedAccuracy,
-				MaxCombo = beatmap.MaxCombo,
+				MaxCombo = beatmap.MaxCombo!.Value,
 				APIMods = mods.Select(x=> new APIMod(x)).ToArray(),
 				Statistics = GenerateHitResultsForRuleset(normalizedAccuracy, beatmap, 0),
 				MaximumStatistics = new Dictionary<HitResult, int>
 				{
-					{HitResult.Great, beatmap.ObjectsTotal ?? 0}
+					{HitResult.Great, beatmap.TotalObjectCount}
 				}
 			};
 			return CalculatePerformance(score, attributes, beatmap);
@@ -81,7 +81,7 @@ namespace den0bot.Modules.Osu
 
 		public static double? CalculatePerformance(ScoreInfo score, DifficultyAttributes attributes, Beatmap beatmap)
 		{
-			var ruleset = GetRuleset((int)beatmap.Mode);
+			var ruleset = GetRuleset(beatmap.RulesetID);
 			score.Ruleset = ruleset.RulesetInfo;
 
 			var perfcalc = ruleset.CreatePerformanceCalculator();
@@ -112,7 +112,7 @@ namespace den0bot.Modules.Osu
 
 		public static Dictionary<HitResult, int> GenerateHitResultsForRuleset(double accuracy, Beatmap beatmap, int countMiss, int? countMeh = null, int? countGood = null, int? countLargeTickMisses = null, int? countSliderTailMisses = null)
 		{
-			var ruleset = GetRuleset((int)beatmap.Mode).RulesetInfo;
+			var ruleset = GetRuleset(beatmap.RulesetID).RulesetInfo;
 
 			return ruleset.OnlineID switch
 			{
@@ -128,7 +128,7 @@ namespace den0bot.Modules.Osu
 		{
 			int countGreat;
 
-			int totalResultCount = beatmap.ObjectsTotal ?? 0;
+			int totalResultCount = beatmap.TotalObjectCount;
 
 			if (countMeh != null || countGood != null)
 			{
@@ -212,14 +212,14 @@ namespace den0bot.Modules.Osu
 				result[HitResult.LargeTickMiss] = countLargeTickMisses.Value;
 
 			if (countSliderTailMisses != null)
-				result[HitResult.SliderTailHit] = beatmap.Sliders - countSliderTailMisses.Value;
+				result[HitResult.SliderTailHit] = beatmap.SliderCount - countSliderTailMisses.Value;
 
 			return result;
 		}
 
 		private static Dictionary<HitResult, int> GenerateTaikoHitResults(double accuracy, Beatmap beatmap, int countMiss, int? countGood)
 		{
-			int totalResultCount = beatmap.ObjectsTotal ?? 0;
+			int totalResultCount = beatmap.TotalObjectCount;
 
 			int countGreat;
 
@@ -277,14 +277,14 @@ namespace den0bot.Modules.Osu
 
 			return new Dictionary<HitResult, int>
 			{
-				{ HitResult.Great, beatmap.ObjectsTotal ?? 0 },
+				{ HitResult.Great, beatmap.TotalObjectCount },
 				{ HitResult.Miss, countMiss }
 			};
 		}
 
 		private static Dictionary<HitResult, int> GenerateManiaHitResults(double accuracy, Beatmap beatmap, int countMiss)
 		{
-			int totalResultCount = beatmap.ObjectsTotal ?? 0;
+			int totalResultCount = beatmap.TotalObjectCount;
 
 			// Let Great=6, Good=2, Meh=1, Miss=0. The total should be this.
 			int targetTotal = (int)Math.Round(accuracy * totalResultCount * 6);
@@ -313,7 +313,7 @@ namespace den0bot.Modules.Osu
 
 		public static double GetAccuracyForRuleset(Beatmap beatmap, Dictionary<HitResult, int> statistics)
 		{
-			var ruleset = GetRuleset((int)beatmap.Mode).RulesetInfo;
+			var ruleset = GetRuleset(beatmap.RulesetID).RulesetInfo;
 
 			return ruleset.OnlineID switch
 			{
@@ -337,7 +337,7 @@ namespace den0bot.Modules.Osu
 
 			if (statistics.TryGetValue(HitResult.SliderTailHit, out int countSliderTailHit))
 			{
-				int countSliders = beatmap.Sliders;
+				int countSliders = beatmap.SliderCount;
 
 				total += 3 * countSliderTailHit;
 				max += 3 * countSliders;

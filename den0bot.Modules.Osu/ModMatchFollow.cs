@@ -176,7 +176,7 @@ namespace den0bot.Modules.Osu
 
 			var scores = game!.Scores.OrderByDescending(x => x.LegacyTotalScore).ToList();
 
-			gamesString += $"{Environment.NewLine}{game.Beatmap.BeatmapSet?.Artist} - {game.Beatmap.BeatmapSet?.Title}[{game.Beatmap.Version}]{Environment.NewLine}";
+			gamesString += $"{Environment.NewLine}{game.Beatmap.BeatmapSet?.Artist} - {game.Beatmap.BeatmapSet?.Title}[{game.Beatmap.DifficultyName}]{Environment.NewLine}";
 			for (int i = 0; i < scores.Count; i++)
 			{
 				if (scores[i].LegacyTotalScore != 0)
@@ -202,7 +202,7 @@ namespace den0bot.Modules.Osu
 				.ToList();
 
 			gamesString += $"🔴 {status.Teams.RedTeam} {status.RedScore} | 🔵 {status.Teams.BlueTeam} {status.BlueScore}{Environment.NewLine}{Environment.NewLine}" +
-			               $"<b>{game.Beatmap.BeatmapSet?.Artist} - {game.Beatmap.BeatmapSet?.Title} [{game.Beatmap.Version}]</b>{Environment.NewLine}";
+			               $"<b>{game.Beatmap.BeatmapSet?.Artist} - {game.Beatmap.BeatmapSet?.Title} [{game.Beatmap.DifficultyName}]</b>{Environment.NewLine}";
 
 			foreach (var score in allScores)
 			{

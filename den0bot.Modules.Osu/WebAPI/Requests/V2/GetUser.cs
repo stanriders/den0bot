@@ -1,9 +1,9 @@
-﻿// den0bot (c) StanR 2024 - MIT License
-using den0bot.Modules.Osu.Types.V2;
+﻿// den0bot (c) StanR 2025 - MIT License
+using osu.Game.Online.API.Requests.Responses;
 
 namespace den0bot.Modules.Osu.WebAPI.Requests.V2
 {
-	public class GetUser : Request<User, User>
+	public class GetUser : Request<APIUser, APIUser>
 	{
 		public override APIVersion API => APIVersion.V2;
 
@@ -16,6 +16,6 @@ namespace den0bot.Modules.Osu.WebAPI.Requests.V2
 			this.username = username;
 		}
 
-		public override User? Process(User? data) => data;
+		public override APIUser? Process(APIUser? data) => data;
 	}
 }

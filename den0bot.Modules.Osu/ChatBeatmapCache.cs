@@ -1,4 +1,4 @@
-﻿// den0bot (c) StanR 2024 - MIT License
+﻿// den0bot (c) StanR 2025 - MIT License
 
 using System;
 using System.Collections.Generic;
@@ -10,8 +10,8 @@ namespace den0bot.Modules.Osu
 	{
 		public class CachedBeatmap
 		{
-			public uint BeatmapId { get; set; }
-			public uint BeatmapSetId { get; set; }
+			public int BeatmapId { get; set; }
+			public int BeatmapSetId { get; set; }
 		}
 
 		private static readonly Dictionary<long, CachedBeatmap> lastMapCache = new();
@@ -21,18 +21,15 @@ namespace den0bot.Modules.Osu
 
 		public static CachedBeatmap? GetLastMap(long chatId)
 		{
-			if (lastMapCache.ContainsKey(chatId))
-				return lastMapCache[chatId];
+			if (lastMapCache.TryGetValue(chatId, out var map))
+				return map;
 
 			return null;
 		}
 
 		public static void StoreLastMap(long chatId, CachedBeatmap map)
 		{
-			if (lastMapCache.ContainsKey(chatId))
-				lastMapCache[chatId] = map;
-			else
-				lastMapCache.Add(chatId, map);
+			lastMapCache[chatId] = map;
 		}
 
 		public static void StoreSentMap(int messageId, CachedBeatmap map)

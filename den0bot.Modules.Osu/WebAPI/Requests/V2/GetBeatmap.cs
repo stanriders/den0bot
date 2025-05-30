@@ -1,4 +1,4 @@
-﻿// den0bot (c) StanR 2024 - MIT License
+﻿// den0bot (c) StanR 2025 - MIT License
 using den0bot.Modules.Osu.Types.V2;
 
 namespace den0bot.Modules.Osu.WebAPI.Requests.V2
@@ -9,9 +9,9 @@ namespace den0bot.Modules.Osu.WebAPI.Requests.V2
 
 		public override string Address => $"beatmaps/{id}";
 
-		private readonly uint id;
+		private readonly int id;
 
-		public GetBeatmap(uint id)
+		public GetBeatmap(int id)
 		{
 			this.id = id;
 		}

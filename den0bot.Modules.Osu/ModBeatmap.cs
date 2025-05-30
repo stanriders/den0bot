@@ -75,8 +75,8 @@ namespace den0bot.Modules.Osu
 					if (beatmapLinkData.IsBeatmapset)
 					{
 						var set = await new GetBeatmapSet(beatmapLinkData.ID).Execute();
-						if (set?.Beatmaps.Count > 0)
-							map = set.Beatmaps.Last();
+						if (set?.Beatmaps.Length > 0)
+							map = (Beatmap)set.Beatmaps.Last();
 					}
 					else
 					{
@@ -155,7 +155,7 @@ namespace den0bot.Modules.Osu
 		{
 			if (map != null)
 			{
-				var sentMessage = await API.SendPhoto(map.BeatmapSet?.Covers.Cover2X,
+				var sentMessage = await API.SendPhoto(map.BeatmapSet?.Covers.Cover,
 					chatId,
 					map.GetFormattedMapInfo(mods, includeName),
 					Telegram.Bot.Types.Enums.ParseMode.Html,
@@ -165,8 +165,8 @@ namespace den0bot.Modules.Osu
 				{
 					var cachedBeatmap = new ChatBeatmapCache.CachedBeatmap
 					{
-						BeatmapId = map.Id,
-						BeatmapSetId = map.BeatmapSetId
+						BeatmapId = map.OnlineID,
+						BeatmapSetId = map.OnlineBeatmapSetID
 					};
 
 					ChatBeatmapCache.StoreSentMap(sentMessage.MessageId, cachedBeatmap);

@@ -90,7 +90,7 @@ namespace den0bot.Modules.Osu
 				if (linkData.IsBeatmapset)
 				{
 					var set = await new GetBeatmapSet(linkData.ID).Execute();
-					map = set?.Beatmaps.Last();
+					map = (Beatmap?)set?.Beatmaps.Last();
 				}
 				else
 				{
@@ -112,7 +112,7 @@ namespace den0bot.Modules.Osu
 
 					return new ImageCommandAnswer
 					{
-						Image = map.BeatmapSet?.Covers.Cover2X,
+						Image = map.BeatmapSet?.Covers.Cover,
 						Caption = caption
 					};
 				}

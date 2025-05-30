@@ -48,12 +48,12 @@ namespace den0bot.Modules.Osu
 
 		private async Task<string> FormatPlayerInfo(string playerID)
 		{
-			Types.V2.User? info = await new GetUser(playerID).Execute();
+			var info = await new GetUser(playerID).Execute();
 
 			if (info == null)
 				return string.Empty;
 
-			var topscores = await new GetUserScores(info.Id, ScoreType.Best, limit: topscores_to_show).Execute();
+			var topscores = await new GetUserScores(info.OnlineID, ScoreType.Best, limit: topscores_to_show).Execute();
 			if (topscores == null || topscores.Count <= 0)
 				return string.Empty;
 
@@ -68,7 +68,7 @@ namespace den0bot.Modules.Osu
 					mods = $" +{string.Join("", score.Mods.Where(x=> x.Acronym != "CL").Select(x=> x.Acronym))}";
 
 				// 1. 123pp | Artist - Title [Diffname] +Mods (Rank, Accuracy%)
-				string mapName = $"{score.BeatmapSet?.Artist} - {score.BeatmapSet?.Title} [{score.Beatmap?.Version}]".FilterToHTML();
+				string mapName = $"{score.BeatmapSet?.Artist} - {score.BeatmapSet?.Title} [{score.Beatmap?.DifficultyName}]".FilterToHTML();
 				formatedTopscores +=
 					$"<b>{(i + 1)}</b>. <code>{score.Pp:F1}pp</code> | (<b>{score.Grade.GetDescription()}</b>) {mapName}<b>{mods} ({score.Accuracy:N2}%)</b>\n";
 			}
@@ -77,9 +77,9 @@ namespace den0bot.Modules.Osu
 			if (!string.IsNullOrEmpty(info.Title))
 				title = $"<i>{info.Title}</i>\n";
 
-			return $"<b>{info.Username}</b> <a href=\"{info.AvatarUrl}\">-</a> <code>{info.Statistics.Pp}pp</code> - #{info.Statistics.GlobalRank} (#{info.Statistics.Rank.Country} {info.Country.Code})\n" +
+			return $"<b>{info.Username}</b> <a href=\"{info.AvatarUrl}\">-</a> <code>{info.Statistics.PP}pp</code> - #{info.Statistics.GlobalRank} (#{info.Statistics.CountryRank} {info.CountryCode})\n" +
 				   $"{title}\n" +
-				   $"<b>Playcount</b>: {info.Statistics.Playcount} ({info.Statistics.PlaytimeSeconds / 60.0 / 60.0:F2} hours)\n" +
+				   $"<b>Playcount</b>: {info.Statistics.PlayCount} ({info.Statistics.PlayTime / 60.0 / 60.0:F2} hours)\n" +
 			       $"<b>Joined on</b>: {info.JoinDate}\n" +
 			       $"__________\n" +
 			       $"{formatedTopscores}";

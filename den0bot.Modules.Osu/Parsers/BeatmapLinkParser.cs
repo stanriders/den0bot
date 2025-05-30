@@ -12,7 +12,7 @@ namespace den0bot.Modules.Osu.Parsers
 {
 	public class BeatmapLinkData
 	{
-		public uint ID { get; set; }
+		public int ID { get; set; }
 		public bool IsBeatmapset { get; set; }
 		public Mode Mode { get; set; }
 		public Mod[] Mods { get; set; } = null!;
@@ -53,7 +53,7 @@ namespace den0bot.Modules.Osu.Parsers
 					{
 						return new BeatmapLinkData
 						{
-							ID = uint.Parse(regexGroups[2].Value),
+							ID = int.Parse(regexGroups[2].Value),
 							IsBeatmapset = true,
 							Mods = mods
 						};
@@ -63,7 +63,7 @@ namespace den0bot.Modules.Osu.Parsers
 						return new BeatmapLinkData
 						{
 							// 'beatmaps' case is stupid and since it's literally one of a kind we're accounting for it here
-							ID = regexGroups[1].Value == "beatmaps" ? uint.Parse(regexGroups[2].Value) : uint.Parse(regexGroups[4].Value),
+							ID = regexGroups[1].Value == "beatmaps" ? int.Parse(regexGroups[2].Value) : int.Parse(regexGroups[4].Value),
 							IsBeatmapset = false,
 							Mode = mode,
 							Mods = mods
@@ -74,7 +74,7 @@ namespace den0bot.Modules.Osu.Parsers
 				{
 					return new BeatmapLinkData
 					{
-						ID = uint.Parse(regexGroups[2].Value),
+						ID = int.Parse(regexGroups[2].Value),
 						IsBeatmapset = isSet,
 						Mods = mods
 					};

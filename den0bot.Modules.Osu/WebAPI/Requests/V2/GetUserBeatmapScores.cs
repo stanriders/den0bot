@@ -1,4 +1,4 @@
-﻿// den0bot (c) StanR 2024 - MIT License
+﻿// den0bot (c) StanR 2025 - MIT License
 using System.Collections.Generic;
 using den0bot.Modules.Osu.Types.V2;
 
@@ -10,10 +10,10 @@ namespace den0bot.Modules.Osu.WebAPI.Requests.V2
 
 		public override string Address => $"beatmaps/{beatmapId}/scores/users/{userId}/all";
 
-		private readonly uint beatmapId;
+		private readonly int beatmapId;
 		private readonly uint userId;
 
-		public GetUserBeatmapScores(uint beatmapId, uint userId)
+		public GetUserBeatmapScores(int beatmapId, uint userId)
 		{
 			this.beatmapId = beatmapId;
 			this.userId = userId;

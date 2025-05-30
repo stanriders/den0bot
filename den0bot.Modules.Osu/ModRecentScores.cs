@@ -92,7 +92,7 @@ namespace den0bot.Modules.Osu
 				var playerName = string.Join(" ", msgSplit);
 				var player = await new GetUser(playerName).Execute();
 				if (player != null)
-					playerId = player.Id;
+					playerId = (uint)player.OnlineID;
 			}
 			else
 			{
@@ -107,7 +107,7 @@ namespace den0bot.Modules.Osu
 			if (playerId == 0)
 				return Localization.GetAnswer("generic_fail", message.Chat.Id);
 
-			List<Score>? lastScores = await new GetUserScores(playerId, ScoreType.Recent, true).Execute();
+			List<Score>? lastScores = await new GetUserScores((int)playerId, ScoreType.Recent, true).Execute();
 			if (lastScores != null)
 			{
 				if (lastScores.Count == 0)
@@ -116,15 +116,15 @@ namespace den0bot.Modules.Osu
 				string result = string.Empty;
 				foreach (var score in lastScores.Take(amount))
 				{
-					if (score.BeatmapShort != null)
+					if (score.Beatmap != null)
 					{
 						if (amount == 1)
 						{
 							ChatBeatmapCache.StoreLastMap(message.Chat.Id, new ChatBeatmapCache.CachedBeatmap
-								{ BeatmapId = score.BeatmapShort.Id, BeatmapSetId = score.BeatmapShort.BeatmapSetId });
+								{ BeatmapId = score.Beatmap.OnlineID, BeatmapSetId = score.Beatmap.OnlineBeatmapSetID });
 						}
 
-						var beatmap = await new GetBeatmap(score.BeatmapShort.Id).Execute();
+						var beatmap = await new GetBeatmap(score.Beatmap.OnlineID).Execute();
 						result += FormatLazerScore(score, beatmap, true);
 					}
 				}
@@ -147,7 +147,7 @@ namespace den0bot.Modules.Osu
 				var playerName = string.Join(" ", msgSplit);
 				var player = await new GetUser(playerName).Execute();
 				if (player != null)
-					playerId = player.Id;
+					playerId = (uint)player.OnlineID;
 			}
 			else
 			{
@@ -162,16 +162,16 @@ namespace den0bot.Modules.Osu
 			if (playerId == 0)
 				return Localization.GetAnswer("generic_fail", message.Chat.Id);
 
-			var lastScores = await new GetUserScores(playerId, ScoreType.Recent, false).Execute();
+			var lastScores = await new GetUserScores((int)playerId, ScoreType.Recent, false).Execute();
 			if (lastScores?.Count > 0)
 			{
 				var score = lastScores[0];
-				if (score.BeatmapShort != null)
+				if (score.Beatmap != null)
 				{
 					ChatBeatmapCache.StoreLastMap(message.Chat.Id, new ChatBeatmapCache.CachedBeatmap
-							{ BeatmapId = score.BeatmapShort.Id, BeatmapSetId = score.BeatmapShort.BeatmapSetId });
+							{ BeatmapId = score.Beatmap.OnlineID, BeatmapSetId = score.Beatmap.OnlineBeatmapSetID });
 
-					var beatmap = await new GetBeatmap(score.BeatmapShort.Id).Execute();
+					var beatmap = await new GetBeatmap(score.Beatmap.OnlineID).Execute();
 					return new TextCommandAnswer(FormatLazerScore(score, beatmap, true));
 				}
 			}
@@ -181,7 +181,7 @@ namespace den0bot.Modules.Osu
 
 		private async Task<ICommandAnswer> GetMapScores(Telegram.Bot.Types.Message message)
 		{
-			uint mapId = 0;
+			int mapId = 0;
 
 			// beatmap id regex can parse link as part of a complex message so we dont need to clean it up beforehand
 			var msgText = message.Text!;
@@ -205,9 +205,9 @@ namespace den0bot.Modules.Osu
 					mods = data.Mods;
 					if (data.IsBeatmapset)
 					{
-						BeatmapSet? set = await new GetBeatmapSet(data.ID).Execute();
-						if (set?.Beatmaps?.Count > 0)
-							mapId = set.Beatmaps.OrderBy(x => x.StarRating).Last().Id;
+						var set = await new GetBeatmapSet(data.ID).Execute();
+						if (set?.Beatmaps.Length > 0)
+							mapId = set.Beatmaps.OrderBy(x => x.StarRating).Last().OnlineID;
 					}
 				}
 			}
@@ -282,7 +282,7 @@ namespace den0bot.Modules.Osu
 						if (info == null)
 							return Localization.GetAnswer("recentscores_player_add_failed", message.Chat.Id);
 						else
-							osuID = info.Id;
+							osuID = (uint)info.OnlineID;
 					}
 
 					if (osuID != 0)
@@ -383,11 +383,11 @@ namespace den0bot.Modules.Osu
 			}
 
 			// html-filtered map title
-			string mapInfo = $"{beatmap?.BeatmapSet?.Artist} - {beatmap?.BeatmapSet?.Title} [{beatmap?.Version}]".FilterToHTML();
+			string mapInfo = $"{beatmap?.BeatmapSet?.Artist} - {beatmap?.BeatmapSet?.Title} [{beatmap?.DifficultyName}]".FilterToHTML();
 
 			string mapDifficulty = "";
 			string pp = $"| {score.Pp:N2}pp";
-			if (beatmap != null)
+			if (beatmap != null && beatmap.MaxCombo != null)
 			{
 				try
 				{
@@ -397,7 +397,7 @@ namespace den0bot.Modules.Osu
 						mapDifficulty = $"<b>[{attributes.StarRating:N1}*]</b> ";
 						// Add pp values
 						var shouldCalculatePp = score.Pp is null ||
-						                        score.ComboBasedMissCount(beatmap.MaxCombo, beatmap.Sliders) > 0;
+						                        score.ComboBasedMissCount(beatmap.MaxCombo.Value, beatmap.SliderCount) > 0;
 
 						double scorePp = score.Pp ?? 0;
 						if (shouldCalculatePp)
@@ -408,19 +408,19 @@ namespace den0bot.Modules.Osu
 
 						string possiblePp = string.Empty;
 
-						if (score.ComboBasedMissCount(beatmap.MaxCombo, beatmap.Sliders) > 0)
+						if (score.ComboBasedMissCount(beatmap.MaxCombo.Value, beatmap.SliderCount) > 0)
 						{
 							// Add possible pp value if they missed
 							var serialized = JsonConvert.SerializeObject(score);
 							var fcScore = JsonConvert.DeserializeObject<Score>(serialized);
 
-							var greats = Math.Max(0, beatmap.ObjectsTotal ?? 0 -
+							var greats = Math.Max(0, beatmap.TotalObjectCount -
 								score.Statistics.GetValueOrDefault(HitResult.Ok) -
 								score.Statistics.GetValueOrDefault(HitResult.Meh));
 
 							fcScore!.Statistics[HitResult.Great] = greats;
 							fcScore.Statistics[HitResult.Miss] = 0;
-							fcScore.Combo = beatmap.MaxCombo;
+							fcScore.Combo = beatmap.MaxCombo.Value;
 							fcScore.Accuracy = PpCalculation.GetAccuracyForRuleset(beatmap, fcScore.Statistics);
 
 							double possiblePPval =
@@ -443,7 +443,7 @@ namespace den0bot.Modules.Osu
 
 			var completion = string.Empty;
 			if (useAgo)
-				completion = $" | {(double)(score.Statistics.GetValueOrDefault(HitResult.Great) + score.Statistics.GetValueOrDefault(HitResult.Ok) + score.Statistics.GetValueOrDefault(HitResult.Meh) + score.Statistics.GetValueOrDefault(HitResult.Miss)) / score.Beatmap?.ObjectsTotal * 100.0:N1}% completion";
+				completion = $" | {(double)(score.Statistics.GetValueOrDefault(HitResult.Great) + score.Statistics.GetValueOrDefault(HitResult.Ok) + score.Statistics.GetValueOrDefault(HitResult.Meh) + score.Statistics.GetValueOrDefault(HitResult.Miss)) / score.Beatmap?.TotalObjectCount * 100.0:N1}% completion";
 
 			return
 				$"<b>({(score.Passed ? score.Grade.GetDescription() : "F")})</b> <a href=\"{beatmap?.Link}\">{mapDifficulty}{mapInfo}</a><b>{mods} ({score.Accuracy:N2}%)</b>{Environment.NewLine}" +

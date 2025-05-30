@@ -5,6 +5,7 @@ using den0bot.Modules.Osu.Types.Enums;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using osu.Game.Online.API;
+using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Rulesets.Scoring;
 using osu.Game.Scoring;
 
@@ -16,20 +17,20 @@ namespace den0bot.Modules.Osu.Types.V2
 		public ulong? Id { get; set; }
 
 		[JsonProperty("user")]
-		public UserShort? User { get; set; }
+		public APIUser? User { get; set; }
 
 		[JsonProperty("user_id")]
 		public uint UserId { get; set; }
 
 		[JsonProperty("beatmap")]
-		public BeatmapShort? BeatmapShort { get; set; }
+		public Beatmap? Beatmap { get; set; }
 
 		[JsonProperty("beatmapset")]
-		public BeatmapSetShort? BeatmapSet { get; set; }
+		public APIBeatmapSet? BeatmapSet { get; set; }
 
 		[JsonProperty("rank")]
 		[JsonConverter(typeof(StringEnumConverter))]
-		public ScoreGrade? Grade { get; set; }
+		public ScoreRank? Grade { get; set; }
 
 		[JsonProperty("pp")]
 		public double? Pp { get; set; }
@@ -100,19 +101,6 @@ namespace den0bot.Modules.Osu.Types.V2
 
 			[JsonProperty("pass")]
 			public bool Pass { get; set; }
-		}
-
-		private BeatmapShort? beatmap;
-		public BeatmapShort? Beatmap 
-		{ 
-			get 
-			{
-				if (beatmap == null)
-					return BeatmapShort;
-				
-				return beatmap;
-			}
-			set => beatmap = value;
 		}
 
 		public int? LeaderboardPosition { get; set; }
