@@ -12,6 +12,7 @@ using den0bot.Util;
 using Telegram.Bot.Types.Enums;
 using den0bot.Types;
 using den0bot.Types.Answers;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using osu.Game.Rulesets.Mods;
@@ -51,7 +52,7 @@ namespace den0bot.Modules.Osu
 					Names = {"last", "l"},
 					Reply = true,
 					Slow = true,
-					ActionAsync = GetLastScores,
+					ActionAsync = m => GetLastScores(m, false),
 					ParseMode = ParseMode.Html
 				},
 				new Command
@@ -59,7 +60,7 @@ namespace den0bot.Modules.Osu
 					Names = {"lastpass", "lp"},
 					Reply = true,
 					Slow = true,
-					ActionAsync = GetPass,
+					ActionAsync = m => GetLastScores(m, true),
 					ParseMode = ParseMode.Html
 				},
 				new Command
@@ -73,7 +74,7 @@ namespace den0bot.Modules.Osu
 			});
 		}
 
-		private async Task<ICommandAnswer> GetLastScores(Telegram.Bot.Types.Message message)
+		private async Task<ICommandAnswer> GetLastScores(Telegram.Bot.Types.Message message, bool passesOnly)
 		{
 			uint playerId = 0;
 			int amount = 1;
@@ -97,7 +98,8 @@ namespace den0bot.Modules.Osu
 			else
 			{
 				await using var db = new DatabaseOsu();
-				var id = db.Players.FirstOrDefault(x=> x.TelegramID == message.From!.Id)?.OsuID;
+
+				var id = db.Players.AsNoTracking().FirstOrDefault(x=> x.TelegramID == message.From!.Id)?.OsuID;
 				if (id == null || id == 0)
 					return Localization.GetAnswer("recentscores_unknown_player", message.Chat.Id);
 
@@ -107,13 +109,14 @@ namespace den0bot.Modules.Osu
 			if (playerId == 0)
 				return Localization.GetAnswer("generic_fail", message.Chat.Id);
 
-			List<Score>? lastScores = await new GetUserScores((int)playerId, ScoreType.Recent, true).Execute();
+			List<Score>? lastScores = await new GetUserScores((int)playerId, ScoreType.Recent, !passesOnly, amount).Execute();
 			if (lastScores != null)
 			{
 				if (lastScores.Count == 0)
 					return Localization.GetAnswer("recentscores_no_scores", message.Chat.Id);
 
 				string result = string.Empty;
+				var fetchedMaps = new List<Beatmap>();
 				foreach (var score in lastScores.Take(amount))
 				{
 					if (score.Beatmap != null)
@@ -124,56 +127,22 @@ namespace den0bot.Modules.Osu
 								{ BeatmapId = score.Beatmap.OnlineID, BeatmapSetId = score.Beatmap.OnlineBeatmapSetID });
 						}
 
-						var beatmap = await new GetBeatmap(score.Beatmap.OnlineID).Execute();
-						result += FormatLazerScore(score, beatmap, true);
+						var beatmap = fetchedMaps.FirstOrDefault(x => x.OnlineID == score.Beatmap.OnlineID);
+						if (beatmap == null)
+						{
+							var apiBeatmap = await new GetBeatmap(score.Beatmap.OnlineID).Execute();
+							if (apiBeatmap != null)
+							{
+								beatmap = apiBeatmap;
+								fetchedMaps.Add(apiBeatmap);
+							}
+						}
+
+						result += FormatScore(score, beatmap, true);
 					}
 				}
 
 				return new TextCommandAnswer(result);
-			}
-
-			return Localization.GetAnswer("generic_fail", message.Chat.Id);
-		}
-
-		private async Task<ICommandAnswer> GetPass(Telegram.Bot.Types.Message message)
-		{
-			uint playerId = 0;
-
-			List<string> msgSplit = message.Text!.Split(' ').ToList();
-			msgSplit.RemoveAt(0);
-
-			if (msgSplit.Count > 0)
-			{
-				var playerName = string.Join(" ", msgSplit);
-				var player = await new GetUser(playerName).Execute();
-				if (player != null)
-					playerId = (uint)player.OnlineID;
-			}
-			else
-			{
-				await using var db = new DatabaseOsu();
-				var id = db.Players.FirstOrDefault(x => x.TelegramID == message.From!.Id)?.OsuID;
-				if (id == null || id == 0)
-					return Localization.GetAnswer("recentscores_unknown_player", message.Chat.Id);
-
-				playerId = id.Value;
-			}
-
-			if (playerId == 0)
-				return Localization.GetAnswer("generic_fail", message.Chat.Id);
-
-			var lastScores = await new GetUserScores((int)playerId, ScoreType.Recent, false).Execute();
-			if (lastScores?.Count > 0)
-			{
-				var score = lastScores[0];
-				if (score.Beatmap != null)
-				{
-					ChatBeatmapCache.StoreLastMap(message.Chat.Id, new ChatBeatmapCache.CachedBeatmap
-							{ BeatmapId = score.Beatmap.OnlineID, BeatmapSetId = score.Beatmap.OnlineBeatmapSetID });
-
-					var beatmap = await new GetBeatmap(score.Beatmap.OnlineID).Execute();
-					return new TextCommandAnswer(FormatLazerScore(score, beatmap, true));
-				}
 			}
 
 			return Localization.GetAnswer("generic_fail", message.Chat.Id);
@@ -221,11 +190,13 @@ namespace den0bot.Modules.Osu
 
 			await using var db = new DatabaseOsu();
 
-			var playerId = db.Players.FirstOrDefault(x => x.TelegramID == message.From!.Id)?.OsuID;
+			var playerId = db.Players.AsNoTracking().FirstOrDefault(x => x.TelegramID == message.From!.Id)?.OsuID;
 			if (playerId == null || playerId == 0)
 				return Localization.GetAnswer("recentscores_unknown_player", message.Chat.Id);
 
 			var result = string.Empty;
+
+			var map = await new GetBeatmap(mapId).Execute();
 
 			if (mods.Length == 0)
 			{
@@ -233,11 +204,12 @@ namespace den0bot.Modules.Osu
 				if (scores == null || scores.Count <= 0)
 					return Localization.GetAnswer("recentscores_no_scores", message.Chat.Id);
 
-				var map = await new GetBeatmap(mapId).Execute();
 
-				foreach (var score in scores.Take(score_amount))
+				foreach (var score in scores.DistinctBy(x => string.Join("", x.Mods.Select(m=> m.Acronym)))
+					         .OrderByDescending(x => x.TotalScore)
+					         .Take(score_amount))
 				{
-					result += FormatLazerScore(score, map, false);
+					result += FormatScore(score, map, false);
 				}
 			}
 			else
@@ -246,8 +218,7 @@ namespace den0bot.Modules.Osu
 				if (score == null)
 					return Localization.GetAnswer("recentscores_no_scores", message.Chat.Id);
 
-				var beatmap = await new GetBeatmap(mapId).Execute();
-				result += FormatLazerScore(score, beatmap, false);
+				result += FormatScore(score, map, false);
 			}
 				
 			if (!string.IsNullOrEmpty(result))
@@ -278,11 +249,10 @@ namespace den0bot.Modules.Osu
 					{
 						// if they used /u/cookiezi instead of /u/124493 we ask osu API for an ID
 						var info = await new GetUser(player).Execute();
-
 						if (info == null)
 							return Localization.GetAnswer("recentscores_player_add_failed", message.Chat.Id);
-						else
-							osuID = (uint)info.OnlineID;
+
+						osuID = (uint)info.OnlineID;
 					}
 
 					if (osuID != 0)
@@ -304,9 +274,28 @@ namespace den0bot.Modules.Osu
 
 		private async Task<ICommandAnswer> RemoveMe(Telegram.Bot.Types.Message message)
 		{
-			await using (var db = new DatabaseOsu())
+			await using var db = new DatabaseOsu();
+
+			var player = db.Players.FirstOrDefault(x=> x.TelegramID == message.From!.Id);
+			if (player != null)
 			{
-				var player = db.Players.FirstOrDefault(x=> x.TelegramID == message.From!.Id);
+				db.Players.Remove(player);
+				await db.SaveChangesAsync();
+
+				return Localization.GetAnswer("recentscores_player_remove_success", message.Chat.Id);
+			}
+				
+			return Localization.GetAnswer("generic_fail", message.Chat.Id);
+		}
+
+		private async Task<ICommandAnswer> RemovePlayer(Telegram.Bot.Types.Message message)
+		{
+			await using var db = new DatabaseOsu();
+
+			var tgId = DatabaseCache.GetUserID(message.Text!.Split()[1]);
+			if (tgId != 0)
+			{
+				var player = db.Players.FirstOrDefault(x => x.TelegramID == tgId);
 				if (player != null)
 				{
 					db.Players.Remove(player);
@@ -314,39 +303,18 @@ namespace den0bot.Modules.Osu
 
 					return Localization.GetAnswer("recentscores_player_remove_success", message.Chat.Id);
 				}
-				
-				return Localization.GetAnswer("generic_fail", message.Chat.Id);
 			}
+
+			return Localization.GetAnswer("generic_fail", message.Chat.Id);
 		}
 
-		private async Task<ICommandAnswer> RemovePlayer(Telegram.Bot.Types.Message message)
-		{
-			await using (var db = new DatabaseOsu())
-			{
-				var tgId = DatabaseCache.GetUserID(message.Text!.Split()[1]);
-				if (tgId != 0)
-				{
-					var player = db.Players.FirstOrDefault(x => x.TelegramID == tgId);
-					if (player != null)
-					{
-						db.Players.Remove(player);
-						await db.SaveChangesAsync();
-
-						return Localization.GetAnswer("recentscores_player_remove_success", message.Chat.Id);
-					}
-				}
-
-				return Localization.GetAnswer("generic_fail", message.Chat.Id);
-			}
-		}
-
-		private string FormatLazerScore(Score score, Beatmap? beatmap, bool useAgo)
+		private string FormatScore(Score score, Beatmap? beatmap, bool useAgo)
 		{
 			string mods = string.Empty;
 			if (score.Mods.Count(x => x.Acronym != "CL") > 0)
 			{
 				mods = " +";
-				foreach (var mod in score.Mods)
+				foreach (var mod in score.Mods.Where(x => x.Acronym != "CL"))
 				{
 					if (mod.Acronym != "DA")
 						mods += mod.Acronym;
