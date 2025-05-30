@@ -61,7 +61,7 @@ namespace den0bot.Modules.Osu
 
 			for (int i = 0; i < topscores.Count; i++)
 			{
-				LazerScore score = topscores[i];
+				Score score = topscores[i];
 
 				string mods = string.Empty;
 				if (score.Mods.Any(x => x.Acronym != "CL"))

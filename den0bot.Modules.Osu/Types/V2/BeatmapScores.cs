@@ -6,7 +6,7 @@ namespace den0bot.Modules.Osu.Types.V2
 	public class BeatmapScores
 	{
 		[JsonProperty("scores")]
-		public LazerScore[] Scores { get; set; } = null!;
+		public Score[] Scores { get; set; } = null!;
 
 		[JsonProperty("userScore")]
 		public BeatmapUserScore UserScore { get; set; } = null!;

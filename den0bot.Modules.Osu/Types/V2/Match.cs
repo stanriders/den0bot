@@ -74,7 +74,7 @@ namespace den0bot.Modules.Osu.Types.V2
 				public BeatmapShort Beatmap { get; set; } = null!;
 
 				[JsonProperty("scores")]
-				public LazerScore[] Scores { get; set; } = null!;
+				public Score[] Scores { get; set; } = null!;
 			}
 		}
 

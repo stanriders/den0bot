@@ -4,7 +4,7 @@ using osu.Game.Rulesets.Mods;
 
 namespace den0bot.Modules.Osu.WebAPI.Requests.V2
 {
-	public class GetBeatmapScores : Request<BeatmapScores, LazerScore[]>
+	public class GetBeatmapScores : Request<BeatmapScores, Score[]>
 	{
 		public override APIVersion API => APIVersion.V2;
 
@@ -30,6 +30,6 @@ namespace den0bot.Modules.Osu.WebAPI.Requests.V2
 			
 		}
 
-		public override LazerScore[]? Process(BeatmapScores? data) => data?.Scores;
+		public override Score[]? Process(BeatmapScores? data) => data?.Scores;
 	}
 }

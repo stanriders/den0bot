@@ -4,7 +4,7 @@ using den0bot.Modules.Osu.Types.V2;
 
 namespace den0bot.Modules.Osu.WebAPI.Requests.V2
 {
-	public class GetUserBeatmapScore : Request<BeatmapUserScore, LazerScore>
+	public class GetUserBeatmapScore : Request<BeatmapUserScore, Score>
 	{
 		public override APIVersion API => APIVersion.V2;
 
@@ -25,7 +25,7 @@ namespace den0bot.Modules.Osu.WebAPI.Requests.V2
 			}
 		}
 
-		public override LazerScore? Process(BeatmapUserScore? data) 
+		public override Score? Process(BeatmapUserScore? data) 
 		{
 			var score = data?.Score;
 			if (score == null)

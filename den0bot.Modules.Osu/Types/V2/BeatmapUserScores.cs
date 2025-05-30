@@ -7,6 +7,6 @@ namespace den0bot.Modules.Osu.Types.V2
 	public class BeatmapUserScores
 	{
 		[JsonProperty("scores")]
-		public List<LazerScore> Scores { get; set; } = null!;
+		public List<Score> Scores { get; set; } = null!;
 	}
 }

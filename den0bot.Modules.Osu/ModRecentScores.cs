@@ -107,7 +107,7 @@ namespace den0bot.Modules.Osu
 			if (playerId == 0)
 				return Localization.GetAnswer("generic_fail", message.Chat.Id);
 
-			List<LazerScore>? lastScores = await new GetUserScores(playerId, ScoreType.Recent, true).Execute();
+			List<Score>? lastScores = await new GetUserScores(playerId, ScoreType.Recent, true).Execute();
 			if (lastScores != null)
 			{
 				if (lastScores.Count == 0)
@@ -340,7 +340,7 @@ namespace den0bot.Modules.Osu
 			}
 		}
 
-		private string FormatLazerScore(LazerScore score, Beatmap? beatmap, bool useAgo)
+		private string FormatLazerScore(Score score, Beatmap? beatmap, bool useAgo)
 		{
 			string mods = string.Empty;
 			if (score.Mods.Count(x => x.Acronym != "CL") > 0)
@@ -412,7 +412,7 @@ namespace den0bot.Modules.Osu
 						{
 							// Add possible pp value if they missed
 							var serialized = JsonConvert.SerializeObject(score);
-							var fcScore = JsonConvert.DeserializeObject<LazerScore>(serialized);
+							var fcScore = JsonConvert.DeserializeObject<Score>(serialized);
 
 							var greats = Math.Max(0, beatmap.ObjectsTotal ?? 0 -
 								score.Statistics.GetValueOrDefault(HitResult.Ok) -

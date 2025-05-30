@@ -196,7 +196,7 @@ namespace den0bot.Modules.Osu
 				.Select(x => x.Game)
 				.Last(x => x!.EndTime != null);
 
-			List<LazerScore> allScores = game!.Scores
+			List<Score> allScores = game!.Scores
 				.OrderByDescending(x => x.LegacyTotalScore)
 				.ThenByDescending(x => x.MatchData.Team)
 				.ToList();

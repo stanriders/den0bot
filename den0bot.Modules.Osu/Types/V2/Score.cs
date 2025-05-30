@@ -10,7 +10,7 @@ using osu.Game.Scoring;
 
 namespace den0bot.Modules.Osu.Types.V2
 {
-	public class LazerScore
+	public class Score
 	{
 		[JsonProperty("id")]
 		public ulong? Id { get; set; }

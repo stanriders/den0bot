@@ -4,7 +4,7 @@ using den0bot.Modules.Osu.Types.V2;
 
 namespace den0bot.Modules.Osu.WebAPI.Requests.V2
 {
-	public class GetUserScores : Request<List<LazerScore>, List<LazerScore>>
+	public class GetUserScores : Request<List<Score>, List<Score>>
 	{
 		public override APIVersion API => APIVersion.V2;
 
@@ -23,7 +23,7 @@ namespace den0bot.Modules.Osu.WebAPI.Requests.V2
 			this.limit = limit;
 		}
 
-		public override List<LazerScore>? Process(List<LazerScore>? data) => data;
+		public override List<Score>? Process(List<Score>? data) => data;
 	}
 
 	public enum ScoreType
