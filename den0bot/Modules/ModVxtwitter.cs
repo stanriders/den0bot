@@ -37,8 +37,7 @@ namespace den0bot.Modules
 				return;
 			}
 
-			var tiktokRegexMatch = tiktokRegex.Match(message.Text);
-			if (tiktokRegexMatch.Groups.Count > 1)
+			if (tiktokRegex.IsMatch(message.Text))
 			{
 				await API.SendMessage(message.Text.Replace("tiktok.com", "vxtiktok.com"), message.Chat.Id, replyToId: message.MessageId, disablePreview: false);
 			}
