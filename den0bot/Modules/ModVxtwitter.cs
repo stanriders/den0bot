@@ -1,4 +1,4 @@
-// den0bot (c) StanR 2024 - MIT License
+// den0bot (c) StanR 2025 - MIT License
 using System.Linq;
 using Telegram.Bot.Types;
 using System.Threading.Tasks;
@@ -12,6 +12,7 @@ namespace den0bot.Modules
 	{
 		private readonly Regex twitterRegex = new(@".+\/\/(?>twitter|x)\.com\/(.+)$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 		private readonly Regex instagramRegex = new(@".+\/\/(?>www\.)?instagram\.com\/(.+)$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+		private readonly Regex tiktokRegex = new(@".+\/\/(?>\w+\.)?tiktok\.com\/.+$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
 		public async Task ReceiveMessage(Message message)
 		{
@@ -33,6 +34,13 @@ namespace den0bot.Modules
 				var tail = instagramRegexMatch.Groups.Values.ToArray()[1];
 
 				await API.SendMessage($"https://kkinstagram.com/{tail}", message.Chat.Id, replyToId: message.MessageId, disablePreview: false);
+				return;
+			}
+
+			var tiktokRegexMatch = tiktokRegex.Match(message.Text);
+			if (tiktokRegexMatch.Groups.Count > 1)
+			{
+				await API.SendMessage(message.Text.Replace("tiktok.com", "vxtiktok.com"), message.Chat.Id, replyToId: message.MessageId, disablePreview: false);
 			}
 		}
 	}
