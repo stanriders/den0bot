@@ -65,7 +65,14 @@ namespace den0bot.Modules.Osu
 				MaximumStatistics = new Dictionary<HitResult, int>
 				{
 					{HitResult.Great, beatmap.TotalObjectCount}
-				}
+				},
+				BeatmapInfo = new BeatmapInfo(difficulty: new BeatmapDifficulty
+				{
+					ApproachRate = beatmap.ApproachRate,
+					CircleSize = beatmap.CircleSize,
+					DrainRate = beatmap.DrainRate,
+					OverallDifficulty = beatmap.OverallDifficulty
+				})
 			};
 			return CalculatePerformance(score, attributes, beatmap);
 		}

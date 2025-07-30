@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using den0bot.Modules.Osu.Types.Enums;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
+using osu.Game.Beatmaps;
 using osu.Game.Online.API;
 using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Rulesets.Scoring;
@@ -131,6 +132,18 @@ namespace den0bot.Modules.Osu.Types.V2
 
 		public ScoreInfo ToScoreInfo()
 		{
+			BeatmapInfo? beatmapInfo = null;
+			if (Beatmap != null)
+			{
+				beatmapInfo = new BeatmapInfo(difficulty: new BeatmapDifficulty()
+				{
+					ApproachRate = Beatmap.ApproachRate,
+					CircleSize = Beatmap.CircleSize,
+					DrainRate = Beatmap.DrainRate,
+					OverallDifficulty = Beatmap.OverallDifficulty
+				});
+			}
+
 			return new ScoreInfo
 			{
 				OnlineID = (long?)Id ?? 0,
@@ -138,9 +151,11 @@ namespace den0bot.Modules.Osu.Types.V2
 				APIMods = Mods,
 				IsLegacyScore = LegacyScoreId.HasValue,
 				LegacyTotalScore = LegacyTotalScore,
+				TotalScore = TotalScore,
 				MaxCombo = Combo,
 				Statistics = Statistics,
 				MaximumStatistics = MaximumStatistics,
+				BeatmapInfo = beatmapInfo
 			};
 		}
 	}

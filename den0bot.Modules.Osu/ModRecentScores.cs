@@ -357,6 +357,7 @@ namespace den0bot.Modules.Osu
 			string pp = $"| {score.Pp:N2}pp";
 			if (beatmap != null && beatmap.MaxCombo != null)
 			{
+				score.Beatmap = beatmap;
 				try
 				{
 					var attributes = PpCalculation.CalculateDifficulty(score.Mods, beatmap);
