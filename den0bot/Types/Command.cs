@@ -1,4 +1,4 @@
-﻿// den0bot (c) StanR 2024 - MIT License
+﻿// den0bot (c) StanR 2025 - MIT License
 using den0bot.Util;
 using System;
 using System.Collections.Generic;
@@ -26,7 +26,7 @@ namespace den0bot.Types
 		/// <summary>
 		/// <see cref="Telegram.Bot.Types.Enums.ParseMode" />
 		/// </summary>
-		public ParseMode? ParseMode { get; init; }
+		public ParseMode ParseMode { get; init; } = ParseMode.None;
 
 		/// <summary>
 		/// Determines if command can only be used by chat admins

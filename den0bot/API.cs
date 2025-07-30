@@ -39,13 +39,13 @@ namespace den0bot
 
 			Log.Information("Connecting...");
 			api = new TelegramBotClient(token);
-			if (!api.TestApiAsync().Result)
+			if (!api.TestApi().Result)
 			{
 				Log.Error("API Test failed, shutting down!");
 				return false;
 			}
 
-			BotUser = api.GetMeAsync().Result;
+			BotUser = api.GetMe().Result;
 
 			Log.Information("API Test successful, starting receiving...");
 			api.StartReceiving(new DefaultUpdateHandler(HandleUpdates, HandleError));
@@ -94,8 +94,8 @@ namespace den0bot
 		/// <param name="replyToId">Message ID to reply to</param>
 		/// <param name="replyMarkup"></param>
 		/// <param name="disablePreview"></param>
-		public static async Task<Message> SendMessage(string message, long chatId, ParseMode? parseMode = null,
-			int replyToId = 0, IReplyMarkup replyMarkup = null, bool disablePreview = true)
+		public static async Task<Message> SendMessage(string message, long chatId, ParseMode parseMode = ParseMode.None,
+			int replyToId = 0, ReplyMarkup replyMarkup = null, bool disablePreview = true)
 		{
 			using var _ = LogContext.PushProperty("OutData", new
 			{
@@ -110,10 +110,8 @@ namespace den0bot
 			{
 				if (!string.IsNullOrEmpty(message))
 				{
-					return await api.SendTextMessageAsync(chatId, message, null, parseMode,
-						disableWebPagePreview: disablePreview,
-						replyToMessageId: replyToId,
-						replyMarkup: replyMarkup);
+					return await api.SendMessage(chatId, message, parseMode, replyToId != 0 ? new ReplyParameters { MessageId = replyToId } : null, replyMarkup, 
+						new LinkPreviewOptions { IsDisabled = disablePreview });
 				}
 			}
 			catch (Exception ex)
@@ -135,7 +133,7 @@ namespace den0bot
 		/// <param name="replyMarkup"></param>
 		/// <param name="sendTextIfFailed"></param>
 		public static async Task<Message> SendPhoto(string photo, long chatId, string caption = "",
-			ParseMode? parseMode = null, int replyToId = 0, IReplyMarkup replyMarkup = null,
+			ParseMode parseMode = ParseMode.None, int replyToId = 0, ReplyMarkup replyMarkup = null,
 			bool sendTextIfFailed = true)
 		{
 			using var _ = LogContext.PushProperty("OutData", new
@@ -153,8 +151,8 @@ namespace den0bot
 			{
 				if (!string.IsNullOrEmpty(photo))
 				{
-					return await api.SendPhotoAsync(chatId, new InputFileId(photo), null, caption, parseMode,
-						replyToMessageId: replyToId,
+					return await api.SendPhoto(chatId, new InputFileId(photo), caption, parseMode,
+						replyParameters: replyToId != 0 ? new ReplyParameters { MessageId = replyToId } : null,
 						replyMarkup: replyMarkup);
 				}
 			}
@@ -163,8 +161,8 @@ namespace den0bot
 				Log.Error(ex, ex.InnerMessageIfAny());
 				if (sendTextIfFailed)
 				{
-					return await api.SendTextMessageAsync(chatId, caption, null, parseMode,
-						replyToMessageId: replyToId,
+					return await api.SendMessage(chatId, caption, parseMode, 
+						replyParameters: replyToId != 0 ? new ReplyParameters { MessageId = replyToId } : null,
 						replyMarkup: replyMarkup);
 				}
 			}
@@ -193,7 +191,7 @@ namespace den0bot
 			{
 				if (photos != null && photos.Count > 1)
 				{
-					return await api.SendMediaGroupAsync(chatId, photos);
+					return await api.SendMediaGroup(chatId, photos);
 				}
 			}
 			catch (Exception ex)
@@ -221,7 +219,7 @@ namespace den0bot
 
 			try
 			{
-				return await api.SendStickerAsync(chatId, sticker, replyToMessageId: replyToId);
+				return await api.SendSticker(chatId, sticker, replyParameters: replyToId != null ? new ReplyParameters { MessageId = replyToId.Value } : null);
 			}
 			catch (Exception ex)
 			{
@@ -240,7 +238,7 @@ namespace den0bot
 
 			try
 			{
-				return await api.GetChatAdministratorsAsync(chatId);
+				return await api.GetChatAdministrators(chatId);
 			}
 			catch (Exception ex)
 			{
@@ -265,7 +263,7 @@ namespace den0bot
 
 			try
 			{
-				await api.DeleteMessageAsync(chatId, msgId);
+				await api.DeleteMessage(chatId, msgId);
 			}
 			catch (Exception ex)
 			{
@@ -283,7 +281,7 @@ namespace den0bot
 		/// <param name="parseMode"></param>
 		/// <param name="disablePreview"></param>
 		public static async Task<Message> EditMessage(long chatId, int messageId, string message,
-			InlineKeyboardMarkup replyMarkup = null, ParseMode? parseMode = null, bool disablePreview = true)
+			InlineKeyboardMarkup replyMarkup = null, ParseMode parseMode = ParseMode.None, bool disablePreview = true)
 		{
 			using var _ = LogContext.PushProperty("OutData", new
 			{
@@ -296,8 +294,8 @@ namespace den0bot
 
 			try
 			{
-				return await api.EditMessageTextAsync(chatId, messageId, message, parseMode,
-					disableWebPagePreview: disablePreview,
+				return await api.EditMessageText(chatId, messageId, message, parseMode,
+					linkPreviewOptions: new LinkPreviewOptions { IsDisabled = disablePreview },
 					replyMarkup: replyMarkup);
 			}
 			catch (Exception ex)
@@ -317,7 +315,7 @@ namespace den0bot
 		/// <param name="replyMarkup"></param>
 		/// <param name="parseMode"></param>
 		public static async Task<Message> EditMediaCaption(long chatId, int messageId, string caption,
-			InlineKeyboardMarkup replyMarkup = null, ParseMode? parseMode = null)
+			InlineKeyboardMarkup replyMarkup = null, ParseMode parseMode = ParseMode.None)
 		{
 			using var _ = LogContext.PushProperty("OutData", new
 			{
@@ -330,7 +328,7 @@ namespace den0bot
 
 			try
 			{
-				return await api.EditMessageCaptionAsync(chatId, messageId, caption,
+				return await api.EditMessageCaption(chatId, messageId, caption,
 					replyMarkup: replyMarkup,
 					parseMode: parseMode);
 			}
@@ -359,7 +357,7 @@ namespace den0bot
 
 			try
 			{
-				await api.AnswerCallbackQueryAsync(callbackId, text, showAlert);
+				await api.AnswerCallbackQuery(callbackId, text, showAlert);
 			}
 			catch (Exception ex)
 			{
@@ -377,7 +375,7 @@ namespace den0bot
 		/// <param name="replyToId"></param>
 		/// <param name="duration"></param>
 		public static async Task<Message> SendVoice(InputFile audio, long chatId, string caption = null,
-			ParseMode? parseMode = null, int replyToId = 0, int duration = 0)
+			ParseMode parseMode = ParseMode.None, int replyToId = 0, int duration = 0)
 		{
 			using var _ = LogContext.PushProperty("OutData", new
 			{
@@ -391,9 +389,9 @@ namespace den0bot
 
 			try
 			{
-				return await api.SendVoiceAsync(chatId, audio, null, caption, parseMode,
+				return await api.SendVoice(chatId, audio, caption, parseMode,
 					duration: duration,
-					replyToMessageId: replyToId);
+					replyParameters: replyToId != 0 ? new ReplyParameters { MessageId = replyToId } : null);
 			}
 			catch (Exception ex)
 			{
@@ -407,17 +405,17 @@ namespace den0bot
 		/// Updates admin rights on a user 
 		/// </summary>
 		public static async Task<bool> UpdateAdmin(long chatId, long userId,
-			bool? isAnonymous = null,
-			bool? canManageChat = null,
-			bool? canChangeInfo = null,
-			bool? canPostMessages = null,
-			bool? canEditMessages = null,
-			bool? canDeleteMessages = null,
-			bool? canManageVoiceChats = null,
-			bool? canInviteUsers = null,
-			bool? canRestrictMembers = null,
-			bool? canPinMessages = null,
-			bool? canPromoteMembers = null)
+			bool isAnonymous = false,
+			bool canManageChat = false,
+			bool canChangeInfo = false,
+			bool canPostMessages = false,
+			bool canEditMessages = false,
+			bool canDeleteMessages = false,
+			bool canManageVoiceChats = false,
+			bool canInviteUsers = false,
+			bool canRestrictMembers = false,
+			bool canPinMessages = false,
+			bool canPromoteMembers = false)
 		{
 			using var _ = LogContext.PushProperty("OutData", new
 			{
@@ -427,7 +425,7 @@ namespace den0bot
 
 			try
 			{
-				await api.PromoteChatMemberAsync(chatId, userId, isAnonymous, canManageChat, canChangeInfo,
+				await api.PromoteChatMember(chatId, userId, isAnonymous, canManageChat, canChangeInfo,
 					canPostMessages, canEditMessages,
 					canDeleteMessages, canManageVoiceChats, canInviteUsers, canRestrictMembers, canPinMessages,
 					canPromoteMembers);
@@ -453,7 +451,7 @@ namespace den0bot
 
 			try
 			{
-				await api.RestrictChatMemberAsync(chatId, userId, permissions);
+				await api.RestrictChatMember(chatId, userId, permissions);
 				return true;
 			}
 			catch (Exception e)
@@ -476,7 +474,7 @@ namespace den0bot
 
 			try
 			{
-				await api.UnbanChatMemberAsync(chatId, userId);
+				await api.UnbanChatMember(chatId, userId);
 				return true;
 			}
 			catch (Exception e)
@@ -506,8 +504,8 @@ namespace den0bot
 			{
 				await using var stream = new MemoryStream();
 
-				var file = await api.GetFileAsync(fileId);
-				await api.DownloadFileAsync(file.FilePath, stream);
+				var file = await api.GetFile(fileId);
+				await api.DownloadFile(file.FilePath, stream);
 
 				await System.IO.File.WriteAllBytesAsync(path, stream.ToArray());
 			}
@@ -532,8 +530,8 @@ namespace den0bot
 
 			try
 			{
-				await api.SendVideoAsync(chatId, InputFile.FromStream(video), 
-						caption: caption, replyToMessageId: replyToId);
+				await api.SendVideo(chatId, InputFile.FromStream(video), 
+						caption: caption, replyParameters: replyToId != 0 ? new ReplyParameters { MessageId = replyToId } : null);
 
 				return true;
 			}
@@ -558,8 +556,8 @@ namespace den0bot
 			{
 				if (!string.IsNullOrEmpty(video))
 				{ 
-					await api.SendVideoAsync(chatId, InputFile.FromUri(video),
-						caption: caption, replyToMessageId: replyToId);
+					await api.SendVideo(chatId, InputFile.FromUri(video),
+						caption: caption, replyParameters: replyToId != 0 ? new ReplyParameters { MessageId = replyToId } : null);
 
 					return true;
 				}

@@ -149,7 +149,7 @@ namespace den0bot.Modules
 				var sentMessage = await API.SendPhoto(picture.Link, 
 					chatId, 
 					seasonal ? $"{picture.SeasonRating} (s{picture.Season})" : picture.Rating.ToString(), 
-					null, 
+					ParseMode.None, 
 					0, 
 					buttons,
 					false);
