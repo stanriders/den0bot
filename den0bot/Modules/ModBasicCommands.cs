@@ -4,6 +4,7 @@ using den0bot.DB;
 using Telegram.Bot.Types.Enums;
 using den0bot.Util;
 using System.Linq;
+using System.Threading.Tasks;
 using den0bot.Types;
 using den0bot.Types.Answers;
 using Microsoft.Extensions.Logging;
@@ -106,6 +107,12 @@ namespace den0bot.Modules
 
 						return new TextCommandAnswer(chat.DisableEvents.ToString());
 					}
+				},
+				new Command
+				{
+					Name = "getchatinfo",
+					IsOwnerOnly = true,
+					Action = message => new TextCommandAnswer($"ID: {message.Chat.Id}, From: {message.From?.Id}")
 				},
 			});
 		}
