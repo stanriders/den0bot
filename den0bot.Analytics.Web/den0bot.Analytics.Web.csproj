@@ -7,13 +7,13 @@
 
   <ItemGroup>
     <PackageReference Include="Highsoft.Highcharts" Version="11.4.6.3" />
-    <PackageReference Include="System.Runtime.Caching" Version="8.0.0" />
-    <PackageReference Include="Telegram.Bot" Version="19.0.0" />
-    <PackageReference Include="Serilog.AspNetCore" Version="8.0.2" />
-    <PackageReference Include="Serilog.Sinks.File" Version="6.0.0" />
+    <PackageReference Include="System.Runtime.Caching" Version="8.0.1" />
+    <PackageReference Include="Telegram.Bot" Version="22.6.0" />
+    <PackageReference Include="Serilog.AspNetCore" Version="8.0.3" />
+    <PackageReference Include="Serilog.Sinks.File" Version="7.0.0" />
     <PackageReference Include="Serilog.Sinks.Seq" Version="8.0.0" />
-    <PackageReference Include="Serilog.Enrichers.ClientInfo" Version="2.1.1" />
-    <PackageReference Include="UAParser.Core" Version="4.0.4" />
+    <PackageReference Include="Serilog.Enrichers.ClientInfo" Version="2.6.0" />
+    <PackageReference Include="UAParser.Core" Version="4.0.5" />
   </ItemGroup>
 
   <ItemGroup>

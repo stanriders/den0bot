@@ -1,4 +1,4 @@
-﻿// den0bot (c) StanR 2023 - MIT License
+﻿// den0bot (c) StanR 2025 - MIT License
 using System;
 using System.IO;
 using System.Linq;
@@ -55,7 +55,7 @@ namespace den0bot.Analytics.Web.Caches
 			{
 				await using var db = new AnalyticsDatabase();
 
-				var tgUser = (await client.GetChatMemberAsync(chatId, (int)userId)).User;
+				var tgUser = (await client.GetChatMember(chatId, (int)userId)).User;
 				var dbUser = await db.Users.FirstOrDefaultAsync(x => x.Id == userId);
 				if (dbUser != null)
 				{
@@ -100,19 +100,19 @@ namespace den0bot.Analytics.Web.Caches
 			}
 		}
 
-		public async Task<Chat?> GetChat(long chatId)
+		public async Task<ChatFullInfo?> GetChat(long chatId)
 		{
 			var cacheKey = $"chat_{chatId}";
 
 			if (cache.Contains(cacheKey))
-				return cache[cacheKey] as Chat;
+				return cache[cacheKey] as ChatFullInfo;
 
 			if (nullCache.Contains(cacheKey))
 				return null;
 
 			try
 			{
-				var chat = await client.GetChatAsync(chatId);
+				var chat = await client.GetChat(chatId);
 				cache.Add(cacheKey, chat, DateTimeOffset.Now.AddDays(1));
 				return chat;
 			}
@@ -168,7 +168,7 @@ namespace den0bot.Analytics.Web.Caches
 
 			try
 			{
-				var avatarId = await client.GetUserProfilePhotosAsync((int)userId, 0, 1);
+				var avatarId = await client.GetUserProfilePhotos((int)userId, 0, 1);
 				if (avatarId.Photos.Length > 0)
 					await DownloadTelegramFile(avatarId.Photos[0][0].FileId, avatarLocalPath);
 
@@ -194,10 +194,10 @@ namespace den0bot.Analytics.Web.Caches
 
 			await using var stream = new MemoryStream();
 
-			var file = await client.GetFileAsync(fileId);
+			var file = await client.GetFile(fileId);
 			if (file.FilePath != null)
 			{
-				await client.DownloadFileAsync(file.FilePath, stream);
+				await client.DownloadFile(file.FilePath, stream);
 
 				await System.IO.File.WriteAllBytesAsync(path, stream.ToArray());
 			}

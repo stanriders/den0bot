@@ -1,7 +1,8 @@
-// den0bot (c) StanR 2023 - MIT License
+// den0bot (c) StanR 2025 - MIT License
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
 using Serilog;
+using Serilog.Enrichers;
 using Serilog.Events;
 
 namespace den0bot.Analytics.Web
@@ -22,7 +23,7 @@ namespace den0bot.Analytics.Web
 					.MinimumLevel.Override("System.Net.Http", LogEventLevel.Warning)
 					.Enrich.FromLogContext()
 					.Enrich.WithProperty("Application", "den0bot.Analytics.Web")
-					.Enrich.WithClientIp("CF-Connecting-IP")
+					.Enrich.WithClientIp()
 					.Enrich.WithRequestHeader("CF-IPCountry")
 					.Enrich.WithRequestHeader("Referer")
 					.Enrich.WithRequestHeader("User-Agent")
