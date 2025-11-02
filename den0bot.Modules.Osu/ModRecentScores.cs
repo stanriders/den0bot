@@ -391,6 +391,7 @@ namespace den0bot.Modules.Osu
 							fcScore.Statistics[HitResult.Miss] = 0;
 							fcScore.Combo = beatmap.MaxCombo.Value;
 							fcScore.Accuracy = PpCalculation.GetAccuracyForRuleset(beatmap, fcScore.Statistics);
+							fcScore.LegacyTotalScore = null; // reset legacy score so that sb estimation doesnt break
 
 							double possiblePPval =
 								PpCalculation.CalculatePerformance(fcScore.ToScoreInfo(), attributes, beatmap) ?? 0;
