@@ -39,7 +39,7 @@ namespace den0bot.Modules
 
 			if (tiktokRegex.IsMatch(message.Text))
 			{
-				await API.SendMessage(message.Text.Replace("tiktok.com", "vxtiktok.com"), message.Chat.Id, replyToId: message.MessageId, disablePreview: false);
+				await API.SendMessage(message.Text.Replace("tiktok.com", "kktiktok.com"), message.Chat.Id, replyToId: message.MessageId, disablePreview: false);
 			}
 		}
 	}
