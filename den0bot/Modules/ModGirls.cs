@@ -144,51 +144,49 @@ namespace den0bot.Modules
 				antispamBuffer.Add(chatId, new Queue<SentGirl>(antispam_buffer_capacity));
 
 			var picture = seasonal ? await GetGirlSeasonal(chatId) : await GetGirl(chatId);
-			if (picture != null && picture.Link != string.Empty)
+			if (picture == null || picture.Link == string.Empty) 
+				return Localization.GetAnswer("generic_fail", chatId);
+
+			var sentMessage = await API.SendPhoto(picture.Link, 
+				chatId, 
+				seasonal ? $"{picture.SeasonRating} (s{picture.Season})" : picture.Rating.ToString(), 
+				ParseMode.None, 
+				0, 
+				buttons,
+				false);
+
+			if (sentMessage != null)
 			{
-				var sentMessage = await API.SendPhoto(picture.Link, 
-					chatId, 
-					seasonal ? $"{picture.SeasonRating} (s{picture.Season})" : picture.Rating.ToString(), 
-					ParseMode.None, 
-					0, 
-					buttons,
-					false);
-
-				if (sentMessage != null)
+				var girl = new SentGirl
 				{
-					var girl = new SentGirl
-					{
-						ID = picture.Id,
-						Rating = picture.Rating == int.MinValue ? 0 : picture.Rating,
-						Voters = new List<long>(),
-						PostTime = DateTime.Now,
-						MessageId = sentMessage.MessageId,
-						CommandMessageId = msg.MessageId,
-						Seasonal = seasonal,
-						Season = DatabaseCache.GetGirlSeason(),
-						SeasonalRating = picture.SeasonRating == int.MinValue ? 0 : picture.SeasonRating
-					};
-					sentGirlsCache.Add(sentMessage.MessageId.ToString(), girl, DateTimeOffset.Now.AddDays(days_to_keep_messages));
-					antispamBuffer[chatId].Enqueue(girl);
+					ID = picture.Id,
+					Rating = picture.Rating == int.MinValue ? 0 : picture.Rating,
+					Voters = new List<long>(),
+					PostTime = DateTime.Now,
+					MessageId = sentMessage.MessageId,
+					CommandMessageId = msg.MessageId,
+					Seasonal = seasonal,
+					Season = DatabaseCache.GetGirlSeason(),
+					SeasonalRating = picture.SeasonRating == int.MinValue ? 0 : picture.SeasonRating
+				};
+				sentGirlsCache.Add(sentMessage.MessageId.ToString(), girl, DateTimeOffset.Now.AddDays(days_to_keep_messages));
+				antispamBuffer[chatId].Enqueue(girl);
 
-					if (antispamBuffer[chatId].Count == antispam_buffer_capacity)
+				if (antispamBuffer[chatId].Count == antispam_buffer_capacity)
+				{
+					// check if third girl in a queue was posted less than antispam_cooldown seconds ago and remove it
+					var oldestGirl = antispamBuffer[chatId].Dequeue();
+					var cd = oldestGirl.PostTime.AddSeconds(antispam_cooldown);
+					if (cd > DateTime.Now)
 					{
-						// check if third girl in a queue was posted less than antispam_cooldown seconds ago and remove it
-						var oldestGirl = antispamBuffer[chatId].Dequeue();
-						var cd = oldestGirl.PostTime.AddSeconds(antispam_cooldown);
-						if (cd > DateTime.Now)
-						{
-							sentGirlsCache.Remove(oldestGirl.MessageId.ToString());
-							await API.RemoveMessage(chatId, oldestGirl.MessageId);
-							await API.RemoveMessage(chatId, oldestGirl.CommandMessageId);
-						}
+						sentGirlsCache.Remove(oldestGirl.MessageId.ToString());
+						await API.RemoveMessage(chatId, oldestGirl.MessageId);
+						await API.RemoveMessage(chatId, oldestGirl.CommandMessageId);
 					}
 				}
-
-				return new EmptyCommandAnswer();
 			}
 
-			return Localization.GetAnswer("generic_fail", chatId);
+			return new EmptyCommandAnswer();
 		}
 
 		private async Task<ICommandAnswer> GetRandomPlatinumGirl(Telegram.Bot.Types.Chat sender)
@@ -403,7 +401,7 @@ namespace den0bot.Modules
 				if (girl is null)
 					return null;
 
-				if (sentGirlsCache.Any(x => ((SentGirl)x.Value).ID == girl.Id))
+				if (sentGirlsCache.Any(x => (x.Value as SentGirl)?.ID == girl.Id))
 				{
 					iteration++;
 					continue;
@@ -436,7 +434,7 @@ namespace den0bot.Modules
 					return null;
 				}
 
-				if (sentGirlsCache.Any(x => ((SentGirl)x.Value).ID == girl.Id))
+				if (sentGirlsCache.Any(x => (x.Value as SentGirl)?.ID == girl.Id))
 				{
 					iteration++;
 					continue;
@@ -477,10 +475,11 @@ namespace den0bot.Modules
 				foreach (var girl in girlsToMigrate)
 				{
 					girl.ChatID = msg.Chat.Id;
-					db.Girls.Update(girl);
 				}
 
 				await db.SaveChangesAsync();
+
+				return Localization.GetAnswer("generic_fail", msg.Chat.Id);
 			}
 
 			return Localization.GetAnswer("generic_fail", msg.Chat.Id);
