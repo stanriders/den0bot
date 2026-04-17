@@ -17,7 +17,8 @@ namespace den0bot.Modules
 			"Paired_Hippo_Nyasticks2",
 			"baby_hippo_Nyasticks",
 			"hippo3_Nyasticks",
-			"Begemotik_2"
+			"Begemotik_2",
+			"MooDoong_Baby_Pygmy_Nyasticks"
 		};
 
 		private const string begemotik_idi_nahuy =
@@ -57,7 +58,7 @@ namespace den0bot.Modules
 					return;
 				}
 
-				if (sticker.SetName.Contains("hippo", StringComparison.InvariantCultureIgnoreCase) &&
+				if ((sticker.SetName.Contains("hippo", StringComparison.InvariantCultureIgnoreCase) || sticker.SetName.Contains("moodoong", StringComparison.InvariantCultureIgnoreCase)) &&
 				    sticker.SetName.Contains("nyasticks", StringComparison.InvariantCultureIgnoreCase))
 				{
 					await API.SendSticker(
