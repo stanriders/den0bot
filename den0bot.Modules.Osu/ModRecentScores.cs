@@ -311,10 +311,10 @@ namespace den0bot.Modules.Osu
 		private string FormatScore(Score score, Beatmap? beatmap, bool useAgo)
 		{
 			string mods = string.Empty;
-			if (score.Mods.Count(x => x.Acronym != "CL") > 0)
+			if (score.Mods.Any())
 			{
 				mods = " +";
-				foreach (var mod in score.Mods.Where(x => x.Acronym != "CL"))
+				foreach (var mod in score.Mods)
 				{
 					if (mod.Acronym != "DA")
 						mods += mod.Acronym;

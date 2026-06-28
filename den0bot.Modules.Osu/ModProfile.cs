@@ -64,8 +64,8 @@ namespace den0bot.Modules.Osu
 				Score score = topscores[i];
 
 				string mods = string.Empty;
-				if (score.Mods.Any(x => x.Acronym != "CL"))
-					mods = $" +{string.Join("", score.Mods.Where(x=> x.Acronym != "CL").Select(x=> x.Acronym))}";
+				if (score.Mods.Any())
+					mods = $" +{string.Join("", score.Mods.Select(x=> x.Acronym))}";
 
 				// 1. 123pp | Artist - Title [Diffname] +Mods (Rank, Accuracy%)
 				string mapName = $"{score.BeatmapSet?.Artist} - {score.BeatmapSet?.Title} [{score.Beatmap?.DifficultyName}]".FilterToHTML();
