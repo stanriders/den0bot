@@ -1,4 +1,4 @@
-﻿// den0bot (c) StanR 2025 - MIT License
+﻿// den0bot (c) StanR 2026 - MIT License
 using System;
 using System.Linq;
 using den0bot.Util;
@@ -108,7 +108,7 @@ namespace den0bot.Modules.Osu.Types.V2
 		}
 		public double ModdedBPM(APIMod[] mods)
 		{
-			if (mods.Any(x=> x.Acronym is "DT" or "NC") /*|| mods.HasFlag(LegacyMods.NC))*/)
+			if (mods.Any(x=> x.Acronym is "DT" or "NC"))
 			{
 				var dt = mods.FirstOrDefault(x => x.Acronym is "DT" or "NC");
 				if (dt?.Settings?.ContainsKey("speed_change") ?? false)
@@ -119,7 +119,7 @@ namespace den0bot.Modules.Osu.Types.V2
 				
 				return BPM * 1.5;
 			}
-			else if (mods.Any(x => x.Acronym == "HT") )
+			else if (mods.Any(x => x.Acronym is "HT" or "DC") )
 			{
 				var ht = mods.FirstOrDefault(x => x.Acronym == "HT");
 				if (ht?.Settings?.ContainsKey("speed_change") ?? false)
@@ -181,7 +181,7 @@ namespace den0bot.Modules.Osu.Types.V2
 
 				finalAR = (11700.0 - (6 * ms)) / 900.0;
 			}
-			else if (mods.Any(x => x.Acronym == "HT"))
+			else if (mods.Any(x => x.Acronym is "HT" or "DC"))
 			{
 				var ht = mods.FirstOrDefault(x => x.Acronym == "HT");
 				if (ht?.Settings?.ContainsKey("speed_change") ?? false)
@@ -227,7 +227,7 @@ namespace den0bot.Modules.Osu.Types.V2
 					finalOD = (79.5 - (ms / 1.5)) / 6;
 				}
 			}
-			else if (mods.Any(x => x.Acronym == "HT"))
+			else if (mods.Any(x => x.Acronym is "HT" or "DC"))
 			{
 				var ht = mods.FirstOrDefault(x => x.Acronym == "HT");
 				if (ht?.Settings?.ContainsKey("speed_change") ?? false)
@@ -251,25 +251,25 @@ namespace den0bot.Modules.Osu.Types.V2
 				if (dt?.Settings?.ContainsKey("speed_change") ?? false)
 				{
 					var speedChange = (double)dt.Settings["speed_change"];
-					return TimeSpan.FromSeconds((long)(Length / speedChange));
+					return TimeSpan.FromMilliseconds((long)(Length / speedChange));
 				}
 
-				return TimeSpan.FromSeconds((long)(Length / 1.5));
+				return TimeSpan.FromMilliseconds((long)(Length / 1.5));
 			}
 
-			if (mods.Any(x => x.Acronym == "HT"))
+			if (mods.Any(x => x.Acronym is "HT" or "DC"))
 			{
-				var ht = mods.FirstOrDefault(x => x.Acronym == "HT");
+				var ht = mods.FirstOrDefault(x => x.Acronym is "HT" or "DC");
 				if (ht?.Settings?.ContainsKey("speed_change") ?? false)
 				{
 					var speedChange = (double)ht.Settings["speed_change"];
-					return TimeSpan.FromSeconds((long)(Length / speedChange));
+					return TimeSpan.FromMilliseconds((long)(Length / speedChange));
 				}
 
-				return TimeSpan.FromSeconds((long)(Length / 0.75));
+				return TimeSpan.FromMilliseconds((long)(Length / 0.75));
 			}
 
-			return TimeSpan.FromSeconds(Length);
+			return TimeSpan.FromMilliseconds(Length);
 		}
 	}
 }
