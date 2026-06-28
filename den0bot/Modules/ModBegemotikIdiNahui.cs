@@ -58,7 +58,9 @@ namespace den0bot.Modules
 					return;
 				}
 
-				if ((sticker.SetName.Contains("hippo", StringComparison.InvariantCultureIgnoreCase) || sticker.SetName.Contains("moodoong", StringComparison.InvariantCultureIgnoreCase)) &&
+				if ((sticker.SetName.Contains("hippo", StringComparison.InvariantCultureIgnoreCase) || 
+				    sticker.SetName.Contains("moodoong", StringComparison.InvariantCultureIgnoreCase) || 
+				    sticker.SetName.Contains("begemot", StringComparison.InvariantCultureIgnoreCase)) &&
 				    sticker.SetName.Contains("nyasticks", StringComparison.InvariantCultureIgnoreCase))
 				{
 					await API.SendSticker(
