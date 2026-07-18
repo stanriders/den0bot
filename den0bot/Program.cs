@@ -49,6 +49,7 @@ void ConfigureServices(HostBuilderContext context, IServiceCollection services)
 	ConfigureModules(services);
 
 	services.AddHostedService<Bot>();
+	services.AddMemoryCache();
 }
 
 void ConfigureModules(IServiceCollection services)

@@ -1,10 +1,12 @@
-﻿// den0bot (c) StanR 2025 - MIT License
+﻿// den0bot (c) StanR 2026 - MIT License
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using den0bot.Types;
+using den0bot.Types.Answers;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
@@ -25,6 +27,8 @@ namespace den0bot.Modules
 		private readonly Dictionary<long, KulakState> _kulakState = new();
 		private readonly Dictionary<long, KulakState> _sorryState = new();
 
+		private readonly IMemoryCache _masteryCache;
+
 		private readonly InlineKeyboardMarkup _kulakButton = new(
 			new[] { new InlineKeyboardButton("🤛") { CallbackData = "kulak" },
 			}
@@ -37,8 +41,9 @@ namespace den0bot.Modules
 
 		private const int seconds = 60 * 3;
 
-		public ModKulak(ILogger<IModule> logger) : base(logger)
+		public ModKulak(ILogger<IModule> logger, IMemoryCache masteryCache) : base(logger)
 		{
+			_masteryCache = masteryCache;
 			AddCommands(new[]
 			{
 				new Command
@@ -51,7 +56,71 @@ namespace den0bot.Modules
 					Name = "sorry",
 					ActionAsync = Sorry
 				},
+				new Command
+				{
+					Name = "mastery",
+					ActionAsync = Mastery,
+					Reply = true
+				}
 			});
+		}
+
+		private async Task<ICommandAnswer> Mastery(Message message)
+		{
+			if (message?.From == null)
+				return null;
+
+			var key = $"mastery_{message.From.Id}";
+			var keyPost = $"mastery_{message.From.Id}_lastpost";
+
+			if (_masteryCache.TryGetValue(key, out string mastery))
+			{
+				if (_masteryCache.TryGetValue(keyPost, out _))
+				{
+					await API.RemoveMessage(message.Chat.Id, message.Id);
+					return new EmptyCommandAnswer();
+				}
+
+				_masteryCache.Set(keyPost, "", TimeSpan.FromMinutes(1));
+				return new StickerCommandAnswer(mastery);
+			}
+
+			var stickers = new List<(string, double)>
+			{
+				("CAACAgIAAxkBAAERkAZqW2sdZOk3pnEniY6y3UoFe7hFTwACq54AAtlw2Up4ylO2YVow8T0E", 60), // none
+				("CAACAgIAAxkBAAERj_ZqW2m7K91mA_vG4NpjfDoW9pDq8gAC7acAAsrT2UrVVTZTOIrrBT0E", 50), // mastery 4
+				("CAACAgIAAxkBAAERj_hqW2m9IPyyY0BVTEf4_UhwurY3-wAC85oAAsSv2UpHbFEvb7qBaj0E", 50), // mastery 5
+				("CAACAgIAAxkBAAERj_pqW2nBUBa4NsyLeRiS_gLhd0cjrAAC1p4AAgu04ErXKm3N-dTXhj0E", 20), // mastery 6
+				("CAACAgIAAxkBAAERj_xqW2nCi5KTEkvBxzaLvuoyJGLUyAACL6IAAknP2UqkSOiPNNZWpz0E", 20), // mastery 7
+				("CAACAgIAAxkBAAERj_5qW2nFxCNtCgUNBAvg3kXkjEPaYQACoJ8AAiJY4UrPjYxUJtcxpT0E", 10), // mastery 8
+				("CAACAgIAAxkBAAERkAABaltpxi2AegGqXBF7LxA8WqTWULoAAgKnAAKTldlK350lJoXmuPQ9BA", 5),// mastery 9
+				("CAACAgIAAxkBAAERkAJqW2nKfoxqBnZFzRft94oW5YKh-wACZKkAAsCk4Ep_6IUnajiAIj0E", 5),  // mastery 10
+				("CAACAgIAAxkBAAERkARqW2nL0Y_JN53ma-e-KF1_Y3W66QACk7AAAtcT4Epn0aoICos3fz0E", 10), // mastery question
+				("CAACAgIAAxkBAAERj_RqW2m2YEndvXOGdo4BBWq512241wACL6UAAqQH2ErXNhc8HuSCcD0E", 5)   // mastery wood
+			};
+
+			double totalWeight = 0;
+
+			foreach (var (_, weight) in stickers)
+				totalWeight += weight;
+
+			double roll = Random.Shared.NextDouble() * totalWeight;
+
+			foreach (var (item, weight) in stickers)
+			{
+				roll -= weight;
+
+				if (roll <= 0)
+				{
+					_masteryCache.Set(key, item, TimeSpan.FromSeconds(seconds));
+					_masteryCache.Set(keyPost, "", TimeSpan.FromMinutes(1));
+					return new StickerCommandAnswer(item);
+				}
+			}
+
+			_masteryCache.Set(key, stickers[0].Item1, TimeSpan.FromSeconds(seconds));
+			_masteryCache.Set(keyPost, "", TimeSpan.FromMinutes(1));
+			return new StickerCommandAnswer(stickers[0].Item1);
 		}
 
 		private async Task<ICommandAnswer> Sorry(Message message)
